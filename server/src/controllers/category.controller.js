@@ -1,18 +1,15 @@
-import { Request, Response } from 'express';
 import { prisma } from '../config/database.js';
 
-export const createCategory = async (req: Request, res: Response): Promise<void> => {
+export const createCategory = async (req, res) => {
   try {
     const { company_id, name } = req.body;
 
     if (!company_id) {
-      res.status(400).json({ error: 'company_id is required' });
-      return;
+      return res.status(400).json({ error: 'company_id is required' });
     }
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
-      res.status(400).json({ error: 'Valid category name is required' });
-      return;
+      return res.status(400).json({ error: 'Valid category name is required' });
     }
 
     // Check if company exists
@@ -21,8 +18,7 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
     });
 
     if (!companyExists) {
-      res.status(404).json({ error: `Company with ID ${company_id} not found` });
-      return;
+      return res.status(404).json({ error: `Company with ID ${company_id} not found` });
     }
 
     // Check if category already exists for this company
@@ -36,8 +32,7 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
     });
 
     if (existingCategory) {
-      res.status(400).json({ error: 'Category with this name already exists for the company' });
-      return;
+      return res.status(400).json({ error: 'Category with this name already exists for the company' });
     }
 
     const category = await prisma.category.create({
@@ -53,13 +48,12 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
   }
 };
 
-export const getCategories = async (req: Request, res: Response): Promise<void> => {
+export const getCategories = async (req, res) => {
   try {
     const { company_id } = req.query;
 
     if (!company_id) {
-      res.status(400).json({ error: 'company_id query parameter is required' });
-      return;
+      return res.status(400).json({ error: 'company_id query parameter is required' });
     }
 
     const categories = await prisma.category.findMany({

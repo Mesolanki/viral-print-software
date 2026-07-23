@@ -1,29 +1,24 @@
-import { Request, Response } from 'express';
 import { prisma } from '../config/database.js';
 import { Prisma } from '@prisma/client';
 
-export const createProduct = async (req: Request, res: Response): Promise<void> => {
+export const createProduct = async (req, res) => {
   try {
     const { company_id, category_id, name, unit, price, gst_rate, description } = req.body;
 
     if (!company_id) {
-      res.status(400).json({ error: 'company_id is required' });
-      return;
+      return res.status(400).json({ error: 'company_id is required' });
     }
 
     if (!category_id) {
-      res.status(400).json({ error: 'category_id is required' });
-      return;
+      return res.status(400).json({ error: 'category_id is required' });
     }
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
-      res.status(400).json({ error: 'Valid product name is required' });
-      return;
+      return res.status(400).json({ error: 'Valid product name is required' });
     }
 
     if (price === undefined || isNaN(Number(price)) || Number(price) < 0) {
-      res.status(400).json({ error: 'Valid positive price is required' });
-      return;
+      return res.status(400).json({ error: 'Valid positive price is required' });
     }
 
     // Check if company exists
@@ -32,23 +27,20 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     });
 
     if (!companyExists) {
-      res.status(404).json({ error: `Company with ID ${company_id} not found` });
-      return;
+      return res.status(404).json({ error: `Company with ID ${company_id} not found` });
     }
 
-    // Check if category exists and belongs to the company
+    // Check if category exists
     const categoryExists = await prisma.category.findUnique({
       where: { id: Number(category_id) },
     });
 
     if (!categoryExists) {
-      res.status(404).json({ error: `Category with ID ${category_id} not found` });
-      return;
+      return res.status(404).json({ error: `Category with ID ${category_id} not found` });
     }
 
     if (categoryExists.company_id !== Number(company_id)) {
-      res.status(400).json({ error: 'Selected category does not belong to the specified company' });
-      return;
+      return res.status(400).json({ error: 'Selected category does not belong to the specified company' });
     }
 
     const product = await prisma.product.create({
@@ -69,14 +61,13 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const updateProduct = async (req: Request, res: Response): Promise<void> => {
+export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const { category_id, name, unit, price, gst_rate, description } = req.body;
 
     if (!id || isNaN(Number(id))) {
-      res.status(400).json({ error: 'Valid product ID parameter is required' });
-      return;
+      return res.status(400).json({ error: 'Valid product ID parameter is required' });
     }
 
     // Check if product exists
@@ -85,36 +76,31 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
     });
 
     if (!existingProduct) {
-      res.status(404).json({ error: `Product with ID ${id} not found` });
-      return;
+      return res.status(404).json({ error: `Product with ID ${id} not found` });
     }
 
-    const updateData: any = {};
+    const updateData = {};
 
     if (category_id !== undefined) {
       if (isNaN(Number(category_id))) {
-        res.status(400).json({ error: 'Valid category_id is required' });
-        return;
+        return res.status(400).json({ error: 'Valid category_id is required' });
       }
       // Check if category exists
       const categoryExists = await prisma.category.findUnique({
         where: { id: Number(category_id) },
       });
       if (!categoryExists) {
-        res.status(404).json({ error: `Category with ID ${category_id} not found` });
-        return;
+        return res.status(404).json({ error: `Category with ID ${category_id} not found` });
       }
       if (categoryExists.company_id !== existingProduct.company_id) {
-        res.status(400).json({ error: 'Selected category does not belong to the same company' });
-        return;
+        return res.status(400).json({ error: 'Selected category does not belong to the same company' });
       }
       updateData.category_id = Number(category_id);
     }
 
     if (name !== undefined) {
       if (typeof name !== 'string' || name.trim() === '') {
-        res.status(400).json({ error: 'Valid product name is required' });
-        return;
+        return res.status(400).json({ error: 'Valid product name is required' });
       }
       updateData.name = name.trim();
     }
@@ -125,16 +111,14 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
 
     if (price !== undefined) {
       if (isNaN(Number(price)) || Number(price) < 0) {
-        res.status(400).json({ error: 'Valid positive price is required' });
-        return;
+        return res.status(400).json({ error: 'Valid positive price is required' });
       }
       updateData.price = new Prisma.Decimal(Number(price));
     }
 
     if (gst_rate !== undefined) {
       if (isNaN(Number(gst_rate)) || Number(gst_rate) < 0) {
-        res.status(400).json({ error: 'Valid positive gst_rate is required' });
-        return;
+        return res.status(400).json({ error: 'Valid positive gst_rate is required' });
       }
       updateData.gst_rate = new Prisma.Decimal(Number(gst_rate));
     }
@@ -154,13 +138,12 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
+export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
     if (!id || isNaN(Number(id))) {
-      res.status(400).json({ error: 'Valid product ID parameter is required' });
-      return;
+      return res.status(400).json({ error: 'Valid product ID parameter is required' });
     }
 
     // Check if product exists
@@ -169,8 +152,7 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
     });
 
     if (!existingProduct) {
-      res.status(404).json({ error: `Product with ID ${id} not found` });
-      return;
+      return res.status(404).json({ error: `Product with ID ${id} not found` });
     }
 
     // Delete product
@@ -184,16 +166,15 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const getProducts = async (req: Request, res: Response): Promise<void> => {
+export const getProducts = async (req, res) => {
   try {
     const { company_id, search, category_id } = req.query;
 
     if (!company_id) {
-      res.status(400).json({ error: 'company_id query parameter is required' });
-      return;
+      return res.status(400).json({ error: 'company_id query parameter is required' });
     }
 
-    const whereClause: any = {
+    const whereClause = {
       company_id: Number(company_id),
     };
 
