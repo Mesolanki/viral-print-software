@@ -1,1 +1,6 @@
-// JWT secret and expiration configuration
+import { env } from './env.js';
+
+export const jwtConfig = {
+  secret: env.jwtSecret,
+  expiresIn: env.jwtExpiresIn
+};

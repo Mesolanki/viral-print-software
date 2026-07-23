@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/server.js",
     "build": "tsc",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
@@ -16,8 +17,10 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.0",
     "@prisma/client": "^7.9.0",
+    "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.22.0"
   },
   "devDependencies": {

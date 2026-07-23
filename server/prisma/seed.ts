@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import dotenv from 'dotenv';
-import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -11,9 +11,9 @@ const pool = new pg.Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-// Simple SHA-256 password hashing for seed (to avoid external dependencies for now)
+// Professional bcrypt password hashing for seed
 function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex');
+  return bcrypt.hashSync(password, 10);
 }
 
 async function main() {
