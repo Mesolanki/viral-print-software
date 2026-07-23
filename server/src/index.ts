@@ -1,21 +1,19 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
+import { prisma } from './config/database.js';
+import categoryRoutes from './routes/category.routes.js';
+import productRoutes from './routes/product.routes.js';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Setup Prisma Client with Postgres adapter (Prisma 7 style)
-const connectionString = process.env.DATABASE_URL;
-const pool = new pg.Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
-
 app.use(express.json());
+
+// Register API Routes
+app.use('/api/categories', categoryRoutes);
+app.use('/api/products', productRoutes);
 
 app.get('/api/health', async (req, res) => {
   try {
