@@ -68,5 +68,31 @@ export const userRepository = {
         }
       }
     });
+  },
+
+  /**
+   * Find all users matching where clause
+   * @param {object} whereClause 
+   * @returns {Promise<Array>}
+   */
+  async findAll(whereClause = {}) {
+    return await prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        company_id: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
   }
 };

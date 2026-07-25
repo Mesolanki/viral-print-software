@@ -24,6 +24,7 @@
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "bootstrap": "^5.3.8",
+    "lucide-react": "^1.26.0",
     "react-bootstrap": "^2.10.10"
   },
   "devDependencies": {

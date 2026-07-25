@@ -2,6 +2,8 @@ import express from 'express';
 import authRouter from './routes/auth.routes.js';
 import categoryRouter from './routes/category.routes.js';
 import productRouter from './routes/product.routes.js';
+import userRouter from './routes/user.routes.js';
+import taskRouter from './routes/task.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 
 const app = express();
@@ -35,6 +37,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/categories', categoryRouter);
 app.use('/api/products', productRouter);
+app.use('/api/users', userRouter);
+app.use('/api/tasks', taskRouter);
 
 // 5. Catch 404 (Not Found) Route
 app.use((req, res, next) => {

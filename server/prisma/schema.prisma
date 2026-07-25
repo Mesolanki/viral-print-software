@@ -25,6 +25,7 @@ model Company {
   products     Product[]
   purchases    Purchase[]
   invoices     Invoice[]
+  tasks        Task[]
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
@@ -65,9 +66,11 @@ model User {
   name       String
   username   String   @unique
   password   String
-  role_id    Int      @map("role_id")
-  role       Role     @relation(fields: [role_id], references: [id])
-  createdAt  DateTime @default(now()) @map("created_at")
+  role_id       Int      @map("role_id")
+  role          Role     @relation(fields: [role_id], references: [id])
+  assignedTasks Task[]   @relation("AssignedTasks")
+  createdTasks  Task[]   @relation("CreatedTasks")
+  createdAt     DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("users")
@@ -252,3 +255,36 @@ model Ledger {
   @@map("ledger")
 }
 
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Task {
+  id             Int          @id @default(autoincrement())
+  company_id     Int          @map("company_id")
+  company        Company      @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  status         TaskStatus   @default(PENDING)
+  priority       TaskPriority @default(MEDIUM)
+  start_date     DateTime?    @map("start_date")
+  due_date       DateTime?    @map("due_date")
+  assigned_to_id Int?         @map("assigned_to_id")
+  assigned_to    User?        @relation("AssignedTasks", fields: [assigned_to_id], references: [id], onDelete: SetNull)
+  created_by_id  Int?         @map("created_by_id")
+  created_by     User?        @relation("CreatedTasks", fields: [created_by_id], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@map("tasks")
+}

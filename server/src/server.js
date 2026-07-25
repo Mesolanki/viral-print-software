@@ -10,10 +10,11 @@ const startServer = async () => {
     console.log('Database connection established successfully!');
 
     // Start Express server
-    const server = app.listen(env.port, () => {
+    const server = app.listen(env.port, '0.0.0.0', () => {
       console.log(`=================================`);
       console.log(`Server is running in ${env.nodeEnv} mode`);
-      console.log(`Listening at http://localhost:${env.port}`);
+      console.log(`Listening locally at http://localhost:${env.port}`);
+      console.log(`Listening across LAN network on all IPs at port ${env.port}`);
       console.log(`=================================`);
     });
 
