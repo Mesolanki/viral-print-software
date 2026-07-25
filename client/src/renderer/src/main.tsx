@@ -1,4 +1,5 @@
-// Global styles — base design system (dark theme, fonts, resets)
+import 'bootstrap/dist/css/bootstrap.min.css'
+import './assets/main.css'
 import './assets/base.css'
 
 import { StrictMode } from 'react'
