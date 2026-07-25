@@ -258,16 +258,3 @@ function App(): React.JSX.Element {
 }
 
 export default App
-                    </Card.Body >
-                  </Card >
-                </Col >
-              </Row >
-            </div >
-          )}
-        </main >
-      </div >
-    </div >
-  )
-}
-
-export default App
