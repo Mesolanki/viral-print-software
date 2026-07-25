@@ -1,123 +1,77 @@
 import { userRepository } from '../repositories/user.repository.js';
-import { prisma } from '../config/database.js';
 import { hashPassword, comparePassword } from '../utils/hash.js';
 import { generateToken } from '../utils/jwt.js';
 import { ApiError } from '../utils/ApiError.js';
 
 /**
- * Format database user record into a clean profile response object
+ * Format a database user record into a clean, safe API response.
+ * Never exposes password_hash.
  */
 const formatUserResponse = (user) => {
-  const permissions = user.role?.permissions?.map(rp => rp.permission.permission_name) || [];
+  const permissions =
+    user.role?.permissions?.map((rp) => rp.permission.permission_name) || [];
+
   return {
     id: user.id,
-    name: user.name,
+    fullName: user.full_name,
     username: user.username,
-    role: user.role?.name,
+    status: user.status,
+    lastLogin: user.last_login,
+    role: {
+      id: user.role?.id,
+      name: user.role?.name,
+      label: user.role?.label,
+    },
     permissions,
     company: {
-      id: user.company.id,
-      name: user.company.company_name,
-      gstNumber: user.company.gst_number,
-      address: user.company.address,
-      phone: user.company.phone
-    }
+      id: user.company?.id,
+      name: user.company?.company_name,
+      gstNumber: user.company?.gst_number,
+      address: user.company?.address,
+      phone: user.company?.phone,
+    },
   };
 };
 
 export const authService = {
   /**
-   * Register a new company and its administrator
-   */
-  async registerUser({ name, username, password, companyName }) {
-    // 1. Check if user already exists
-    const existingUser = await userRepository.findByUsername(username);
-    if (existingUser) {
-      throw new ApiError(400, 'Username already exists. Please choose a different one.');
-    }
-
-    // 2. Fetch the ADMIN role
-    const adminRole = await prisma.role.findUnique({
-      where: { name: 'ADMIN' }
-    });
-    if (!adminRole) {
-      throw new ApiError(500, 'System role (ADMIN) not initialized in the database. Please seed the database.');
-    }
-
-    // 3. Hash password
-    const hashedPassword = await hashPassword(password);
-
-    // 4. Perform transaction to create Company and User
-    const result = await prisma.$transaction(async (tx) => {
-      // Create company
-      const company = await tx.company.create({
-        data: {
-          company_name: companyName,
-          gst_number: '',
-          address: '',
-          phone: '',
-          logo: ''
-        }
-      });
-
-      // Create admin user linked to this company
-      const user = await tx.user.create({
-        data: {
-          name,
-          username,
-          password: hashedPassword,
-          company_id: company.id,
-          role_id: adminRole.id
-        },
-        include: {
-          company: true,
-          role: {
-            include: {
-              permissions: {
-                include: {
-                  permission: true
-                }
-              }
-            }
-          }
-        }
-      });
-
-      return user;
-    });
-
-    // 5. Generate token & return
-    const userPayload = formatUserResponse(result);
-    const token = generateToken({ id: userPayload.id, username: userPayload.username });
-
-    return { user: userPayload, token };
-  },
-
-  /**
-   * Login user and generate access token
+   * Authenticate user login.
+   * Checks: user exists → password correct → status is ACTIVE
+   * Records last login time on success.
    */
   async loginUser({ username, password }) {
-    // 1. Retrieve user
+    // 1. Find user
     const user = await userRepository.findByUsername(username);
     if (!user) {
       throw new ApiError(401, 'Invalid username or password');
     }
 
-    // 2. Compare password
-    const isPasswordMatch = await comparePassword(password, user.password);
-    if (!isPasswordMatch) {
+    // 2. Verify password
+    const isMatch = await comparePassword(password, user.password_hash);
+    if (!isMatch) {
       throw new ApiError(401, 'Invalid username or password');
     }
 
-    // 3. Generate token & return
+    // 3. Check account status — inactive users cannot log in
+    if (user.status === 'INACTIVE') {
+      throw new ApiError(
+        403,
+        'Your account is inactive. Please contact the administrator.'
+      );
+    }
+
+    // 4. Record last login timestamp
+    await userRepository.updateLastLogin(user.id);
+
+    // 5. Generate JWT
     const userPayload = formatUserResponse(user);
-    const token = generateToken({ id: userPayload.id, username: userPayload.username });
+    const token = generateToken({ id: user.id, username: user.username });
 
     return { user: userPayload, token };
   },
 
   /**
-   * Get user profile by user id
+   * Get the currently authenticated user's profile.
    */
   async getUserProfile(userId) {
     const user = await userRepository.findById(userId);
@@ -125,5 +79,26 @@ export const authService = {
       throw new ApiError(404, 'User profile not found');
     }
     return formatUserResponse(user);
-  }
+  },
+
+  /**
+   * Change password for a user.
+   * Verifies old password before updating.
+   */
+  async changePassword({ userId, oldPassword, newPassword }) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new ApiError(404, 'User not found');
+    }
+
+    const isMatch = await comparePassword(oldPassword, user.password_hash);
+    if (!isMatch) {
+      throw new ApiError(400, 'Current password is incorrect');
+    }
+
+    const newHash = await hashPassword(newPassword);
+    await userRepository.updateById(userId, { password_hash: newHash });
+
+    return { message: 'Password changed successfully' };
+  },
 };

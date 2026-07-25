@@ -1,7 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// ============================================================
+// Viral Print Media - Prisma Schema
+// ============================================================
 
 generator client {
   provider = "prisma-client-js"
@@ -10,6 +9,39 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum InvoiceType {
+  TAX_INVOICE
+  ESTIMATE
+}
+
+enum InvoiceStatus {
+  PAID
+  UNPAID
+  PARTIALLY_PAID
+  CANCELLED
+}
+
+enum PaymentType {
+  CASH
+  BANK
+  UPI
+  CARD
+  OTHER
+}
+
+// ============================================================
+// COMPANY
+// ============================================================
 
 model Company {
   id           Int        @id @default(autoincrement())
@@ -31,9 +63,14 @@ model Company {
   @@map("companies")
 }
 
+// ============================================================
+// ROLES & PERMISSIONS
+// ============================================================
+
 model Role {
   id          Int              @id @default(autoincrement())
   name        String           @unique
+  label       String           @default("")
   users       User[]
   permissions RolePermission[]
 
@@ -49,8 +86,8 @@ model Permission {
 }
 
 model RolePermission {
-  role_id       Int @map("role_id")
-  permission_id Int @map("permission_id")
+  role_id       Int        @map("role_id")
+  permission_id Int        @map("permission_id")
   role          Role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
   permission    Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
 
@@ -58,20 +95,48 @@ model RolePermission {
   @@map("role_permissions")
 }
 
+// ============================================================
+// USERS
+// ============================================================
+
 model User {
-  id         Int      @id @default(autoincrement())
-  company_id Int      @map("company_id")
-  company    Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  name       String
-  username   String   @unique
-  password   String
-  role_id    Int      @map("role_id")
-  role       Role     @relation(fields: [role_id], references: [id])
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id            Int        @id @default(autoincrement())
+  company_id    Int        @map("company_id")
+  company       Company    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  full_name     String     @map("full_name")
+  username      String     @unique
+  password_hash String     @map("password_hash")
+  role_id       Int        @map("role_id")
+  role          Role       @relation(fields: [role_id], references: [id])
+  status        UserStatus @default(ACTIVE)
+  created_by    Int?       @map("created_by")
+  last_login    DateTime?  @map("last_login")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
 
   @@map("users")
 }
+
+// ============================================================
+// ACTIVITY LOG
+// ============================================================
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  user_id    Int      @map("user_id")
+  username   String
+  action     String
+  module     String
+  detail     String?
+  ip_address String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("activity_logs")
+}
+
+// ============================================================
+// CUSTOMERS
+// ============================================================
 
 model Customer {
   id               Int      @id @default(autoincrement())
@@ -91,6 +156,10 @@ model Customer {
   @@map("customers")
 }
 
+// ============================================================
+// SUPPLIERS
+// ============================================================
+
 model Supplier {
   id         Int        @id @default(autoincrement())
   company_id Int        @map("company_id")
@@ -106,6 +175,10 @@ model Supplier {
 
   @@map("suppliers")
 }
+
+// ============================================================
+// CATEGORIES & PRODUCTS
+// ============================================================
 
 model Category {
   id         Int       @id @default(autoincrement())
@@ -139,6 +212,10 @@ model Product {
   @@map("products")
 }
 
+// ============================================================
+// PURCHASES
+// ============================================================
+
 model Purchase {
   id          Int            @id @default(autoincrement())
   company_id  Int            @map("company_id")
@@ -166,17 +243,9 @@ model PurchaseItem {
   @@map("purchase_items")
 }
 
-enum InvoiceType {
-  TAX_INVOICE
-  ESTIMATE
-}
-
-enum InvoiceStatus {
-  PAID
-  UNPAID
-  PARTIALLY_PAID
-  CANCELLED
-}
+// ============================================================
+// INVOICES
+// ============================================================
 
 model Invoice {
   id           Int           @id @default(autoincrement())
@@ -212,13 +281,9 @@ model InvoiceItem {
   @@map("invoice_items")
 }
 
-enum PaymentType {
-  CASH
-  BANK
-  UPI
-  CARD
-  OTHER
-}
+// ============================================================
+// PAYMENTS
+// ============================================================
 
 model Payment {
   id           Int         @id @default(autoincrement())
@@ -233,6 +298,10 @@ model Payment {
 
   @@map("payments")
 }
+
+// ============================================================
+// LEDGER
+// ============================================================
 
 model Ledger {
   id          Int      @id @default(autoincrement())
@@ -251,4 +320,3 @@ model Ledger {
 
   @@map("ledger")
 }
-

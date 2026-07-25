@@ -1,102 +1,128 @@
-import { useState } from 'react'
-import { Container, Row, Col, Card, Button, Navbar, Badge, Alert } from 'react-bootstrap'
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+/**
+ * App.tsx — Root application component
+ * Sets up routing and authentication guard.
+ */
 
-function App(): React.JSX.Element {
-  const [pingStatus, setPingStatus] = useState<string | null>(null)
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
 
-  const ipcHandle = (): void => {
-    window.electron.ipcRenderer.send('ping')
-    setPingStatus('Ping sent successfully via IPC!')
-    setTimeout(() => setPingStatus(null), 3000)
+// ── Protected Route Guard ────────────────────────────────────
+function ProtectedRoute({ children }: { children: React.ReactNode }): React.JSX.Element {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#080d1a',
+          fontFamily: 'Inter, sans-serif',
+          color: 'rgba(255,255,255,0.4)',
+          fontSize: '14px',
+          gap: '12px',
+        }}
+      >
+        <div
+          style={{
+            width: 20,
+            height: 20,
+            border: '2px solid rgba(0,174,239,0.3)',
+            borderTopColor: '#00AEEF',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
+        Loading…
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    )
   }
 
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <>{children}</>
+}
+
+// ── Public Route Guard (redirect if already logged in) ───────
+function PublicRoute({ children }: { children: React.ReactNode }): React.JSX.Element {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) return <></>
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return <>{children}</>
+}
+
+// ── Router ───────────────────────────────────────────────────
+function AppRouter(): React.JSX.Element {
   return (
-    <div className="bg-dark text-light min-vh-100 pb-5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-      <Navbar bg="dark" variant="dark" className="border-bottom border-secondary mb-4 px-4 py-3">
-        <Navbar.Brand href="#home" className="d-flex align-items-center gap-2 font-monospace fw-bold">
-          <img
-            alt="Electron Logo"
-            src={electronLogo}
-            width="30"
-            height="30"
-            className="d-inline-block align-top"
-          />{' '}
-          VIRAL PRINT SOFTWARE
-        </Navbar.Brand>
-        <div className="ms-auto">
-          <Badge bg="success" className="px-3 py-2 fs-6 shadow-sm">
-            Client Connected
-          </Badge>
-        </div>
-      </Navbar>
+    <Routes>
+      {/* Default: redirect to login */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
-      <Container>
-        {pingStatus && (
-          <Alert variant="info" onClose={() => setPingStatus(null)} dismissible className="shadow-lg border-info">
-            {pingStatus}
-          </Alert>
-        )}
+      {/* Login — public only */}
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        }
+      />
 
-        <Row className="gy-4">
-          {/* Main Hero Card */}
-          <Col lg={8}>
-            <Card className="bg-secondary bg-opacity-25 border-secondary text-light h-100 shadow-lg">
-              <Card.Body className="p-5 d-flex flex-column justify-content-between">
-                <div>
-                  <h1 className="display-5 fw-bold mb-3 text-info">
-                    Welcome to Viral Print Software
-                  </h1>
-                  <p className="lead text-light fs-5 opacity-75">
-                    A premium desktop application built using Electron, React, TypeScript, and Bootstrap. The backend server runs with Express, PostgreSQL, and Prisma ORM.
-                  </p>
-                </div>
-                <div className="d-flex gap-3 mt-4 flex-wrap">
-                  <Button variant="info" size="lg" className="px-4 py-2 text-dark fw-bold shadow-sm" onClick={ipcHandle}>
-                    Send IPC Ping
-                  </Button>
-                  <a href="https://electron-vite.org/" target="_blank" rel="noreferrer" className="btn btn-outline-secondary btn-lg px-4 py-2">
-                    Documentation
-                  </a>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
+      {/* Dashboard — protected */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
 
-          {/* System Info Sidebar */}
-          <Col lg={4}>
-            <Card className="bg-secondary bg-opacity-25 border-secondary text-light h-100 shadow-lg">
-              <Card.Header className="bg-dark bg-opacity-50 border-secondary py-3 fw-bold font-monospace text-uppercase text-secondary">
-                System Diagnostics
-              </Card.Header>
-              <Card.Body className="p-4 d-flex flex-column justify-content-between">
-                <div>
-                  <div className="mb-4">
-                    <h6 className="text-secondary text-uppercase fs-7 fw-bold font-monospace">Database Engine</h6>
-                    <div className="d-flex align-items-center gap-2">
-                      <div className="rounded-circle bg-success" style={{ width: '10px', height: '10px' }} />
-                      <span className="fw-semibold">PostgreSQL (Prisma ORM)</span>
-                    </div>
-                  </div>
-                  <div className="mb-4">
-                    <h6 className="text-secondary text-uppercase fs-7 fw-bold font-monospace">Backend Service</h6>
-                    <div className="d-flex align-items-center gap-2">
-                      <div className="rounded-circle bg-success" style={{ width: '10px', height: '10px' }} />
-                      <span className="fw-semibold">Express Server (Port 3000)</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="border-top border-secondary pt-3">
-                  <Versions />
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
-    </div>
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   )
 }
 
-export default App
+// ── Root App ─────────────────────────────────────────────────
+export default function App(): React.JSX.Element {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRouter />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: '#0F1729',
+              color: '#fff',
+              border: '1px solid rgba(0,174,239,0.2)',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '13px',
+            },
+            success: {
+              iconTheme: { primary: '#00AEEF', secondary: '#fff' },
+            },
+            error: {
+              iconTheme: { primary: '#ED1C24', secondary: '#fff' },
+            },
+          }}
+        />
+      </AuthProvider>
+    </BrowserRouter>
+  )
+}

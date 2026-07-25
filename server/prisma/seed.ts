@@ -11,142 +11,220 @@ const pool = new pg.Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-// Professional bcrypt password hashing for seed
 function hashPassword(password: string): string {
   return bcrypt.hashSync(password, 10);
 }
 
-async function main() {
-  console.log('Starting database seeding...');
+// ============================================================
+// ROLE → PERMISSIONS MATRIX
+// ============================================================
+// Permissions list
+const ALL_PERMISSIONS = [
+  'dashboard',
+  'manage_users',
+  'manage_customers',
+  'manage_products',
+  'manage_purchases',
+  'manage_invoices',
+  'view_invoices',
+  'delete_invoices',
+  'manage_payments',
+  'view_reports',
+  'view_ledger',
+  'view_gst_reports',
+  'manage_settings',
+  'create_invoice',
+  'receive_payment',
+  'print_bill',
+];
 
-  // 1. Create Default Permissions
-  const permissionsList = [
-    'manage_company',
+// Role definitions with human-readable labels
+const ROLES = [
+  { name: 'ADMIN',     label: 'Admin' },
+  { name: 'MANAGER',   label: 'Manager' },
+  { name: 'ACCOUNTANT',label: 'Accountant' },
+  { name: 'SALES',     label: 'Sales' },
+  { name: 'CASHIER',   label: 'Cashier' },
+  { name: 'OPERATOR',  label: 'Operator' },
+];
+
+// Permissions assigned per role
+const ROLE_PERMISSIONS: Record<string, string[]> = {
+  ADMIN: [
+    'dashboard',
     'manage_users',
-    'manage_roles',
     'manage_customers',
     'manage_products',
     'manage_purchases',
     'manage_invoices',
+    'view_invoices',
+    'delete_invoices',
     'manage_payments',
     'view_reports',
     'view_ledger',
-  ];
+    'view_gst_reports',
+    'manage_settings',
+    'create_invoice',
+    'receive_payment',
+    'print_bill',
+  ],
+  MANAGER: [
+    'dashboard',
+    'manage_customers',
+    'manage_products',
+    'manage_purchases',
+    'manage_invoices',
+    'view_invoices',
+    'manage_payments',
+    'view_reports',
+    'view_ledger',
+  ],
+  ACCOUNTANT: [
+    'dashboard',
+    'view_invoices',
+    'manage_payments',
+    'view_ledger',
+    'view_gst_reports',
+    'manage_customers',
+    'manage_products',
+    'create_invoice',
+  ],
+  SALES: [
+    'dashboard',
+    'manage_customers',
+    'manage_products',
+    'create_invoice',
+    'view_invoices',
+  ],
+  CASHIER: [
+    'create_invoice',
+    'receive_payment',
+    'print_bill',
+    'view_invoices',
+  ],
+  OPERATOR: [
+    'dashboard',
+    'manage_products',
+    'view_invoices',
+  ],
+};
 
-  console.log('Seeding permissions...');
-  const seededPermissions = [];
-  for (const permName of permissionsList) {
+// ============================================================
+// SEED
+// ============================================================
+
+async function main() {
+  console.log('\n================================================');
+  console.log('  Viral Print Media - Database Seeding');
+  console.log('================================================\n');
+
+  // ── 1. Upsert all permissions ──────────────────────────────
+  console.log('[1/5] Seeding permissions...');
+  const permMap: Record<string, number> = {};
+  for (const permName of ALL_PERMISSIONS) {
     const perm = await prisma.permission.upsert({
       where: { permission_name: permName },
       update: {},
       create: { permission_name: permName },
     });
-    seededPermissions.push(perm);
+    permMap[perm.permission_name] = perm.id;
   }
+  console.log(`      ✓ ${ALL_PERMISSIONS.length} permissions ready`);
 
-  // 2. Create Default Roles
-  console.log('Seeding roles...');
-  const adminRole = await prisma.role.upsert({
-    where: { name: 'ADMIN' },
-    update: {},
-    create: { name: 'ADMIN' },
-  });
-
-  const staffRole = await prisma.role.upsert({
-    where: { name: 'STAFF' },
-    update: {},
-    create: { name: 'STAFF' },
-  });
-
-  // 3. Link permissions to roles
-  console.log('Linking permissions to roles...');
-  // Admin gets all permissions
-  for (const perm of seededPermissions) {
-    await prisma.rolePermission.upsert({
-      where: {
-        role_id_permission_id: {
-          role_id: adminRole.id,
-          permission_id: perm.id,
-        },
-      },
-      update: {},
-      create: {
-        role_id: adminRole.id,
-        permission_id: perm.id,
-      },
+  // ── 2. Upsert all roles ────────────────────────────────────
+  console.log('[2/5] Seeding roles...');
+  const roleMap: Record<string, number> = {};
+  for (const role of ROLES) {
+    const r = await prisma.role.upsert({
+      where: { name: role.name },
+      update: { label: role.label },
+      create: { name: role.name, label: role.label },
     });
+    roleMap[r.name] = r.id;
+  }
+  console.log(`      ✓ ${ROLES.length} roles ready`);
+
+  // ── 3. Link permissions to roles ──────────────────────────
+  console.log('[3/5] Linking permissions to roles...');
+  for (const [roleName, perms] of Object.entries(ROLE_PERMISSIONS)) {
+    const roleId = roleMap[roleName];
+    for (const permName of perms) {
+      const permId = permMap[permName];
+      if (!permId) continue;
+      await prisma.rolePermission.upsert({
+        where: { role_id_permission_id: { role_id: roleId, permission_id: permId } },
+        update: {},
+        create: { role_id: roleId, permission_id: permId },
+      });
+    }
+    console.log(`      ✓ ${roleName} → ${perms.length} permissions`);
   }
 
-  // Staff gets limited permissions
-  const staffPermNames = [
-    'manage_customers',
-    'manage_products',
-    'manage_purchases',
-    'manage_invoices',
-    'manage_payments',
-    'view_ledger',
-  ];
-  const staffPerms = seededPermissions.filter(p => staffPermNames.includes(p.permission_name));
-  for (const perm of staffPerms) {
-    await prisma.rolePermission.upsert({
-      where: {
-        role_id_permission_id: {
-          role_id: staffRole.id,
-          permission_id: perm.id,
-        },
-      },
-      update: {},
-      create: {
-        role_id: staffRole.id,
-        permission_id: perm.id,
-      },
-    });
-  }
-
-  // 4. Create a Default Company
-  console.log('Seeding default company...');
+  // ── 4. Create default company ──────────────────────────────
+  console.log('[4/5] Seeding default company...');
   let company = await prisma.company.findFirst();
   if (!company) {
     company = await prisma.company.create({
       data: {
-        company_name: 'Viral Print Software',
-        gst_number: '27AAAAA0000A1Z5',
-        address: '123 Main Street, Mumbai, Maharashtra',
-        phone: '9876543210',
+        company_name: 'Viral Print Media',
+        gst_number: '',
+        address: '',
+        phone: '',
         logo: '',
       },
     });
+    console.log(`      ✓ Company created: ${company.company_name}`);
+  } else {
+    console.log(`      ✓ Company already exists: ${company.company_name}`);
   }
 
-  // 5. Create a Default Admin User
-  console.log('Seeding default admin user...');
+  // ── 5. Create default admin user ──────────────────────────
+  console.log('[5/5] Seeding default admin user...');
   const adminUsername = 'admin';
-  const hashedPassword = hashPassword('admin123'); // Default password
+  const adminPasswordHash = hashPassword('admin123');
 
-  await prisma.user.upsert({
+  const existingAdmin = await prisma.user.findUnique({
     where: { username: adminUsername },
-    update: {
-      company_id: company.id,
-      role_id: adminRole.id,
-    },
-    create: {
-      username: adminUsername,
-      name: 'System Administrator',
-      password: hashedPassword,
-      company_id: company.id,
-      role_id: adminRole.id,
-    },
   });
 
-  console.log('Database seeded successfully!');
-  console.log(`Default credentials:`);
-  console.log(`Username: ${adminUsername}`);
-  console.log(`Password: admin123`);
+  if (!existingAdmin) {
+    await prisma.user.create({
+      data: {
+        username: adminUsername,
+        full_name: 'System Administrator',
+        password_hash: adminPasswordHash,
+        company_id: company.id,
+        role_id: roleMap['ADMIN'],
+        status: 'ACTIVE',
+        created_by: null,
+      },
+    });
+    console.log('      ✓ Admin user created');
+  } else {
+    // Ensure admin always has ADMIN role and ACTIVE status
+    await prisma.user.update({
+      where: { username: adminUsername },
+      data: {
+        role_id: roleMap['ADMIN'],
+        status: 'ACTIVE',
+        company_id: company.id,
+      },
+    });
+    console.log('      ✓ Admin user already exists (updated role/status)');
+  }
+
+  console.log('\n================================================');
+  console.log('  Seeding complete!');
+  console.log('  Default login credentials:');
+  console.log('    Username : admin');
+  console.log('    Password : admin123');
+  console.log('  Please change the admin password after first login.');
+  console.log('================================================\n');
 }
 
 main()
   .catch((e) => {
-    console.error('Error during seeding:', e);
+    console.error('\n[ERROR] Seeding failed:', e);
     process.exit(1);
   })
   .finally(async () => {

@@ -23,8 +23,12 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "axios": "^1.18.1",
     "bootstrap": "^5.3.8",
-    "react-bootstrap": "^2.10.10"
+    "lucide-react": "^1.26.0",
+    "react-bootstrap": "^2.10.10",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
