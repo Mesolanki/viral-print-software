@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { authController } from '../controllers/auth.controller.js';
 import { validate } from '../middlewares/validate.middleware.js';
-import { validateLogin, validateChangePassword } from '../validators/auth.validator.js';
+import { validateLogin, validateRegister, validateChangePassword } from '../validators/auth.validator.js';
 import { verifyJWT } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
 // ── Public Routes (no authentication required) ──────────────
-// Login — the only public entry point
+router.post('/register', validate(validateRegister), authController.register);
 router.post('/login', validate(validateLogin), authController.login);
 
 // ── Protected Routes (JWT required) ─────────────────────────

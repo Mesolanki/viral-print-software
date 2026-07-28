@@ -1,0 +1,14 @@
+{
+  "name": "viral-print-software",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Viral Print Software - Desktop Application",
+  "scripts": {
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "start": "cd server && start /b npm run dev && cd ../client && npm run dev",
+    "dev": "cd server && start /b npm run dev && cd ../client && npm run dev",
+    "build": "cd client && npm run build",
+    "build:win": "cd client && npm run build:win"
+  }
+}

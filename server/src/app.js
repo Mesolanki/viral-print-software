@@ -3,7 +3,6 @@ import authRouter from './routes/auth.routes.js';
 import userRouter from './routes/user.routes.js';
 import categoryRouter from './routes/category.routes.js';
 import productRouter from './routes/product.routes.js';
-import userRouter from './routes/user.routes.js';
 import taskRouter from './routes/task.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 
@@ -46,7 +45,6 @@ app.use('/api/users', userRouter);
 // Other modules (existing)
 app.use('/api/categories', categoryRouter);
 app.use('/api/products', productRouter);
-app.use('/api/users', userRouter);
 app.use('/api/tasks', taskRouter);
 
 // ── 5. 404 Handler ───────────────────────────────────────────

@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: client
+appId: com.viralprint.software
+productName: Viral Print Software
 directories:
   buildResources: build
 files:
@@ -9,14 +9,20 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+extraResources:
+  - from: '../server'
+    to: 'server'
+    filter:
+      - '**/*'
+      - '!node_modules/.cache/**'
 asarUnpack:
   - resources/**
 win:
-  executableName: client
+  executableName: ViralPrintSoftware
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
+  artifactName: ViralPrintSoftware-Setup-${version}.${ext}
+  shortcutName: Viral Print Software
+  uninstallDisplayName: Viral Print Software
   createDesktopShortcut: always
 mac:
   entitlementsInherit: build/entitlements.mac.plist

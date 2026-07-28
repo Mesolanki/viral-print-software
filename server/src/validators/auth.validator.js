@@ -35,3 +35,25 @@ export const validateChangePassword = (data) => {
 
   return { isValid: errors.length === 0, errors };
 };
+
+/**
+ * Validate register request body
+ */
+export const validateRegister = (data) => {
+  const errors = [];
+
+  if (!data.fullName || typeof data.fullName !== 'string' || data.fullName.trim().length === 0) {
+    errors.push({ field: 'fullName', message: 'Full name is required' });
+  }
+
+  if (!data.username || typeof data.username !== 'string' || data.username.trim().length < 3) {
+    errors.push({ field: 'username', message: 'Username must be at least 3 characters' });
+  }
+
+  if (!data.password || typeof data.password !== 'string' || data.password.length < 6) {
+    errors.push({ field: 'password', message: 'Password must be at least 6 characters' });
+  }
+
+  return { isValid: errors.length === 0, errors };
+};
+

@@ -3,8 +3,6 @@ import { prisma } from '../config/database.js';
 export const userRepository = {
   /**
    * Find user by username
-   * @param {string} username 
-   * @returns {Promise<object|null>}
    */
   async findByUsername(username) {
     return await prisma.user.findUnique({
@@ -26,12 +24,10 @@ export const userRepository = {
 
   /**
    * Find user by id
-   * @param {number} id 
-   * @returns {Promise<object|null>}
    */
   async findById(id) {
     return await prisma.user.findUnique({
-      where: { id },
+      where: { id: Number(id) },
       include: {
         company: true,
         role: {
@@ -49,8 +45,6 @@ export const userRepository = {
 
   /**
    * Create user
-   * @param {object} data 
-   * @returns {Promise<object>}
    */
   async create(data) {
     return await prisma.user.create({
@@ -71,27 +65,68 @@ export const userRepository = {
   },
 
   /**
+   * Update last_login timestamp for a user
+   */
+  async updateLastLogin(id) {
+    return await prisma.user.update({
+      where: { id: Number(id) },
+      data: { last_login: new Date() }
+    });
+  },
+
+  /**
+   * Update user by id
+   */
+  async updateById(id, data) {
+    return await prisma.user.update({
+      where: { id: Number(id) },
+      data,
+      include: {
+        company: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+            label: true,
+          }
+        }
+      }
+    });
+  },
+
+  /**
+   * Delete user by id
+   */
+  async deleteById(id) {
+    return await prisma.user.delete({
+      where: { id: Number(id) }
+    });
+  },
+
+  /**
    * Find all users matching where clause
-   * @param {object} whereClause 
-   * @returns {Promise<Array>}
    */
   async findAll(whereClause = {}) {
     return await prisma.user.findMany({
       where: whereClause,
       select: {
         id: true,
-        name: true,
+        full_name: true,
         username: true,
         company_id: true,
+        status: true,
+        last_login: true,
+        createdAt: true,
         role: {
           select: {
             id: true,
             name: true,
+            label: true,
           },
         },
       },
       orderBy: {
-        name: 'asc',
+        full_name: 'asc',
       },
     });
   }

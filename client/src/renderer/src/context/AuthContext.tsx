@@ -21,6 +21,7 @@ interface AuthContextValue {
   isAuthenticated: boolean
   isLoading: boolean
   login: (username: string, password: string) => Promise<LoginResponse>
+  register: (fullName: string, username: string, password: string) => Promise<LoginResponse>
   logout: () => void
   hasPermission: (permission: string) => boolean
 }
@@ -70,6 +71,20 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
     []
   )
 
+  const register = useCallback(
+    async (fullName: string, username: string, password: string): Promise<LoginResponse> => {
+      const res = await authApi.register({ fullName, username, password })
+      const data: LoginResponse = res.data.data
+
+      tokenStorage.set(data.token)
+      setToken(data.token)
+      setUser(data.user)
+
+      return data
+    },
+    []
+  )
+
   const logout = useCallback(() => {
     tokenStorage.remove()
     setToken(null)
@@ -89,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
     isAuthenticated: !!user && !!token,
     isLoading,
     login,
+    register,
     logout,
     hasPermission,
   }

@@ -10,6 +10,21 @@ const asyncHandler = (fn) => (req, res, next) => {
 
 export const authController = {
   /**
+   * POST /api/auth/register
+   * Public — no auth required.
+   * Body: { fullName, username, password }
+   */
+  register: asyncHandler(async (req, res) => {
+    const { fullName, username, password, role, email, phone, status } = req.body;
+
+    const result = await authService.registerUser({ fullName, username, password, role, email, phone, status });
+
+    res
+      .status(201)
+      .json(new ApiResponse(201, result, 'Registration successful'));
+  }),
+
+  /**
    * POST /api/auth/login
    * Public — no auth required.
    * Body: { username, password }

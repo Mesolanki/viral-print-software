@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Row, Col, Card, Button, Badge, Alert } from 'react-bootstrap'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Row, Col, Card, Button, Alert } from 'react-bootstrap'
 import Versions from './components/Versions'
 import TaskManagement from './components/TaskManagement'
+import UserManagement from './components/UserManagement'
+import LoginPage from './pages/LoginPage'
+import { useAuth } from './context/AuthContext'
 import electronLogo from './assets/electron.svg'
 import {
   CheckSquare,
@@ -9,183 +13,251 @@ import {
   Sun,
   Moon,
   Menu,
-  ChevronLeft,
-  Printer,
-  Sparkles
+  Sparkles,
+  LogOut,
+  UserCheck,
+  Users
 } from 'lucide-react'
 
-function App(): React.JSX.Element {
-  const [activeTab, setActiveTab] = useState<'tasks' | 'dashboard'>('tasks')
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('app_theme') as 'dark' | 'light') || 'dark'
-  })
+function DashboardView({
+  theme,
+  toggleTheme
+}: {
+  theme: 'dark' | 'light'
+  toggleTheme: () => void
+}): React.JSX.Element {
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
+  const [activeTab, setActiveTab] = useState<'tasks' | 'users' | 'dashboard'>('tasks')
+  const [sidebarMode, setSidebarMode] = useState<'open' | 'compact' | 'hidden'>('open')
   const [pingStatus, setPingStatus] = useState<string | null>(null)
 
-  useEffect(() => {
-    localStorage.setItem('app_theme', theme)
-    document.body.className = theme === 'dark' ? 'bg-dark text-light' : 'bg-light text-dark'
-  }, [theme])
-
-  const toggleTheme = (): void => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
-  }
-
-  const toggleSidebar = (): void => {
-    setSidebarCollapsed((prev) => !prev)
+  const toggleSidebarHidden = (): void => {
+    setSidebarMode((prev) => (prev === 'hidden' ? 'open' : 'hidden'))
   }
 
   const ipcHandle = (): void => {
-    window.electron.ipcRenderer.send('ping')
-    setPingStatus('Ping sent successfully via IPC!')
-    setTimeout(() => setPingStatus(null), 3000)
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.send('ping')
+      setPingStatus('Ping sent successfully via IPC!')
+      setTimeout(() => setPingStatus(null), 3000)
+    } else {
+      setPingStatus('Running in browser mode — IPC simulation active.')
+      setTimeout(() => setPingStatus(null), 3000)
+    }
   }
 
   const isDark = theme === 'dark'
 
   return (
     <div
-      className={`d-flex min-vh-100 ${isDark ? 'bg-dark text-light' : 'bg-light text-dark'}`}
-      style={{ fontFamily: "'Outfit', sans-serif", overflowX: 'hidden' }}
+      className={`d-flex min-vh-100 w-100 ${isDark ? 'bg-dark text-light' : 'bg-light text-dark'}`}
+      style={{ fontFamily: "'Outfit', sans-serif", overflowX: 'hidden', margin: 0, padding: 0 }}
     >
       {/* LEFT SIDEBAR NAVIGATION */}
-      <aside
-        className={`d-flex flex-column justify-content-between p-3 border-end transition-all ${isDark ? 'bg-dark bg-opacity-95 border-secondary' : 'bg-white border-light-subtle shadow-sm'
+      {sidebarMode !== 'hidden' && (
+        <aside
+          className={`d-flex flex-column justify-content-between p-3 border-end transition-all ${
+            isDark ? 'bg-dark bg-opacity-95 border-secondary' : 'bg-white border-light-subtle shadow-sm'
           }`}
-        style={{
-          width: sidebarCollapsed ? '75px' : '260px',
-          minWidth: sidebarCollapsed ? '75px' : '260px',
-          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          zIndex: 1000
-        }}
-      >
-        <div>
-          {/* Brand Header */}
-          <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom border-secondary">
-            {!sidebarCollapsed ? (
-              <div className="d-flex align-items-center gap-2 font-monospace fw-bold fs-6 text-truncate">
+          style={{
+            width: sidebarMode === 'compact' ? '70px' : '250px',
+            minWidth: sidebarMode === 'compact' ? '70px' : '250px',
+            transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            zIndex: 1000
+          }}
+        >
+          <div>
+            {/* Brand Header */}
+            <div className="d-flex align-items-center justify-content-center mb-4 pb-3 border-bottom border-secondary">
+              <div className="d-flex align-items-center gap-2 font-monospace fw-bold fs-6 text-truncate mx-auto">
                 <img alt="Logo" src={electronLogo} width="26" height="26" />
-                <span className={isDark ? 'text-info' : 'text-primary'}>VIRAL PRINT</span>
+                {sidebarMode === 'open' && (
+                  <span className={isDark ? 'text-info' : 'text-primary'}>VIRAL PRINT</span>
+                )}
               </div>
-            ) : (
-              <img alt="Logo" src={electronLogo} width="28" height="28" className="mx-auto" />
-            )}
+            </div>
 
-            <Button
-              variant={isDark ? 'outline-secondary' : 'outline-dark'}
-              size="sm"
-              onClick={toggleSidebar}
-              className="p-1 border-0 rounded-circle d-flex align-items-center justify-content-center"
-              title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-            >
-              {sidebarCollapsed ? <Menu size={18} /> : <ChevronLeft size={18} />}
-            </Button>
+            {/* Nav Items */}
+            <nav className="d-flex flex-column gap-2">
+              <button
+                onClick={() => setActiveTab('tasks')}
+                className={`d-flex align-items-center gap-3 px-3 py-2.5 rounded-3 text-start border-0 transition-all ${
+                  activeTab === 'tasks'
+                    ? isDark
+                      ? 'bg-info text-dark fw-bold shadow-sm'
+                      : 'bg-primary text-white fw-bold shadow-sm'
+                    : isDark
+                      ? 'bg-transparent text-light opacity-75 hover-opacity-100'
+                      : 'bg-transparent text-dark opacity-75 hover-opacity-100'
+                }`}
+                title="To-Do & Task Management"
+              >
+                <CheckSquare size={20} className="flex-shrink-0" />
+                {sidebarMode === 'open' && <span className="text-truncate fs-7">Tasks & To-Do</span>}
+              </button>
+
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`d-flex align-items-center gap-3 px-3 py-2.5 rounded-3 text-start border-0 transition-all ${
+                  activeTab === 'users'
+                    ? isDark
+                      ? 'bg-info text-dark fw-bold shadow-sm'
+                      : 'bg-primary text-white fw-bold shadow-sm'
+                    : isDark
+                      ? 'bg-transparent text-light opacity-75 hover-opacity-100'
+                      : 'bg-transparent text-dark opacity-75 hover-opacity-100'
+                }`}
+                title="User & Role Management"
+              >
+                <Users size={20} className="flex-shrink-0" />
+                {sidebarMode === 'open' && <span className="text-truncate fs-7">Users & Roles</span>}
+              </button>
+
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`d-flex align-items-center gap-3 px-3 py-2.5 rounded-3 text-start border-0 transition-all ${
+                  activeTab === 'dashboard'
+                    ? isDark
+                      ? 'bg-info text-dark fw-bold shadow-sm'
+                      : 'bg-primary text-white fw-bold shadow-sm'
+                    : isDark
+                      ? 'bg-transparent text-light opacity-75 hover-opacity-100'
+                      : 'bg-transparent text-dark opacity-75 hover-opacity-100'
+                }`}
+                title="System Overview"
+              >
+                <LayoutDashboard size={20} className="flex-shrink-0" />
+                {sidebarMode === 'open' && <span className="text-truncate fs-7">System Overview</span>}
+              </button>
+            </nav>
           </div>
 
-          {/* Nav Items */}
-          <nav className="d-flex flex-column gap-2">
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`d-flex align-items-center gap-3 px-3 py-2.5 rounded-3 text-start border-0 transition-all ${activeTab === 'tasks'
-                  ? isDark
-                    ? 'bg-info text-dark fw-bold shadow-sm'
-                    : 'bg-primary text-white fw-bold shadow-sm'
-                  : isDark
-                    ? 'bg-transparent text-light opacity-75 hover-opacity-100'
-                    : 'bg-transparent text-dark opacity-75 hover-opacity-100'
-                }`}
-              title="To-Do & Task Management"
-            >
-              <CheckSquare size={20} className="flex-shrink-0" />
-              {!sidebarCollapsed && <span className="text-truncate fs-7">Tasks & To-Do</span>}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`d-flex align-items-center gap-3 px-3 py-2.5 rounded-3 text-start border-0 transition-all ${activeTab === 'dashboard'
-                  ? isDark
-                    ? 'bg-info text-dark fw-bold shadow-sm'
-                    : 'bg-primary text-white fw-bold shadow-sm'
-                  : isDark
-                    ? 'bg-transparent text-light opacity-75 hover-opacity-100'
-                    : 'bg-transparent text-dark opacity-75 hover-opacity-100'
-                }`}
-              title="System Overview"
-            >
-              <LayoutDashboard size={20} className="flex-shrink-0" />
-              {!sidebarCollapsed && <span className="text-truncate fs-7">System Overview</span>}
-            </button>
-          </nav>
-        </div>
-
-        {/* Sidebar Footer Controls */}
-        <div className="d-flex flex-column gap-3 pt-3 border-top border-secondary">
-          {/* Theme Switcher Button */}
-          <Button
-            variant={isDark ? 'outline-light' : 'outline-dark'}
-            size="sm"
-            onClick={toggleTheme}
-            className={`d-flex align-items-center ${sidebarCollapsed ? 'justify-content-center px-0' : 'justify-content-between px-3'} py-2 rounded-pill shadow-sm border-0 ${isDark ? 'bg-secondary bg-opacity-25' : 'bg-light'}`}
-            title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
-          >
-            <div className="d-flex align-items-center gap-2">
-              {isDark ? <Sun size={16} className="text-warning" /> : <Moon size={16} className="text-primary" />}
-              {!sidebarCollapsed && <span className="fs-7 font-monospace">{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
-            </div>
-          </Button>
-
-          {/* Connection Status */}
-          {!sidebarCollapsed ? (
-            <Badge bg="success" className="py-2 px-3 text-truncate shadow-sm d-flex align-items-center justify-content-center gap-1">
-              <Printer size={14} /> Shop Server Active
-            </Badge>
-          ) : (
-            <div className="rounded-circle bg-success mx-auto" style={{ width: '12px', height: '12px' }} title="Server Connected" />
-          )}
-        </div>
-      </aside>
+          {/* Sidebar Footer Controls */}
+          <div className="d-flex flex-column gap-2 pt-3 border-top border-secondary">
+            {/* Connection Status */}
+            {sidebarMode === 'open' ? (
+              <div className={`p-2.5 rounded-3 border d-flex align-items-center justify-content-center gap-2 shadow-sm ${
+                isDark ? 'bg-dark bg-opacity-75 border-secondary text-light' : 'bg-light border-light-subtle text-dark'
+              }`}>
+                <span className="status-dot" />
+                <span className="fs-7 fw-semibold font-monospace">Shop Server Active</span>
+              </div>
+            ) : (
+              <div className="status-dot mx-auto" title="Server Connected" />
+            )}
+          </div>
+        </aside>
+      )}
 
       {/* RIGHT MAIN DATA CONTENT AREA */}
-      <main className="flex-grow-1 d-flex flex-column min-vh-100 overflow-auto">
+      <main className="flex-grow-1 d-flex flex-column min-vh-100 w-100 overflow-auto">
         {/* Top Header Bar */}
         <header
-          className={`d-flex align-items-center justify-content-between px-4 py-3 border-bottom ${isDark ? 'bg-dark bg-opacity-50 border-secondary' : 'bg-white border-light-subtle shadow-sm'
-            }`}
+          className={`d-flex align-items-center justify-content-between px-4 py-2.5 border-bottom w-100 transition-all ${
+            isDark ? 'header-glass-dark text-light' : 'header-glass-light text-dark'
+          }`}
+          style={{ height: '62px' }}
         >
           <div className="d-flex align-items-center gap-3">
+            {/* Unified Hamburger Button */}
             <Button
               variant={isDark ? 'outline-secondary' : 'outline-dark'}
-              size="sm"
-              onClick={toggleSidebar}
-              className="p-1.5 border-0 rounded-3"
+              onClick={toggleSidebarHidden}
+              className={`p-0 rounded-3 d-flex align-items-center justify-content-center border-0 transition-all header-action-btn ${
+                isDark ? 'bg-secondary bg-opacity-25 text-light' : 'bg-light text-dark'
+              }`}
+              style={{ width: '38px', height: '38px' }}
+              title={sidebarMode === 'hidden' ? 'Show Navigation Sidebar' : 'Hide Navigation Sidebar'}
             >
-              <Menu size={18} />
+              <Menu size={20} />
             </Button>
-            <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
+
+            <h5 className="mb-0 fw-bold d-flex align-items-center gap-2 fs-6">
               {activeTab === 'tasks' ? (
                 <>
-                  <CheckSquare size={18} className={isDark ? 'text-info' : 'text-primary'} />
+                  <CheckSquare size={20} className={isDark ? 'text-info' : 'text-primary'} />
                   <span>Task Management & Calendar Schedule</span>
+                </>
+              ) : activeTab === 'users' ? (
+                <>
+                  <Users size={20} className={isDark ? 'text-info' : 'text-primary'} />
+                  <span>User & Role-Based Employee Roster</span>
                 </>
               ) : (
                 <>
-                  <LayoutDashboard size={18} className={isDark ? 'text-info' : 'text-primary'} />
+                  <LayoutDashboard size={20} className={isDark ? 'text-info' : 'text-primary'} />
                   <span>System Diagnostics & Overview</span>
                 </>
               )}
             </h5>
           </div>
 
-          <div className="d-flex align-items-center gap-2">
-            <span className="fs-7 text-secondary font-monospace d-none d-md-inline">
+          <div className="d-flex align-items-center gap-2.5">
+            <span className="fs-7 text-secondary font-monospace d-none d-xl-inline me-2">
               <Sparkles size={14} className="text-warning me-1" />
-              Viral Print Shop Desktop
+              Viral Print Software
             </span>
+
+            {/* Unified Theme Switcher Button */}
+            <Button
+              variant={isDark ? 'outline-light' : 'outline-dark'}
+              onClick={toggleTheme}
+              className={`p-0 rounded-3 border-0 d-flex align-items-center justify-content-center transition-all header-action-btn ${
+                isDark ? 'bg-secondary bg-opacity-25 text-warning' : 'bg-light text-primary'
+              }`}
+              style={{ width: '38px', height: '38px' }}
+              title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
+            >
+              {isDark ? <Sun size={20} /> : <Moon size={20} />}
+            </Button>
+
+            {/* Unified User Profile Badge */}
+            <div
+              className={`d-flex align-items-center gap-2 px-3 rounded-3 border transition-all ${
+                isDark
+                  ? 'bg-dark bg-opacity-75 border-secondary text-light'
+                  : 'bg-white border-light-subtle text-dark shadow-sm'
+              }`}
+              style={{ height: '38px' }}
+            >
+              <div
+                className={`rounded-circle d-flex align-items-center justify-content-center fw-bold fs-7 shadow-sm ${
+                  isDark ? 'bg-info text-dark' : 'bg-primary text-white'
+                }`}
+                style={{ width: '26px', height: '26px' }}
+              >
+                <UserCheck size={14} />
+              </div>
+              <div className="d-flex flex-column text-start" style={{ lineHeight: '1.1' }}>
+                <span className="fw-bold fs-7 d-none d-md-inline">
+                  {user?.fullName || user?.username || 'System Administrator'}
+                </span>
+                <span className={`fs-8 text-uppercase font-monospace fw-bold ${isDark ? 'text-info' : 'text-primary'}`}>
+                  {user?.role?.label || user?.role?.name || 'ADMIN'}
+                </span>
+              </div>
+            </div>
+
+            {/* Unified Sleek Log Out Button */}
+            <Button
+              variant="danger"
+              className="d-flex align-items-center justify-content-center gap-1.5 px-3 rounded-3 fw-bold fs-7 shadow-sm border-0 transition-all header-logout-btn"
+              style={{ height: '38px' }}
+              onClick={() => {
+                logout()
+                navigate('/login')
+              }}
+              title="Log Out of System"
+            >
+              <LogOut size={16} />
+              <span className="d-none d-sm-inline">Log Out</span>
+            </Button>
           </div>
         </header>
 
         {/* Full-width Main Body */}
-        <div className="p-3 p-md-4 flex-grow-1">
+        <div className="p-3 p-md-4 flex-grow-1 w-100">
           {pingStatus && (
             <Alert variant="info" onClose={() => setPingStatus(null)} dismissible className="shadow-lg border-info mb-4">
               {pingStatus}
@@ -194,6 +266,8 @@ function App(): React.JSX.Element {
 
           {activeTab === 'tasks' ? (
             <TaskManagement theme={theme} />
+          ) : activeTab === 'users' ? (
+            <UserManagement theme={theme} />
           ) : (
             <Row className="gy-4">
               {/* Main Hero Card */}
@@ -231,20 +305,20 @@ function App(): React.JSX.Element {
                       <div className="mb-4">
                         <h6 className="text-secondary text-uppercase fs-7 fw-bold font-monospace">Database Engine</h6>
                         <div className="d-flex align-items-center gap-2">
-                          <div className="rounded-circle bg-success" style={{ width: '10px', height: '10px' }} />
+                          <div className="status-dot" />
                           <span className="fw-semibold">PostgreSQL (Prisma ORM)</span>
                         </div>
                       </div>
                       <div className="mb-4">
                         <h6 className="text-secondary text-uppercase fs-7 fw-bold font-monospace">Backend Service</h6>
                         <div className="d-flex align-items-center gap-2">
-                          <div className="rounded-circle bg-success" style={{ width: '10px', height: '10px' }} />
-                          <span className="fw-semibold">Express Server (Port 3000)</span>
+                          <div className="status-dot" />
+                          <span className="fw-semibold">Express Server (Port 5000)</span>
                         </div>
                       </div>
                     </div>
                     <div className={`border-top ${isDark ? 'border-secondary' : 'border-light-subtle'} pt-3`}>
-                      <Versions />
+                      <Versions theme={theme} />
                     </div>
                   </Card.Body>
                 </Card>
@@ -253,7 +327,81 @@ function App(): React.JSX.Element {
           )}
         </div>
       </main>
+
+      {/* Embedded CSS for Modern Header & Unified Buttons */}
+      <style>{`
+        .header-glass-dark {
+          background: rgba(15, 23, 42, 0.85) !important;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+        .header-glass-light {
+          background: rgba(255, 255, 255, 0.95) !important;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+        .header-action-btn:hover {
+          transform: translateY(-1px);
+          opacity: 0.9;
+        }
+        .header-logout-btn {
+          background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+          color: #FFFFFF !important;
+        }
+        .header-logout-btn:hover {
+          background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
+        }
+        .status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background-color: #10B981;
+          position: relative;
+          display: inline-block;
+        }
+        .status-dot::after {
+          content: '';
+          position: absolute;
+          inset: -3px;
+          border-radius: 50%;
+          background: rgba(16, 185, 129, 0.5);
+          animation: pulseDot 2s infinite;
+        }
+        @keyframes pulseDot {
+          0% { transform: scale(0.9); opacity: 0.8; }
+          50% { transform: scale(1.6); opacity: 0; }
+          100% { transform: scale(0.9); opacity: 0; }
+        }
+      `}</style>
     </div>
+  )
+}
+
+function App(): React.JSX.Element {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('app_theme') as 'dark' | 'light') || 'dark'
+  })
+
+  useEffect(() => {
+    localStorage.setItem('app_theme', theme)
+    document.body.className = theme === 'dark' ? 'bg-dark text-light' : 'bg-light text-dark'
+  }, [theme])
+
+  const toggleTheme = (): void => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+  }
+
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/dashboard" element={<DashboardView theme={theme} toggleTheme={toggleTheme} />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   )
 }
 

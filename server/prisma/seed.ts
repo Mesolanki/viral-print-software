@@ -196,7 +196,6 @@ async function main() {
         company_id: company.id,
         role_id: roleMap['ADMIN'],
         status: 'ACTIVE',
-        created_by: null,
       },
     });
     console.log('      ✓ Admin user created');

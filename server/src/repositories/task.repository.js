@@ -13,14 +13,14 @@ export const taskRepository = {
         assigned_to: {
           select: {
             id: true,
-            name: true,
+            full_name: true,
             username: true,
           },
         },
         created_by: {
           select: {
             id: true,
-            name: true,
+            full_name: true,
             username: true,
           },
         },
@@ -44,14 +44,14 @@ export const taskRepository = {
         assigned_to: {
           select: {
             id: true,
-            name: true,
+            full_name: true,
             username: true,
           },
         },
         created_by: {
           select: {
             id: true,
-            name: true,
+            full_name: true,
             username: true,
           },
         },
@@ -71,14 +71,14 @@ export const taskRepository = {
         assigned_to: {
           select: {
             id: true,
-            name: true,
+            full_name: true,
             username: true,
           },
         },
         created_by: {
           select: {
             id: true,
-            name: true,
+            full_name: true,
             username: true,
           },
         },
@@ -100,14 +100,14 @@ export const taskRepository = {
         assigned_to: {
           select: {
             id: true,
-            name: true,
+            full_name: true,
             username: true,
           },
         },
         created_by: {
           select: {
             id: true,
-            name: true,
+            full_name: true,
             username: true,
           },
         },
@@ -129,7 +129,7 @@ export const taskRepository = {
         assigned_to: {
           select: {
             id: true,
-            name: true,
+            full_name: true,
             username: true,
           },
         },

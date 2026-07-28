@@ -50,6 +50,12 @@ export interface LoginPayload {
   password: string
 }
 
+export interface RegisterPayload {
+  fullName: string
+  username: string
+  password: string
+}
+
 export interface ChangePasswordPayload {
   oldPassword: string
   newPassword: string
@@ -59,6 +65,9 @@ export interface ChangePasswordPayload {
 export const authApi = {
   login: (payload: LoginPayload) =>
     apiClient.post('/auth/login', payload),
+
+  register: (payload: RegisterPayload) =>
+    apiClient.post('/auth/register', payload),
 
   getMe: () =>
     apiClient.get('/auth/me'),

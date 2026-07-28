@@ -4,8 +4,13 @@ import { env } from '../config/env.js';
 export const errorHandler = (err, req, res, next) => {
   let error = err;
 
-  // If the error is not an instance of ApiError, wrap it
-  if (!(error instanceof ApiError)) {
+  // Catch database connection & credential errors
+  if (err.message && (err.message.includes('Postgres credentials are incorrect') || err.message.includes("Can't reach database server"))) {
+    error = new ApiError(
+      500,
+      'Database connection failed: Please update your PostgreSQL connection string in server/.env file (DATABASE_URL).'
+    );
+  } else if (!(error instanceof ApiError)) {
     const statusCode = error.statusCode || 500;
     const message = error.message || 'Internal Server Error';
     error = new ApiError(statusCode, message, [], err.stack);
