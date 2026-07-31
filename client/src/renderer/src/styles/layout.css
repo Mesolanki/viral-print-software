@@ -1,0 +1,119 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — Layout CSS  [PRO LEVEL v2]
+   Root shell, god-level backgrounds, page container.
+   ================================================================= */
+
+/* ── Base Reset ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; width: 100%; }
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+/* ── App Shell ────────────────────────────────────────────────── */
+.vpm-app-shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LIGHT THEME — Premium warm-white with subtle blue aura
+   ══════════════════════════════════════════════════════════════ */
+.vpm-app-shell.theme-light {
+  background-color: #EDF1F7;
+  color: var(--light-text);
+}
+
+/* Animated radial ambient glow — light */
+.vpm-app-shell.theme-light::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at -5% -5%,  rgba(0,174,239,0.07)  0, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 105% -5%, rgba(141,198,63,0.05) 0, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 110%, rgba(247,148,29,0.04) 0, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+  animation: vpmAmbientShift 20s ease-in-out infinite alternate;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DARK THEME — Deep navy with electric cyan ambient
+   ══════════════════════════════════════════════════════════════ */
+.vpm-app-shell.theme-dark {
+  background-color: #08101F;
+  color: var(--dark-text);
+}
+
+/* Animated ambient glow — dark */
+.vpm-app-shell.theme-dark::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at -5% -5%,  rgba(0,174,239,0.12) 0, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 105% 5%,  rgba(141,198,63,0.06) 0, transparent 55%),
+    radial-gradient(ellipse 40% 35% at 50% 105%, rgba(247,148,29,0.05) 0, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+  animation: vpmAmbientShift 20s ease-in-out infinite alternate;
+}
+
+@keyframes vpmAmbientShift {
+  0%   { opacity: 1;    filter: hue-rotate(0deg); }
+  50%  { opacity: 0.85; filter: hue-rotate(8deg); }
+  100% { opacity: 1;    filter: hue-rotate(0deg); }
+}
+
+/* ── Main Content Area ────────────────────────────────────────── */
+.vpm-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Page Body ────────────────────────────────────────────────── */
+.vpm-page-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 28px;
+  animation: vpmFadeIn 0.35s ease both;
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────── */
+.vpm-page-body::-webkit-scrollbar,
+::-webkit-scrollbar { width: 5px; height: 5px; }
+
+::-webkit-scrollbar-track { background: transparent; }
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover { background: var(--vpm-cyan); }
+
+.theme-dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+.theme-dark ::-webkit-scrollbar-thumb:hover { background: var(--vpm-cyan); }
+
+/* ── Utility ──────────────────────────────────────────────────── */
+.fs-7            { font-size: 0.82rem !important; }
+.fs-8            { font-size: 0.72rem !important; }
+.letter-spacing-1 { letter-spacing: 1px; }
+.text-rose-500   { color: #F43F5E; }
+.text-cyan-500   { color: #06B6D4; }

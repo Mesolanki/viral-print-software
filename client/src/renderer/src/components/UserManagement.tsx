@@ -559,179 +559,176 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
 
       {/* Header & Register Action Controls */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 w-100">
-        <div>
-          <h2 className={`fw-bold mb-1 d-flex align-items-center gap-2.5 ${isDark ? 'text-light' : 'text-dark'} fs-4`}>
-            <div className={`p-2 rounded-3 d-inline-flex align-items-center justify-content-center ${isDark ? 'bg-info bg-opacity-15 text-info' : 'bg-primary bg-opacity-10 text-primary'}`}>
-              <Shield size={22} />
-            </div>
-            Employee & Role-Based User Management
-          </h2>
-          <p className={isDark ? 'text-secondary mb-0 fs-7' : 'text-muted mb-0 fs-7'}>
-            {isAdmin ? 'Admin Control Panel: Register shop employees, configure role-based permissions, and manage credentials.' : 'Employee Roster Directory: View team members, assigned role permissions, and contact details.'}
-          </p>
+        <div className="d-flex align-items-center gap-3">
+          <div className={`p-2.5 rounded-3 d-inline-flex align-items-center justify-content-center ${isDark ? 'bg-info bg-opacity-15 text-info' : 'bg-primary bg-opacity-10 text-primary'}`} style={{ width: '44px', height: '44px', flexShrink: 0 }}>
+            <Shield size={22} />
+          </div>
+          <div>
+            <h2 className={`fw-bold mb-1 ${isDark ? 'text-light' : 'text-dark'} fs-4`} style={{ lineHeight: '1.2' }}>
+              Employee & Role-Based User Management
+            </h2>
+            <p className={isDark ? 'text-secondary mb-0 fs-7' : 'text-muted mb-0 fs-7'}>
+              {isAdmin ? 'Admin Control Panel: Register shop employees, configure role-based permissions, and manage credentials.' : 'Employee Roster Directory: View team members, assigned role permissions, and contact details.'}
+            </p>
+          </div>
         </div>
 
         <div className="d-flex align-items-center gap-2 flex-wrap">
-          <Button
-            variant={isDark ? 'outline-secondary' : 'outline-dark'}
-            size="sm"
+          <button
             onClick={fetchUsers}
             title="Refresh Roster"
-            className="d-flex align-items-center gap-1.5 px-3 py-2 rounded-3 border-secondary border-opacity-50 fs-7"
+            className="vpm-btn-secondary"
           >
             <RefreshCw size={14} className={loading ? 'spin-icon' : ''} />
             <span>Refresh Roster</span>
-          </Button>
+          </button>
 
           {isAdmin && (
-            <Button
-              variant={isDark ? 'info' : 'primary'}
-              className={`${isDark ? 'text-dark' : 'text-white'} fw-bold px-3.5 py-2 fs-7 shadow-sm d-flex align-items-center gap-2 rounded-3 border-0`}
+            <button
+              className="vpm-btn-primary"
               onClick={handleOpenAddModal}
             >
               <UserPlus size={17} /> Register New User
-            </Button>
+            </button>
           )}
         </div>
       </div>
 
       {/* Stat Overview Cards */}
       <Row className="g-3 mb-4 w-100 mx-0">
-        <Col xs={6} md={3} className="px-1">
-          <Card className={`stat-card ${isDark ? 'stat-card-dark' : 'stat-card-light'} shadow-sm h-100 rounded-3 border-0`}>
-            <Card.Body className="p-3 d-flex align-items-center justify-content-between">
-              <div>
-                <div className="text-uppercase font-monospace fw-semibold fs-8 text-secondary mb-1">Total Employees</div>
-                <div className={`fs-2 fw-bold ${isDark ? 'text-light' : 'text-dark'}`}>{metrics.total}</div>
+
+        {/* ── Total Employees — Cyan ── */}
+        <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
+          <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-cyan`}>
+            <div className="vpm-stat-top">
+              <span className="vpm-stat-label">Total Employees</span>
+              <div className="vpm-stat-icon-ring">
+                <Users size={16} />
               </div>
-              <div className={`p-2.5 rounded-3 ${isDark ? 'bg-secondary bg-opacity-20 text-info' : 'bg-light text-primary'}`}>
-                <Users size={22} />
-              </div>
-            </Card.Body>
-          </Card>
+            </div>
+            <div className="vpm-stat-divider" />
+            <div className="vpm-stat-value">{metrics.total}</div>
+            <div className="vpm-stat-desc">Total registered team members</div>
+          </div>
         </Col>
 
-        <Col xs={6} md={3} className="px-1">
-          <Card className={`stat-card ${isDark ? 'stat-card-dark' : 'stat-card-light'} shadow-sm h-100 rounded-3 border-0`}>
-            <Card.Body className="p-3 d-flex align-items-center justify-content-between">
-              <div>
-                <div className="text-uppercase font-monospace fw-semibold fs-8 text-purple mb-1">Administrators</div>
-                <div className="fs-2 fw-bold text-purple">{metrics.admins}</div>
+        {/* ── Administrators — Amber ── */}
+        <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
+          <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-amber`}>
+            <div className="vpm-stat-top">
+              <span className="vpm-stat-label">Administrators</span>
+              <div className="vpm-stat-icon-ring">
+                <ShieldCheck size={16} />
               </div>
-              <div className="p-2.5 rounded-3 bg-purple bg-opacity-15 text-purple">
-                <ShieldCheck size={22} />
-              </div>
-            </Card.Body>
-          </Card>
+            </div>
+            <div className="vpm-stat-divider" />
+            <div className="vpm-stat-value">{metrics.admins}</div>
+            <div className="vpm-stat-desc">System control administrators</div>
+          </div>
         </Col>
 
-        <Col xs={6} md={3} className="px-1">
-          <Card className={`stat-card ${isDark ? 'stat-card-dark' : 'stat-card-light'} shadow-sm h-100 rounded-3 border-0`}>
-            <Card.Body className="p-3 d-flex align-items-center justify-content-between">
-              <div>
-                <div className="text-uppercase font-monospace fw-semibold fs-8 text-primary mb-1">Shop Managers</div>
-                <div className="fs-2 fw-bold text-primary">{metrics.managers}</div>
+        {/* ── Shop Managers — Indigo ── */}
+        <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
+          <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-indigo`}>
+            <div className="vpm-stat-top">
+              <span className="vpm-stat-label">Shop Managers</span>
+              <div className="vpm-stat-icon-ring">
+                <Briefcase size={16} />
               </div>
-              <div className="p-2.5 rounded-3 bg-primary bg-opacity-15 text-primary">
-                <Briefcase size={22} />
-              </div>
-            </Card.Body>
-          </Card>
+            </div>
+            <div className="vpm-stat-divider" />
+            <div className="vpm-stat-value">{metrics.managers}</div>
+            <div className="vpm-stat-desc">Production shop managers</div>
+          </div>
         </Col>
 
-        <Col xs={6} md={3} className="px-1">
-          <Card className={`stat-card ${isDark ? 'stat-card-dark' : 'stat-card-light'} shadow-sm h-100 rounded-3 border-0`}>
-            <Card.Body className="p-3 d-flex align-items-center justify-content-between">
-              <div>
-                <div className="text-uppercase font-monospace fw-semibold fs-8 text-success mb-1">Staff & Operators</div>
-                <div className="fs-2 fw-bold text-success">{metrics.designers + metrics.operators}</div>
+        {/* ── Staff & Operators — Emerald ── */}
+        <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
+          <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-emerald`}>
+            <div className="vpm-stat-top">
+              <span className="vpm-stat-label">Staff & Operators</span>
+              <div className="vpm-stat-icon-ring">
+                <UserCheck size={16} />
               </div>
-              <div className="p-2.5 rounded-3 bg-success bg-opacity-15 text-success">
-                <UserCheck size={22} />
-              </div>
-            </Card.Body>
-          </Card>
+            </div>
+            <div className="vpm-stat-divider" />
+            <div className="vpm-stat-value">{metrics.designers + metrics.operators}</div>
+            <div className="vpm-stat-desc">Designers & operators roster</div>
+          </div>
         </Col>
+
       </Row>
 
       {/* Filter Toolbar */}
-      <Card className={`${isDark ? 'bg-dark bg-opacity-80 border-secondary' : 'bg-white border-light-subtle'} mb-4 shadow-sm w-100 rounded-3`}>
-        <Card.Body className="p-3">
-          <Row className="g-2.5 align-items-center w-100 mx-0">
-            {/* Search Input */}
-            <Col lg={5} md={12} className="px-1">
-              <InputGroup size="sm" className="position-relative">
-                <InputGroup.Text className={isDark ? 'bg-secondary bg-opacity-20 border-secondary text-secondary' : 'bg-light border-light-subtle text-muted'}>
-                  <Search size={15} />
-                </InputGroup.Text>
-                <Form.Control
+      <div className={`${isDark ? 'filter-toolbar-dark' : 'filter-toolbar-light'} mb-4 w-100`} style={{ padding: '16px 20px', borderRadius: '16px' }}>
+        <Row className="g-2.5 align-items-center w-100 mx-0">
+          {/* Search Input */}
+          <Col lg={5} md={12} className="px-1">
+            <div className="position-relative">
+              <div className={`cal-search-box ${isDark ? 'search-dark' : 'search-light'}`}>
+                <Search size={15} className="search-icon" />
+                <input
                   placeholder="Search employees by name, username, email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={isDark ? 'bg-secondary bg-opacity-20 text-light border-secondary placeholder-secondary fs-7 py-2' : 'bg-light text-dark border-light-subtle fs-7 py-2'}
+                  className="search-input"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="position-absolute end-0 top-50 translate-middle-y me-2 border-0 bg-transparent text-secondary p-0"
-                    style={{ zIndex: 10 }}
+                    className="search-clear-btn"
+                    title="Clear search"
                   >
                     <X size={14} />
                   </button>
                 )}
-              </InputGroup>
-            </Col>
+              </div>
+            </div>
+          </Col>
 
-            {/* Role Filter */}
-            <Col lg={3} md={6} className="px-1">
-              <Form.Select
-                size="sm"
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className={isDark ? 'bg-secondary bg-opacity-20 text-light border-secondary fs-7 py-2' : 'bg-light text-dark border-light-subtle fs-7 py-2'}
-              >
-                <option value="ALL">All Roles</option>
-                <option value="ADMIN">Administrator</option>
-                <option value="MANAGER">Shop Manager</option>
-                <option value="DESIGNER">Graphic Designer</option>
-                <option value="OPERATOR">Print Operator</option>
-                <option value="SALES_BILLING">Sales & Billing</option>
-              </Form.Select>
-            </Col>
+          {/* Role Filter */}
+          <Col lg={3} md={6} className="px-1">
+            <Form.Select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+            >
+              <option value="ALL">All Roles</option>
+              <option value="ADMIN">Administrator</option>
+              <option value="MANAGER">Shop Manager</option>
+              <option value="DESIGNER">Graphic Designer</option>
+              <option value="OPERATOR">Print Operator</option>
+              <option value="SALES_BILLING">Sales & Billing</option>
+            </Form.Select>
+          </Col>
 
-            {/* Status Filter */}
-            <Col lg={2} md={4} className="px-1">
-              <Form.Select
-                size="sm"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className={isDark ? 'bg-secondary bg-opacity-20 text-light border-secondary fs-7 py-2' : 'bg-light text-dark border-light-subtle fs-7 py-2'}
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="ACTIVE">Active Account</option>
-                <option value="INACTIVE">Inactive Account</option>
-              </Form.Select>
-            </Col>
+          {/* Status Filter */}
+          <Col lg={2} md={4} className="px-1">
+            <Form.Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="ACTIVE">Active Account</option>
+              <option value="INACTIVE">Inactive Account</option>
+            </Form.Select>
+          </Col>
 
-            {/* Reset */}
-            <Col lg={2} md={2} className="px-1 text-end">
-              <Button
-                variant={isDark ? 'outline-secondary' : 'outline-dark'}
-                size="sm"
-                className="w-100 py-1.5 fs-7 rounded-3"
-                onClick={() => {
-                  setSearchQuery('')
-                  setRoleFilter('ALL')
-                  setStatusFilter('ALL')
-                }}
-              >
-                Reset
-              </Button>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
+          {/* Reset */}
+          <Col lg={2} md={2} className="px-1 text-end">
+            <button
+              className="vpm-btn-secondary w-100 py-1.5 fs-7"
+              onClick={() => {
+                setSearchQuery('')
+                setRoleFilter('ALL')
+                setStatusFilter('ALL')
+              }}
+            >
+              Reset
+            </button>
+          </Col>
+        </Row>
+      </div>
 
       {/* User Roster Table */}
       <Card className={`${isDark ? 'bg-dark border-secondary text-light' : 'bg-white border-light-subtle text-dark'} shadow-lg border-0 rounded-4 overflow-hidden w-100`}>
@@ -1087,162 +1084,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
           </Modal.Footer>
         </Form>
       </Modal>
-
-      {/* Modern Developer-Grade CSS */}
-      <style>{`
-        .text-purple { color: #a855f7; }
-        .bg-purple { background-color: #a855f7; }
-
-        /* User Avatars */
-        .user-avatar-ring {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: 0.82rem;
-          color: #ffffff;
-          flex-shrink: 0;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-        .avatar-role-admin { background: linear-gradient(135deg, #a855f7, #7e22ce); }
-        .avatar-role-manager { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-        .avatar-role-designer { background: linear-gradient(135deg, #06b6d4, #0891b2); }
-        .avatar-role-operator { background: linear-gradient(135deg, #f59e0b, #d97706); }
-        .avatar-role-sales_billing { background: linear-gradient(135deg, #10b981, #059669); }
-
-        /* Role Badges */
-        .role-badge {
-          display: inline-flex;
-          align-items: center;
-          font-size: 0.72rem;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 9999px;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
-          white-space: nowrap;
-        }
-        .role-admin { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
-        .role-manager { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .role-designer { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
-        .role-operator { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .role-sales { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-
-        /* Status Toggle Pill */
-        .badge-status-toggle {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.74rem;
-          font-weight: 600;
-          padding: 3px 9px;
-          border-radius: 9999px;
-          border: none;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-        .status-active { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-        .status-active:hover { background: rgba(16, 185, 129, 0.25); }
-        .status-inactive { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
-        .status-inactive:hover { background: rgba(148, 163, 184, 0.25); }
-
-        .status-dot-mini {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-        }
-
-        /* User Action Buttons */
-        .btn-user-action {
-          width: 30px;
-          height: 30px;
-          border-radius: 6px;
-          border: 1px solid transparent;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          background: rgba(148, 163, 184, 0.1);
-          color: #94a3b8;
-        }
-        .action-edit:hover {
-          background: rgba(56, 189, 248, 0.15);
-          color: #0ea5e9;
-          border-color: rgba(56, 189, 248, 0.3);
-        }
-        .action-delete:hover {
-          background: rgba(239, 68, 68, 0.15);
-          color: #ef4444;
-          border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        /* Role Select Cards in Modal */
-        .role-select-card {
-          padding: 12px 14px;
-          border-radius: 10px;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          border: 1.5px solid transparent;
-          position: relative;
-        }
-        .role-card-dark {
-          background: rgba(30, 41, 59, 0.6);
-          border-color: #334155;
-          color: #f8fafc;
-        }
-        .role-card-dark:hover {
-          border-color: #475569;
-          background: rgba(30, 41, 59, 0.9);
-        }
-        .role-card-light {
-          background: #f8fafc;
-          border-color: #e2e8f0;
-          color: #0f172a;
-        }
-        .role-card-light:hover {
-          border-color: #cbd5e1;
-          background: #f1f5f9;
-        }
-        .role-select-card.is-selected {
-          border-color: #0ea5e9 !important;
-          background: rgba(14, 165, 233, 0.08) !important;
-        }
-
-        .role-icon-box {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-        .box-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
-        .box-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-        .box-cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
-        .box-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-        .box-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-
-        .role-check-mark {
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: #0ea5e9;
-          color: #ffffff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .user-roster-table tbody tr:hover {
-          background-color: rgba(56, 189, 248, 0.03) !important;
-        }
-      `}</style>
     </div>
   )
 }

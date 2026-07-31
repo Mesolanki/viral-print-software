@@ -1,0 +1,347 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — Buttons & Controls CSS [PRO/GOD LEVEL]
+   Primary CTA, Segmented Controls, Icon buttons, Search Inputs
+   ================================================================= */
+
+/* ── Primary CTA Button (Add / Save Task) ────────────────────────── */
+.vpm-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  height: 38px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  letter-spacing: 0.1px;
+}
+
+.theme-light .vpm-btn-primary {
+  background: linear-gradient(135deg, var(--vpm-primary), var(--vpm-cyan));
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(0, 119, 182, 0.28);
+}
+
+.theme-light .vpm-btn-primary:hover {
+  background: linear-gradient(135deg, #005F99, var(--vpm-primary));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 119, 182, 0.40);
+}
+
+.theme-dark .vpm-btn-primary {
+  background: linear-gradient(135deg, var(--vpm-cyan), #00CFFF);
+  color: #05101F;
+  box-shadow: 0 4px 14px rgba(0, 174, 239, 0.30);
+}
+
+.theme-dark .vpm-btn-primary:hover {
+  background: linear-gradient(135deg, #00CFFF, var(--vpm-cyan));
+  color: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 174, 239, 0.45);
+}
+
+/* ── Secondary Button (Refresh / Cancel) ────────────────────────── */
+.vpm-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  border: 1px solid;
+}
+
+.theme-light .vpm-btn-secondary {
+  border-color: rgba(226, 232, 240, 0.9);
+  background: #FFFFFF;
+  color: #475569;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.theme-light .vpm-btn-secondary:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #0F172A;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.theme-dark .vpm-btn-secondary {
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.04);
+  color: #CBD5E1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.theme-dark .vpm-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Segmented Control Switcher (List vs Calendar View) ────────── */
+.vpm-segmented-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid;
+  padding: 3px;
+  border-radius: 14px;
+}
+
+.theme-light .vpm-segmented-control {
+  background: #F1F5F9;
+  border-color: rgba(226, 232, 240, 0.9);
+}
+
+.theme-dark .vpm-segmented-control {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Segment buttons */
+.vpm-segmented-btn {
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+}
+
+/* Light Active state */
+.theme-light .vpm-segmented-btn.active {
+  background: #FFFFFF;
+  color: var(--vpm-primary);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  font-weight: 700;
+}
+
+.theme-light .vpm-segmented-btn:not(.active) {
+  color: #64748B;
+}
+
+.theme-light .vpm-segmented-btn:not(.active):hover {
+  color: #0F172A;
+}
+
+/* Dark Active state */
+.theme-dark .vpm-segmented-btn.active {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--vpm-cyan);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  font-weight: 700;
+}
+
+.theme-dark .vpm-segmented-btn:not(.active) {
+  color: #475569;
+}
+
+.theme-dark .vpm-segmented-btn:not(.active):hover {
+  color: #CBD5E1;
+}
+
+/* ── Status Dropdown Button ───────────────────────────────────── */
+.btn-status-dropdown {
+  font-size: 0.76rem;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 1px solid rgba(148, 163, 184, 0.20) !important;
+  transition: all var(--transition-fast);
+  background: transparent;
+}
+
+.btn-status-dropdown:hover {
+  border-color: var(--vpm-cyan) !important;
+  background: rgba(0, 174, 239, 0.06) !important;
+}
+
+/* ── Icon Action Buttons ──────────────────────────────────────── */
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: rgba(148, 163, 184, 0.08);
+  color: var(--vpm-gray-400);
+}
+
+.btn-icon-edit:hover {
+  background: rgba(37, 99, 235, 0.10);
+  color: #2563EB;
+  border-color: rgba(37, 99, 235, 0.20);
+  transform: translateY(-1px);
+}
+
+.btn-icon-delete:hover {
+  background: rgba(239, 68, 68, 0.10);
+  color: var(--vpm-danger);
+  border-color: rgba(239, 68, 68, 0.20);
+  transform: translateY(-1px);
+}
+
+/* ── Calendar Navigation Buttons ─────────────────────────────── */
+.cal-segmented-nav {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 2px;
+  height: 36px;
+  border: 1px solid;
+}
+
+.nav-dark  { background: var(--dark-surface); border-color: var(--dark-border); }
+.nav-light { background: var(--vpm-gray-100); border-color: var(--light-border); }
+
+.nav-btn-icon {
+  border: none;
+  background: transparent;
+  width: 28px; height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  color: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  opacity: 0.75;
+}
+
+.nav-btn-icon:hover {
+  opacity: 1;
+  background: rgba(148, 163, 184, 0.20);
+  transform: scale(1.05);
+}
+
+.nav-btn-today {
+  border: none;
+  background: transparent;
+  padding: 0 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
+  opacity: 0.85;
+  height: 28px;
+}
+
+.nav-btn-today:hover {
+  opacity: 1;
+  background: rgba(148, 163, 184, 0.20);
+}
+
+/* ── Calendar "+" Add Button on cells ────────────────────────── */
+.cal-cell-add-btn {
+  opacity: 0;
+  background: rgba(148, 163, 184, 0.15);
+  border: none;
+  border-radius: var(--radius-xs);
+  width: 20px; height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--vpm-cyan);
+  transition: all var(--transition-fast);
+}
+
+.cal-cell-add-btn:hover {
+  background: var(--vpm-cyan);
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+/* ── Schedule Task btn in cal header ─────────────────────────── */
+.cal-header-bar {
+  min-height: 60px;
+  box-sizing: border-box;
+  padding: 14px 20px !important;
+}
+
+/* ── Search Box ───────────────────────────────────────────────── */
+.cal-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  height: 38px;
+  box-sizing: border-box;
+  transition: all var(--transition-fast);
+  border: 1px solid;
+}
+
+.search-light {
+  background: var(--light-surface);
+  border-color: var(--light-border);
+  color: var(--light-text);
+}
+
+.search-light:focus-within {
+  border-color: var(--vpm-primary);
+  box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.12);
+}
+
+.search-dark {
+  background: var(--dark-surface);
+  border-color: var(--dark-border);
+  color: var(--dark-text);
+}
+
+.search-dark:focus-within {
+  border-color: var(--vpm-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.15);
+}
+
+.search-icon { flex-shrink: 0; opacity: 0.45; }
+
+.search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: 0.88rem;
+  width: 100%;
+}
+
+.search-input::placeholder { opacity: 0.45; }
+
+.search-clear-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.45;
+  display: flex;
+  align-items: center;
+}
+
+.search-clear-btn:hover { opacity: 1; }

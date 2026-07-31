@@ -1,0 +1,98 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — CSS Design Tokens / Variables
+   All colors, spacing, shadows, and brand tokens live here.
+   ================================================================= */
+
+:root {
+  /* ── Brand Colors ─────────────────────────────────────────── */
+  --vpm-cyan:         #00AEEF;
+  --vpm-cyan-dark:    #0077B6;
+  --vpm-cyan-light:   #E8F8FF;
+  --vpm-orange:       #F7941D;
+  --vpm-green:        #8DC63F;
+  --vpm-green-dark:   #5A9622;
+  --vpm-red:          #ED1C24;
+  --vpm-yellow:       #FFF200;
+
+  /* ── Neutral Palette ──────────────────────────────────────── */
+  --vpm-white:        #FFFFFF;
+  --vpm-gray-50:      #F8FAFC;
+  --vpm-gray-100:     #F1F5F9;
+  --vpm-gray-150:     #EDF0F5;
+  --vpm-gray-200:     #E2E8F0;
+  --vpm-gray-300:     #CBD5E1;
+  --vpm-gray-400:     #94A3B8;
+  --vpm-gray-500:     #64748B;
+  --vpm-gray-600:     #475569;
+  --vpm-gray-700:     #334155;
+  --vpm-gray-800:     #1E293B;
+  --vpm-gray-900:     #0F172A;
+
+  /* ── Semantic Colors ──────────────────────────────────────── */
+  --vpm-primary:      #0077B6;
+  --vpm-primary-end:  #00AEEF;
+  --vpm-success:      #10B981;
+  --vpm-warning:      #F59E0B;
+  --vpm-danger:       #EF4444;
+  --vpm-info:         #3B82F6;
+
+  /* ── Light Theme Surfaces ─────────────────────────────────── */
+  --light-bg:         #EDF1F7;
+  --light-surface:    #FFFFFF;
+  --light-surface-2:  #F8FAFC;
+  --light-border:     #E2E8F0;
+  --light-border-hover: rgba(0, 119, 182, 0.3);
+  --light-text:       #0F172A;
+  --light-text-2:     #475569;
+  --light-text-muted: #94A3B8;
+
+  /* ── Dark Theme Surfaces ──────────────────────────────────── */
+  --dark-bg:          #08101F;
+  --dark-surface:     #0F1929;
+  --dark-surface-2:   #152033;
+  --dark-border:      rgba(255, 255, 255, 0.07);
+  --dark-border-hover: rgba(0, 174, 239, 0.35);
+  --dark-text:        #F1F5F9;
+  --dark-text-2:      #94A3B8;
+  --dark-text-muted:  #475569;
+
+  /* ── Font Stack ───────────────────────────────────────────── */
+  --font-sans:   'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:   'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+
+  /* ── Border Radius ────────────────────────────────────────── */
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  /* ── Shadows — Light ──────────────────────────────────────── */
+  --shadow-xs:   0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm:   0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-md:   0 4px 20px rgba(15, 23, 42, 0.08);
+  --shadow-lg:   0 8px 32px rgba(15, 23, 42, 0.10);
+  --shadow-xl:   0 16px 48px rgba(15, 23, 42, 0.12);
+  --shadow-brand: 0 4px 20px rgba(0, 119, 182, 0.20);
+
+  /* ── Shadows — Dark ───────────────────────────────────────── */
+  --shadow-dark-sm:  0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-dark-md:  0 4px 20px rgba(0, 0, 0, 0.35);
+  --shadow-dark-lg:  0 8px 32px rgba(0, 0, 0, 0.45);
+  --shadow-dark-brand: 0 4px 20px rgba(0, 174, 239, 0.20);
+
+  /* ── Transitions ──────────────────────────────────────────── */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-inout:  cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.15s var(--ease-inout);
+  --transition:      0.25s var(--ease-out);
+  --transition-slow: 0.4s  var(--ease-out);
+
+  /* ── Sidebar Dimensions ───────────────────────────────────── */
+  --sidebar-width:         248px;
+  --sidebar-width-compact: 68px;
+  --header-height:         64px;
+}

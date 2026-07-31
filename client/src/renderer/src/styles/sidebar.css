@@ -1,0 +1,310 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — Sidebar CSS  [PRO LEVEL v2]
+   Premium sidebar with gradient active indicator, glass surface.
+   ================================================================= */
+
+/* ── Sidebar Shell ────────────────────────────────────────────── */
+.vpm-sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 100;
+  transition: width var(--transition), min-width var(--transition);
+  overflow: hidden;
+  animation: vpmSlideInLeft 0.4s var(--ease-out) both;
+}
+
+.vpm-sidebar.sidebar-compact {
+  width: var(--sidebar-width-compact);
+  min-width: var(--sidebar-width-compact);
+}
+
+.vpm-sidebar.sidebar-hidden {
+  width: 0;
+  min-width: 0;
+}
+
+/* Light sidebar — pure white with soft edge shadow */
+.vpm-sidebar.theme-light {
+  background: #FFFFFF;
+  border-right: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.05);
+}
+
+/* Dark sidebar — deep glass surface */
+.vpm-sidebar.theme-dark {
+  background: linear-gradient(180deg, #0D1B35 0%, #0A1525 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Brand Section ────────────────────────────────────────────── */
+.vpm-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px;
+  border-bottom: 1px solid;
+  min-height: var(--header-height);
+  flex-shrink: 0;
+}
+
+.theme-light .vpm-sidebar-brand { border-color: rgba(226, 232, 240, 0.8); }
+.theme-dark  .vpm-sidebar-brand { border-color: rgba(255, 255, 255, 0.06); }
+
+/* Glowing brand logo badge */
+.vpm-sidebar-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0077B6, #00AEEF);
+  box-shadow: 0 4px 14px rgba(0, 119, 182, 0.35);
+  flex-shrink: 0;
+  overflow: hidden;
+  animation: vpmGlowBreathe 3s ease-in-out infinite;
+  transition: transform 0.2s ease;
+}
+
+.vpm-sidebar-logo:hover {
+  transform: scale(1.08);
+}
+
+.vpm-sidebar-logo img {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) invert(1);
+}
+
+.vpm-sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+.vpm-brand-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.vpm-brand-sub {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.theme-light .vpm-brand-name { color: #0F172A; }
+.theme-dark  .vpm-brand-name { color: #F1F5F9; }
+.theme-light .vpm-brand-sub  { color: #94A3B8; }
+.theme-dark  .vpm-brand-sub  { color: #475569; }
+
+/* ── Navigation Section ───────────────────────────────────────── */
+.vpm-sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.vpm-sidebar-nav::-webkit-scrollbar { display: none; }
+
+/* Section label */
+.vpm-nav-section-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  padding: 10px 8px 4px;
+  white-space: nowrap;
+}
+
+.theme-light .vpm-nav-section-label { color: #CBD5E1; }
+.theme-dark  .vpm-nav-section-label { color: #334155; }
+
+/* ── Nav Item ─────────────────────────────────────────────────── */
+.vpm-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  width: 100%;
+  transition:
+    background  0.2s ease,
+    color       0.2s ease,
+    transform   0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow  0.2s ease,
+    border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Focus ring */
+.vpm-nav-item:focus-visible {
+  outline: 2px solid var(--vpm-cyan);
+  outline-offset: 2px;
+}
+
+/* Nav icon */
+.vpm-nav-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Nav label */
+.vpm-nav-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Light theme nav ──────────────────────────────────────────── */
+.theme-light .vpm-nav-item {
+  color: #64748B;
+}
+
+.theme-light .vpm-nav-item:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+  transform: translateX(4px);
+}
+
+.theme-light .vpm-nav-item:hover .vpm-nav-icon {
+  transform: scale(1.15);
+}
+
+.theme-light .vpm-nav-item.active {
+  background: linear-gradient(135deg, rgba(0,119,182,0.08), rgba(0,174,239,0.05));
+  color: #0077B6;
+  font-weight: 700;
+  border-color: rgba(0, 119, 182, 0.15);
+  box-shadow: 0 2px 12px rgba(0, 119, 182, 0.10);
+}
+
+/* Left gradient accent strip */
+.theme-light .vpm-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 15%; bottom: 15%;
+  width: 3px;
+  background: linear-gradient(180deg, #0077B6, #00AEEF);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 2px 0 8px rgba(0, 119, 182, 0.35);
+}
+
+.theme-light .vpm-nav-item.active .vpm-nav-icon {
+  transform: scale(1.1);
+}
+
+/* ── Dark theme nav ───────────────────────────────────────────── */
+.theme-dark .vpm-nav-item {
+  color: #64748B;
+}
+
+.theme-dark .vpm-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #CBD5E1;
+  transform: translateX(4px);
+}
+
+.theme-dark .vpm-nav-item:hover .vpm-nav-icon {
+  transform: scale(1.15);
+}
+
+.theme-dark .vpm-nav-item.active {
+  background: linear-gradient(135deg, rgba(0,174,239,0.15), rgba(0,119,182,0.08));
+  color: #00AEEF;
+  font-weight: 700;
+  border-color: rgba(0, 174, 239, 0.20);
+  box-shadow: 0 2px 16px rgba(0, 174, 239, 0.10);
+}
+
+.theme-dark .vpm-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 15%; bottom: 15%;
+  width: 3px;
+  background: linear-gradient(180deg, #0077B6, #00AEEF);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 2px 0 10px rgba(0, 174, 239, 0.50);
+}
+
+.theme-dark .vpm-nav-item.active .vpm-nav-icon {
+  transform: scale(1.1);
+}
+
+/* ── Sidebar Footer ───────────────────────────────────────────── */
+.vpm-sidebar-footer {
+  padding: 12px 10px 18px;
+  border-top: 1px solid;
+  flex-shrink: 0;
+}
+
+.theme-light .vpm-sidebar-footer { border-color: rgba(226, 232, 240, 0.8); }
+.theme-dark  .vpm-sidebar-footer { border-color: rgba(255, 255, 255, 0.06); }
+
+/* Server status pill */
+.vpm-server-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.theme-light .vpm-server-status {
+  background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+}
+
+.theme-dark .vpm-server-status {
+  background: linear-gradient(135deg, rgba(16,185,129,0.10), rgba(6,95,70,0.06));
+  border: 1px solid rgba(16, 185, 129, 0.18);
+}
+
+/* Pulsing green dot */
+.vpm-server-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  flex-shrink: 0;
+  animation: vpmPulse 2.5s ease infinite;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
+.vpm-server-text {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.theme-light .vpm-server-text { color: #15803D; }
+.theme-dark  .vpm-server-text { color: #34D399; }

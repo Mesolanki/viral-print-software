@@ -1,25 +1,19 @@
-/* ============================================================
-   Viral Print Media — Global Design System
-   ============================================================ */
+/* =================================================================
+   VIRAL PRINT MEDIA — Base CSS
+   Global scrollbar, minimal overrides, legacy login page support.
+   Design tokens now live in styles/variables.css
+   ================================================================= */
 
-/* ── Reset & Base ─────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* Keep brand color aliases for legacy code */
 :root {
-  /* Brand Colors — derived from the Viral Print Media logo */
-  --brand-cyan:       #00AEEF;   /* logo sky blue */
-  --brand-cyan-dark:  #0090C8;
+  --brand-cyan:       #00AEEF;
+  --brand-cyan-dark:  #0077B6;
   --brand-cyan-light: #E8F8FF;
   --brand-orange:     #F7941D;
   --brand-green:      #8DC63F;
   --brand-red:        #ED1C24;
   --brand-yellow:     #FFF200;
 
-  /* Neutrals */
   --white:    #FFFFFF;
   --gray-50:  #F8FAFC;
   --gray-100: #F1F5F9;
@@ -32,48 +26,42 @@
   --gray-800: #1E293B;
   --gray-900: #0F172A;
 
-  /* Dark Theme */
-  --dark-bg:         #0A0F1E;
-  --dark-surface:    #0F1729;
-  --dark-card:       #131E35;
+  --dark-bg:         #08101F;
+  --dark-surface:    #0F1929;
+  --dark-card:       #13203A;
   --dark-border:     rgba(255,255,255,0.07);
   --dark-border-hover: rgba(0,174,239,0.4);
 
-  /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  /* Spacing */
-  --radius-sm:  6px;
+  --radius-sm:  8px;
   --radius-md:  12px;
   --radius-lg:  16px;
   --radius-xl:  24px;
 
-  /* Shadows */
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md:  0 4px 24px rgba(0,0,0,0.4);
-  --shadow-lg:  0 8px 48px rgba(0,0,0,0.5);
-  --shadow-brand: 0 0 30px rgba(0,174,239,0.25);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:  0 4px 20px rgba(0,0,0,0.08);
+  --shadow-lg:  0 8px 40px rgba(0,0,0,0.10);
+  --shadow-brand: 0 4px 20px rgba(0,119,182,0.20);
 
-  /* Transitions */
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
 }
 
 body {
   font-family: var(--font-family);
-  background-color: var(--dark-bg);
-  color: var(--white);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Scrollbar ────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--dark-surface); }
-::-webkit-scrollbar-thumb { background: var(--gray-600); border-radius: 3px; }
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.30);
+  border-radius: 999px;
+}
 ::-webkit-scrollbar-thumb:hover { background: var(--brand-cyan); }
+
+/* ── Utility classes used across components ───────────────────── */
+.fs-7 { font-size: 0.82rem !important; }
+.fs-8 { font-size: 0.72rem !important; }

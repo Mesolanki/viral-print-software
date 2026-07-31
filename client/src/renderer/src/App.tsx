@@ -4,21 +4,12 @@ import { Row, Col, Card, Button, Alert } from 'react-bootstrap'
 import Versions from './components/Versions'
 import TaskManagement from './components/TaskManagement'
 import UserManagement from './components/UserManagement'
+import AppLayout from './components/layout/AppLayout'
 import LoginPage from './pages/LoginPage'
 import { useAuth } from './context/AuthContext'
-import electronLogo from './assets/electron.svg'
-import {
-  CheckSquare,
-  LayoutDashboard,
-  Sun,
-  Moon,
-  Menu,
-  Sparkles,
-  LogOut,
-  UserCheck,
-  Users
-} from 'lucide-react'
+import { LayoutDashboard } from 'lucide-react'
 
+/* ── Dashboard View ─────────────────────────────────────────────── */
 function DashboardView({
   theme,
   toggleTheme
@@ -29,367 +20,230 @@ function DashboardView({
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState<'tasks' | 'users' | 'dashboard'>('tasks')
-  const [sidebarMode, setSidebarMode] = useState<'open' | 'compact' | 'hidden'>('open')
   const [pingStatus, setPingStatus] = useState<string | null>(null)
-
-  const toggleSidebarHidden = (): void => {
-    setSidebarMode((prev) => (prev === 'hidden' ? 'open' : 'hidden'))
-  }
+  const isDark = theme === 'dark'
 
   const ipcHandle = (): void => {
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.send('ping')
       setPingStatus('Ping sent successfully via IPC!')
-      setTimeout(() => setPingStatus(null), 3000)
     } else {
       setPingStatus('Running in browser mode — IPC simulation active.')
-      setTimeout(() => setPingStatus(null), 3000)
     }
+    setTimeout(() => setPingStatus(null), 3000)
   }
 
-  const isDark = theme === 'dark'
-
   return (
-    <div
-      className={`d-flex min-vh-100 w-100 ${isDark ? 'bg-dark text-light' : 'bg-light text-dark'}`}
-      style={{ fontFamily: "'Outfit', sans-serif", overflowX: 'hidden', margin: 0, padding: 0 }}
+    <AppLayout
+      theme={theme}
+      toggleTheme={toggleTheme}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
     >
-      {/* LEFT SIDEBAR NAVIGATION */}
-      {sidebarMode !== 'hidden' && (
-        <aside
-          className={`d-flex flex-column justify-content-between p-3 border-end transition-all ${
-            isDark ? 'bg-dark bg-opacity-95 border-secondary' : 'bg-white border-light-subtle shadow-sm'
-          }`}
-          style={{
-            width: sidebarMode === 'compact' ? '70px' : '250px',
-            minWidth: sidebarMode === 'compact' ? '70px' : '250px',
-            transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-            zIndex: 1000
-          }}
+      {/* ── Alert Banner ─────────────────────────────────── */}
+      {pingStatus && (
+        <Alert
+          variant="info"
+          onClose={() => setPingStatus(null)}
+          dismissible
+          className="shadow-sm border-info mb-4"
+          style={{ borderRadius: '12px' }}
         >
-          <div>
-            {/* Brand Header */}
-            <div className="d-flex align-items-center justify-content-center mb-4 pb-3 border-bottom border-secondary">
-              <div className="d-flex align-items-center gap-2 font-monospace fw-bold fs-6 text-truncate mx-auto">
-                <img alt="Logo" src={electronLogo} width="26" height="26" />
-                {sidebarMode === 'open' && (
-                  <span className={isDark ? 'text-info' : 'text-primary'}>VIRAL PRINT</span>
-                )}
-              </div>
-            </div>
-
-            {/* Nav Items */}
-            <nav className="d-flex flex-column gap-2">
-              <button
-                onClick={() => setActiveTab('tasks')}
-                className={`d-flex align-items-center gap-3 px-3 py-2.5 rounded-3 text-start border-0 transition-all ${
-                  activeTab === 'tasks'
-                    ? isDark
-                      ? 'bg-info text-dark fw-bold shadow-sm'
-                      : 'bg-primary text-white fw-bold shadow-sm'
-                    : isDark
-                      ? 'bg-transparent text-light opacity-75 hover-opacity-100'
-                      : 'bg-transparent text-dark opacity-75 hover-opacity-100'
-                }`}
-                title="To-Do & Task Management"
-              >
-                <CheckSquare size={20} className="flex-shrink-0" />
-                {sidebarMode === 'open' && <span className="text-truncate fs-7">Tasks & To-Do</span>}
-              </button>
-
-              <button
-                onClick={() => setActiveTab('users')}
-                className={`d-flex align-items-center gap-3 px-3 py-2.5 rounded-3 text-start border-0 transition-all ${
-                  activeTab === 'users'
-                    ? isDark
-                      ? 'bg-info text-dark fw-bold shadow-sm'
-                      : 'bg-primary text-white fw-bold shadow-sm'
-                    : isDark
-                      ? 'bg-transparent text-light opacity-75 hover-opacity-100'
-                      : 'bg-transparent text-dark opacity-75 hover-opacity-100'
-                }`}
-                title="User & Role Management"
-              >
-                <Users size={20} className="flex-shrink-0" />
-                {sidebarMode === 'open' && <span className="text-truncate fs-7">Users & Roles</span>}
-              </button>
-
-              <button
-                onClick={() => setActiveTab('dashboard')}
-                className={`d-flex align-items-center gap-3 px-3 py-2.5 rounded-3 text-start border-0 transition-all ${
-                  activeTab === 'dashboard'
-                    ? isDark
-                      ? 'bg-info text-dark fw-bold shadow-sm'
-                      : 'bg-primary text-white fw-bold shadow-sm'
-                    : isDark
-                      ? 'bg-transparent text-light opacity-75 hover-opacity-100'
-                      : 'bg-transparent text-dark opacity-75 hover-opacity-100'
-                }`}
-                title="System Overview"
-              >
-                <LayoutDashboard size={20} className="flex-shrink-0" />
-                {sidebarMode === 'open' && <span className="text-truncate fs-7">System Overview</span>}
-              </button>
-            </nav>
-          </div>
-
-          {/* Sidebar Footer Controls */}
-          <div className="d-flex flex-column gap-2 pt-3 border-top border-secondary">
-            {/* Connection Status */}
-            {sidebarMode === 'open' ? (
-              <div className={`p-2.5 rounded-3 border d-flex align-items-center justify-content-center gap-2 shadow-sm ${
-                isDark ? 'bg-dark bg-opacity-75 border-secondary text-light' : 'bg-light border-light-subtle text-dark'
-              }`}>
-                <span className="status-dot" />
-                <span className="fs-7 fw-semibold font-monospace">Shop Server Active</span>
-              </div>
-            ) : (
-              <div className="status-dot mx-auto" title="Server Connected" />
-            )}
-          </div>
-        </aside>
+          {pingStatus}
+        </Alert>
       )}
 
-      {/* RIGHT MAIN DATA CONTENT AREA */}
-      <main className="flex-grow-1 d-flex flex-column min-vh-100 w-100 overflow-auto">
-        {/* Top Header Bar */}
-        <header
-          className={`d-flex align-items-center justify-content-between px-4 py-2.5 border-bottom w-100 transition-all ${
-            isDark ? 'header-glass-dark text-light' : 'header-glass-light text-dark'
-          }`}
-          style={{ height: '62px' }}
-        >
-          <div className="d-flex align-items-center gap-3">
-            {/* Unified Hamburger Button */}
-            <Button
-              variant={isDark ? 'outline-secondary' : 'outline-dark'}
-              onClick={toggleSidebarHidden}
-              className={`p-0 rounded-3 d-flex align-items-center justify-content-center border-0 transition-all header-action-btn ${
-                isDark ? 'bg-secondary bg-opacity-25 text-light' : 'bg-light text-dark'
-              }`}
-              style={{ width: '38px', height: '38px' }}
-              title={sidebarMode === 'hidden' ? 'Show Navigation Sidebar' : 'Hide Navigation Sidebar'}
-            >
-              <Menu size={20} />
-            </Button>
-
-            <h5 className="mb-0 fw-bold d-flex align-items-center gap-2 fs-6">
-              {activeTab === 'tasks' ? (
-                <>
-                  <CheckSquare size={20} className={isDark ? 'text-info' : 'text-primary'} />
-                  <span>Task Management & Calendar Schedule</span>
-                </>
-              ) : activeTab === 'users' ? (
-                <>
-                  <Users size={20} className={isDark ? 'text-info' : 'text-primary'} />
-                  <span>User & Role-Based Employee Roster</span>
-                </>
-              ) : (
-                <>
-                  <LayoutDashboard size={20} className={isDark ? 'text-info' : 'text-primary'} />
-                  <span>System Diagnostics & Overview</span>
-                </>
-              )}
-            </h5>
-          </div>
-
-          <div className="d-flex align-items-center gap-2.5">
-            <span className="fs-7 text-secondary font-monospace d-none d-xl-inline me-2">
-              <Sparkles size={14} className="text-warning me-1" />
-              Viral Print Software
-            </span>
-
-            {/* Unified Theme Switcher Button */}
-            <Button
-              variant={isDark ? 'outline-light' : 'outline-dark'}
-              onClick={toggleTheme}
-              className={`p-0 rounded-3 border-0 d-flex align-items-center justify-content-center transition-all header-action-btn ${
-                isDark ? 'bg-secondary bg-opacity-25 text-warning' : 'bg-light text-primary'
-              }`}
-              style={{ width: '38px', height: '38px' }}
-              title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
-            >
-              {isDark ? <Sun size={20} /> : <Moon size={20} />}
-            </Button>
-
-            {/* Unified User Profile Badge */}
-            <div
-              className={`d-flex align-items-center gap-2 px-3 rounded-3 border transition-all ${
-                isDark
-                  ? 'bg-dark bg-opacity-75 border-secondary text-light'
-                  : 'bg-white border-light-subtle text-dark shadow-sm'
-              }`}
-              style={{ height: '38px' }}
-            >
-              <div
-                className={`rounded-circle d-flex align-items-center justify-content-center fw-bold fs-7 shadow-sm ${
-                  isDark ? 'bg-info text-dark' : 'bg-primary text-white'
-                }`}
-                style={{ width: '26px', height: '26px' }}
-              >
-                <UserCheck size={14} />
-              </div>
-              <div className="d-flex flex-column text-start" style={{ lineHeight: '1.1' }}>
-                <span className="fw-bold fs-7 d-none d-md-inline">
-                  {user?.fullName || user?.username || 'System Administrator'}
-                </span>
-                <span className={`fs-8 text-uppercase font-monospace fw-bold ${isDark ? 'text-info' : 'text-primary'}`}>
-                  {user?.role?.label || user?.role?.name || 'ADMIN'}
-                </span>
-              </div>
-            </div>
-
-            {/* Unified Sleek Log Out Button */}
-            <Button
-              variant="danger"
-              className="d-flex align-items-center justify-content-center gap-1.5 px-3 rounded-3 fw-bold fs-7 shadow-sm border-0 transition-all header-logout-btn"
-              style={{ height: '38px' }}
-              onClick={() => {
-                logout()
-                navigate('/login')
+      {/* ── Page Content ─────────────────────────────────── */}
+      {activeTab === 'tasks' ? (
+        <TaskManagement theme={theme} />
+      ) : activeTab === 'users' ? (
+        <UserManagement theme={theme} />
+      ) : (
+        /* ── System Overview / Diagnostics Page ─────────── */
+        <Row className="gy-4">
+          {/* Main Welcome Card */}
+          <Col lg={8}>
+            <Card
+              className={`h-100 ${isDark ? 'bg-transparent border-0' : 'bg-white border-0'}`}
+              style={{
+                borderRadius: '20px',
+                border: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#E2E8F0'}`,
+                boxShadow: isDark
+                  ? '0 4px 20px rgba(0,0,0,0.25)'
+                  : '0 4px 20px rgba(15,23,42,0.06)'
               }}
-              title="Log Out of System"
             >
-              <LogOut size={16} />
-              <span className="d-none d-sm-inline">Log Out</span>
-            </Button>
-          </div>
-        </header>
+              <Card.Body className="p-5 d-flex flex-column justify-content-between">
+                <div>
+                  <div
+                    className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3"
+                    style={{
+                      background: isDark
+                        ? 'rgba(0,174,239,0.10)'
+                        : 'rgba(0,119,182,0.06)',
+                      border: `1px solid ${isDark ? 'rgba(0,174,239,0.20)' : 'rgba(0,119,182,0.15)'}`,
+                      color: isDark ? '#00AEEF' : '#0077B6',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    <LayoutDashboard size={12} />
+                    System Overview
+                  </div>
 
-        {/* Full-width Main Body */}
-        <div className="p-3 p-md-4 flex-grow-1 w-100">
-          {pingStatus && (
-            <Alert variant="info" onClose={() => setPingStatus(null)} dismissible className="shadow-lg border-info mb-4">
-              {pingStatus}
-            </Alert>
-          )}
+                  <h1
+                    className="fw-bold mb-3"
+                    style={{
+                      fontSize: '1.9rem',
+                      letterSpacing: '-0.5px',
+                      color: isDark ? '#F1F5F9' : '#0F172A'
+                    }}
+                  >
+                    Welcome to Viral Print Software
+                  </h1>
 
-          {activeTab === 'tasks' ? (
-            <TaskManagement theme={theme} />
-          ) : activeTab === 'users' ? (
-            <UserManagement theme={theme} />
-          ) : (
-            <Row className="gy-4">
-              {/* Main Hero Card */}
-              <Col lg={8}>
-                <Card className={`${isDark ? 'bg-secondary bg-opacity-25 border-secondary text-light' : 'bg-white border-light-subtle text-dark'} h-100 shadow-lg`}>
-                  <Card.Body className="p-5 d-flex flex-column justify-content-between">
-                    <div>
-                      <h1 className={`display-5 fw-bold mb-3 ${isDark ? 'text-info' : 'text-primary'}`}>
-                        Welcome to Viral Print Software
-                      </h1>
-                      <p className={`lead fs-5 ${isDark ? 'text-light opacity-75' : 'text-muted'}`}>
-                        A premium desktop application built using Electron, React, TypeScript, and Bootstrap. The backend server runs with Express, PostgreSQL, and Prisma ORM.
+                  <p
+                    style={{
+                      color: isDark ? '#94A3B8' : '#64748B',
+                      fontSize: '0.95rem',
+                      lineHeight: '1.7'
+                    }}
+                  >
+                    A premium desktop application built with Electron, React, TypeScript, and
+                    Bootstrap. The backend runs on Express, PostgreSQL, and Prisma ORM.
+                  </p>
+                </div>
+
+                <div className="d-flex gap-3 mt-4 flex-wrap">
+                  <Button
+                    onClick={ipcHandle}
+                    style={{
+                      background: isDark
+                        ? 'linear-gradient(135deg, #00AEEF, #00CFFF)'
+                        : 'linear-gradient(135deg, #0077B6, #00AEEF)',
+                      border: 'none',
+                      borderRadius: '10px',
+                      padding: '10px 22px',
+                      fontWeight: 700,
+                      color: isDark ? '#05101F' : '#FFF',
+                      boxShadow: isDark
+                        ? '0 4px 14px rgba(0,174,239,0.30)'
+                        : '0 4px 14px rgba(0,119,182,0.28)'
+                    }}
+                  >
+                    Send IPC Ping
+                  </Button>
+                  <Button
+                    variant="outline-secondary"
+                    style={{ borderRadius: '10px', padding: '10px 22px', fontWeight: 600 }}
+                    onClick={() => setActiveTab('tasks')}
+                  >
+                    Open Task Management →
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          {/* Diagnostics Card */}
+          <Col lg={4}>
+            <Card
+              className={`h-100 ${isDark ? 'bg-transparent' : 'bg-white'}`}
+              style={{
+                borderRadius: '20px',
+                border: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#E2E8F0'}`,
+                boxShadow: isDark
+                  ? '0 4px 20px rgba(0,0,0,0.25)'
+                  : '0 4px 20px rgba(15,23,42,0.06)'
+              }}
+            >
+              <Card.Header
+                style={{
+                  background: 'transparent',
+                  borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#E2E8F0'}`,
+                  padding: '16px 24px',
+                  fontWeight: 700,
+                  fontSize: '0.78rem',
+                  letterSpacing: '0.8px',
+                  textTransform: 'uppercase',
+                  color: isDark ? '#64748B' : '#94A3B8'
+                }}
+              >
+                System Diagnostics
+              </Card.Header>
+              <Card.Body className="p-4 d-flex flex-column justify-content-between">
+                <div>
+                  {[
+                    { label: 'Database Engine', value: 'PostgreSQL (Prisma ORM)' },
+                    { label: 'Backend Service', value: 'Express Server (Port 5000)' }
+                  ].map((item) => (
+                    <div key={item.label} className="mb-4">
+                      <p
+                        style={{
+                          fontSize: '0.70rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.8px',
+                          textTransform: 'uppercase',
+                          color: isDark ? '#475569' : '#94A3B8',
+                          marginBottom: '6px'
+                        }}
+                      >
+                        {item.label}
                       </p>
-                    </div>
-                    <div className="d-flex gap-3 mt-4 flex-wrap">
-                      <Button variant={isDark ? 'info' : 'primary'} size="lg" className={`px-4 py-2 ${isDark ? 'text-dark' : 'text-white'} fw-bold shadow-sm`} onClick={ipcHandle}>
-                        Send IPC Ping
-                      </Button>
-                      <Button variant={isDark ? 'outline-info' : 'outline-primary'} size="lg" className="px-4 py-2" onClick={() => setActiveTab('tasks')}>
-                        Go to Task Management
-                      </Button>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-
-              {/* System Info Sidebar */}
-              <Col lg={4}>
-                <Card className={`${isDark ? 'bg-secondary bg-opacity-25 border-secondary text-light' : 'bg-white border-light-subtle text-dark'} h-100 shadow-lg`}>
-                  <Card.Header className={`${isDark ? 'bg-dark bg-opacity-50 border-secondary text-secondary' : 'bg-light border-light-subtle text-muted'} py-3 fw-bold font-monospace text-uppercase`}>
-                    System Diagnostics
-                  </Card.Header>
-                  <Card.Body className="p-4 d-flex flex-column justify-content-between">
-                    <div>
-                      <div className="mb-4">
-                        <h6 className="text-secondary text-uppercase fs-7 fw-bold font-monospace">Database Engine</h6>
-                        <div className="d-flex align-items-center gap-2">
-                          <div className="status-dot" />
-                          <span className="fw-semibold">PostgreSQL (Prisma ORM)</span>
-                        </div>
-                      </div>
-                      <div className="mb-4">
-                        <h6 className="text-secondary text-uppercase fs-7 fw-bold font-monospace">Backend Service</h6>
-                        <div className="d-flex align-items-center gap-2">
-                          <div className="status-dot" />
-                          <span className="fw-semibold">Express Server (Port 5000)</span>
-                        </div>
+                      <div className="d-flex align-items-center gap-2">
+                        <div
+                          style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            background: '#10B981',
+                            boxShadow: '0 0 6px rgba(16,185,129,0.7)',
+                            animation: 'vpmPulse 2.5s infinite'
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            fontSize: '0.88rem',
+                            color: isDark ? '#E2E8F0' : '#1E293B'
+                          }}
+                        >
+                          {item.value}
+                        </span>
                       </div>
                     </div>
-                    <div className={`border-top ${isDark ? 'border-secondary' : 'border-light-subtle'} pt-3`}>
-                      <Versions theme={theme} />
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-          )}
-        </div>
-      </main>
+                  ))}
+                </div>
 
-      {/* Embedded CSS for Modern Header & Unified Buttons */}
-      <style>{`
-        .header-glass-dark {
-          background: rgba(15, 23, 42, 0.85) !important;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-        }
-        .header-glass-light {
-          background: rgba(255, 255, 255, 0.95) !important;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-        }
-        .header-action-btn:hover {
-          transform: translateY(-1px);
-          opacity: 0.9;
-        }
-        .header-logout-btn {
-          background: linear-gradient(135deg, #EF4444, #DC2626) !important;
-          color: #FFFFFF !important;
-        }
-        .header-logout-btn:hover {
-          background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
-        }
-        .status-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background-color: #10B981;
-          position: relative;
-          display: inline-block;
-        }
-        .status-dot::after {
-          content: '';
-          position: absolute;
-          inset: -3px;
-          border-radius: 50%;
-          background: rgba(16, 185, 129, 0.5);
-          animation: pulseDot 2s infinite;
-        }
-        @keyframes pulseDot {
-          0% { transform: scale(0.9); opacity: 0.8; }
-          50% { transform: scale(1.6); opacity: 0; }
-          100% { transform: scale(0.9); opacity: 0; }
-        }
-      `}</style>
-    </div>
+                <div
+                  style={{
+                    borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#E2E8F0'}`,
+                    paddingTop: '16px'
+                  }}
+                >
+                  <Versions theme={theme} />
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      )}
+    </AppLayout>
   )
 }
 
+/* ── Root App ───────────────────────────────────────────────────── */
 function App(): React.JSX.Element {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('app_theme') as 'dark' | 'light') || 'dark'
+    return (localStorage.getItem('app_theme') as 'dark' | 'light') || 'light'
   })
 
   useEffect(() => {
     localStorage.setItem('app_theme', theme)
-    document.body.className = theme === 'dark' ? 'bg-dark text-light' : 'bg-light text-dark'
+    // Keep body class minimal — layout handles theming via vpm-app-shell
+    document.body.className = theme === 'dark' ? 'theme-dark' : 'theme-light'
   }, [theme])
 
   const toggleTheme = (): void => {
@@ -399,7 +253,10 @@ function App(): React.JSX.Element {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<DashboardView theme={theme} toggleTheme={toggleTheme} />} />
+      <Route
+        path="/dashboard"
+        element={<DashboardView theme={theme} toggleTheme={toggleTheme} />}
+      />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )

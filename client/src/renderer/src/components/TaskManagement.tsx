@@ -600,236 +600,230 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
       )}
 
       {/* Header & Main Controls */}
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 w-100">
-        <div>
-          <h2 className={`fw-bold mb-0.5 d-flex align-items-center gap-2.5 ${isDark ? 'text-light' : 'text-dark'} fs-4`}>
-            <div className={`p-1.5 rounded-3 d-inline-flex align-items-center justify-content-center ${isDark ? 'bg-info bg-opacity-15 text-info' : 'bg-primary bg-opacity-10 text-primary'}`}>
-              <CalendarDays size={20} />
-            </div>
-            To-Do & Task Management
-          </h2>
-          <p className={isDark ? 'text-secondary mb-0 fs-7' : 'text-muted mb-0 fs-7'}>
-            Organize print shop orders, assign employees, track status, and view calendar schedule in real-time.
-          </p>
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 w-100">
+        <div className="d-flex align-items-center gap-3">
+          <div className={`p-2.5 rounded-3 d-inline-flex align-items-center justify-content-center ${isDark ? 'bg-info bg-opacity-15 text-info' : 'bg-primary bg-opacity-10 text-primary'}`} style={{ width: '44px', height: '44px', flexShrink: 0 }}>
+            <CalendarDays size={22} />
+          </div>
+          <div>
+            <h2 className={`fw-bold mb-1 ${isDark ? 'text-light' : 'text-dark'} fs-4`} style={{ lineHeight: '1.2' }}>
+              To-Do & Task Management
+            </h2>
+            <p className={isDark ? 'text-secondary mb-0 fs-7' : 'text-muted mb-0 fs-7'}>
+              Organize print shop orders, assign employees, track status, and view calendar schedule in real-time.
+            </p>
+          </div>
         </div>
 
         <div className="d-flex align-items-center gap-2 flex-wrap">
-          <Button
-            variant={isDark ? 'outline-secondary' : 'outline-dark'}
-            size="sm"
+          <button
             onClick={fetchInitialData}
             title="Refresh Tasks"
-            className="d-flex align-items-center gap-1.5 px-2.5 py-1.5 rounded-3 border-secondary border-opacity-50 fs-7"
+            className="vpm-btn-secondary"
           >
-            <RefreshCw size={13} className={loading ? 'spin-icon' : ''} />
-            <span className="d-none d-sm-inline font-medium">Refresh</span>
-          </Button>
+            <RefreshCw size={14} className={loading ? 'spin-icon' : ''} />
+            <span className="font-semibold">Refresh</span>
+          </button>
 
           {/* View Mode Switcher */}
-          <div className={`btn-group ${isDark ? 'bg-dark bg-opacity-90 border-secondary' : 'bg-white border-light-subtle'} border p-1 rounded-3 shadow-sm`}>
-            <Button
-              variant={viewMode === 'list' ? (isDark ? 'info' : 'primary') : (isDark ? 'dark' : 'light')}
-              size="sm"
-              className={viewMode === 'list' ? (isDark ? 'text-dark fw-bold px-3 py-1 fs-7' : 'text-white fw-bold px-3 py-1 fs-7') : (isDark ? 'text-secondary border-0 px-3 py-1 fs-7' : 'text-dark border-0 px-3 py-1 fs-7')}
+          <div className="vpm-segmented-control">
+            <button
+              className={`vpm-segmented-btn ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => setViewMode('list')}
             >
-              <ListIcon size={14} className="me-1.5 d-inline" /> List
-            </Button>
-            <Button
-              variant={viewMode === 'calendar' ? (isDark ? 'info' : 'primary') : (isDark ? 'dark' : 'light')}
-              size="sm"
-              className={viewMode === 'calendar' ? (isDark ? 'text-dark fw-bold px-3 py-1 fs-7' : 'text-white fw-bold px-3 py-1 fs-7') : (isDark ? 'text-secondary border-0 px-3 py-1 fs-7' : 'text-dark border-0 px-3 py-1 fs-7')}
+              <ListIcon size={14} /> List
+            </button>
+            <button
+              className={`vpm-segmented-btn ${viewMode === 'calendar' ? 'active' : ''}`}
               onClick={() => setViewMode('calendar')}
             >
-              <CalendarIcon size={14} className="me-1.5 d-inline" /> Calendar
-            </Button>
+              <CalendarIcon size={14} /> Calendar
+            </button>
           </div>
 
-          <Button
-            variant={isDark ? 'info' : 'primary'}
-            className={`${isDark ? 'text-dark' : 'text-white'} fw-bold px-3 py-1.5 fs-7 shadow-sm d-flex align-items-center gap-1.5 rounded-3 border-0`}
+          <button
+            className="vpm-btn-primary"
             onClick={() => handleOpenAddModal()}
           >
             <Plus size={16} /> Add Task
-          </Button>
+          </button>
         </div>
+
       </div>
 
       {/* Conditionally Render Stat Cards & Filters ONLY in List View */}
       {viewMode === 'list' && (
         <>
-          {/* Summary Stat Cards */}
+          {/* ═══ PRO LEVEL STAT CARDS ═══════════════════════════════ */}
           <Row className="g-3 mb-4 w-100 mx-0">
-            <Col xs={6} md={2.4} className="col-12 col-sm-6 col-md-4 col-lg-2.4 flex-grow-1 px-1">
-              <Card className={`stat-card ${isDark ? 'stat-card-dark' : 'stat-card-light'} shadow-sm h-100 rounded-3 border-0`}>
-                <Card.Body className="p-3 d-flex align-items-center justify-content-between">
-                  <div>
-                    <div className="text-uppercase font-monospace fw-semibold fs-8 text-secondary mb-1">Total Tasks</div>
-                    <div className={`fs-2 fw-bold ${isDark ? 'text-light' : 'text-dark'}`}>{metrics.total}</div>
+
+
+            {/* ── Total Tasks — Cyan ── */}
+            <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
+              <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-cyan`}>
+                <div className="vpm-stat-top">
+                  <span className="vpm-stat-label">Total Tasks</span>
+                  <div className="vpm-stat-icon-ring">
+                    <CalendarDays size={16} />
                   </div>
-                  <div className={`p-2.5 rounded-3 ${isDark ? 'bg-secondary bg-opacity-20 text-info' : 'bg-light text-primary'}`}>
-                    <CalendarDays size={22} />
-                  </div>
-                </Card.Body>
-              </Card>
+                </div>
+                <div className="vpm-stat-divider" />
+                <div className="vpm-stat-value">{metrics.total}</div>
+                <div className="vpm-stat-desc">Total registered in system</div>
+              </div>
             </Col>
 
-            <Col xs={6} md={2.4} className="col-12 col-sm-6 col-md-4 col-lg-2.4 flex-grow-1 px-1">
-              <Card className={`stat-card ${isDark ? 'stat-card-dark' : 'stat-card-light'} shadow-sm h-100 rounded-3 border-0`}>
-                <Card.Body className="p-3 d-flex align-items-center justify-content-between">
-                  <div>
-                    <div className="text-uppercase font-monospace fw-semibold fs-8 text-warning mb-1">Pending</div>
-                    <div className="fs-2 fw-bold text-warning">{metrics.pending}</div>
+            {/* ── Pending — Amber ── */}
+            <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
+              <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-amber`}>
+                <div className="vpm-stat-top">
+                  <span className="vpm-stat-label">Pending</span>
+                  <div className="vpm-stat-icon-ring">
+                    <AlertCircle size={16} />
                   </div>
-                  <div className="p-2.5 rounded-3 bg-warning bg-opacity-15 text-warning">
-                    <AlertCircle size={22} />
-                  </div>
-                </Card.Body>
-              </Card>
+                </div>
+                <div className="vpm-stat-divider" />
+                <div className="vpm-stat-value">{metrics.pending}</div>
+                <div className="vpm-stat-desc">Awaiting operator review</div>
+              </div>
             </Col>
 
-            <Col xs={6} md={2.4} className="col-12 col-sm-6 col-md-4 col-lg-2.4 flex-grow-1 px-1">
-              <Card className={`stat-card ${isDark ? 'stat-card-dark' : 'stat-card-light'} shadow-sm h-100 rounded-3 border-0`}>
-                <Card.Body className="p-3 d-flex align-items-center justify-content-between">
-                  <div>
-                    <div className="text-uppercase font-monospace fw-semibold fs-8 text-primary mb-1">In Progress</div>
-                    <div className="fs-2 fw-bold text-primary">{metrics.inProgress}</div>
+            {/* ── In Progress — Indigo ── */}
+            <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
+              <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-indigo`}>
+                <div className="vpm-stat-top">
+                  <span className="vpm-stat-label">In Progress</span>
+                  <div className="vpm-stat-icon-ring">
+                    <Clock size={16} />
                   </div>
-                  <div className="p-2.5 rounded-3 bg-primary bg-opacity-15 text-primary">
-                    <Clock size={22} />
-                  </div>
-                </Card.Body>
-              </Card>
+                </div>
+                <div className="vpm-stat-divider" />
+                <div className="vpm-stat-value">{metrics.inProgress}</div>
+                <div className="vpm-stat-desc">Active shop print jobs</div>
+              </div>
             </Col>
 
-            <Col xs={6} md={2.4} className="col-12 col-sm-6 col-md-4 col-lg-2.4 flex-grow-1 px-1">
-              <Card className={`stat-card ${isDark ? 'stat-card-dark' : 'stat-card-light'} shadow-sm h-100 rounded-3 border-0`}>
-                <Card.Body className="p-3 d-flex align-items-center justify-content-between">
-                  <div>
-                    <div className="text-uppercase font-monospace fw-semibold fs-8 text-success mb-1">Completed</div>
-                    <div className="fs-2 fw-bold text-success">{metrics.completed}</div>
+            {/* ── Completed — Emerald ── */}
+            <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
+              <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-emerald`}>
+                <div className="vpm-stat-top">
+                  <span className="vpm-stat-label">Completed</span>
+                  <div className="vpm-stat-icon-ring">
+                    <CheckCircle2 size={16} />
                   </div>
-                  <div className="p-2.5 rounded-3 bg-success bg-opacity-15 text-success">
-                    <CheckCircle2 size={22} />
-                  </div>
-                </Card.Body>
-              </Card>
+                </div>
+                <div className="vpm-stat-divider" />
+                <div className="vpm-stat-value">{metrics.completed}</div>
+                <div className="vpm-stat-desc">Successfully completed jobs</div>
+              </div>
             </Col>
 
-            <Col xs={6} md={2.4} className="col-12 col-sm-6 col-md-4 col-lg-2.4 flex-grow-1 px-1">
-              <Card className={`stat-card ${isDark ? 'stat-card-dark' : 'stat-card-light'} shadow-sm h-100 rounded-3 border-0`}>
-                <Card.Body className="p-3 d-flex align-items-center justify-content-between">
-                  <div>
-                    <div className="text-uppercase font-monospace fw-semibold fs-8 text-danger mb-1">Overdue</div>
-                    <div className="fs-2 fw-bold text-danger">{metrics.overdue}</div>
+            {/* ── Overdue — Rose ── */}
+            <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
+              <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-rose`}>
+                <div className="vpm-stat-top">
+                  <span className="vpm-stat-label">Overdue</span>
+                  <div className="vpm-stat-icon-ring">
+                    <AlertCircle size={16} />
                   </div>
-                  <div className="p-2.5 rounded-3 bg-danger bg-opacity-15 text-danger">
-                    <AlertCircle size={22} />
-                  </div>
-                </Card.Body>
-              </Card>
+                </div>
+                <div className="vpm-stat-divider" />
+                <div className="vpm-stat-value">{metrics.overdue}</div>
+                <div className="vpm-stat-desc">Missed shop deadlines</div>
+              </div>
             </Col>
+
           </Row>
 
+
           {/* Filters Toolbar */}
-          <Card className={`${isDark ? 'bg-dark bg-opacity-80 border-secondary' : 'bg-white border-light-subtle'} mb-4 shadow-sm w-100 rounded-3`}>
-            <Card.Body className="p-3">
-              <Row className="g-2.5 align-items-center w-100 mx-0">
-                {/* Search Input */}
-                <Col lg={4} md={12} className="px-1">
-                  <InputGroup size="sm" className="position-relative">
-                    <InputGroup.Text className={isDark ? 'bg-secondary bg-opacity-20 border-secondary text-secondary' : 'bg-light border-light-subtle text-muted'}>
-                      <Search size={15} />
-                    </InputGroup.Text>
-                    <Form.Control
+          <div className={`${isDark ? 'filter-toolbar-dark' : 'filter-toolbar-light'} mb-4 w-100`} style={{ padding: '16px 20px', borderRadius: '16px' }}>
+            <Row className="g-2.5 align-items-center w-100 mx-0">
+              {/* Search Input */}
+              <Col lg={4} md={12} className="px-1">
+                <div className="position-relative">
+                  <div className={`cal-search-box ${isDark ? 'search-dark' : 'search-light'}`}>
+                    <Search size={15} className="search-icon" />
+                    <input
                       placeholder="Search tasks by title or description..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className={isDark ? 'bg-secondary bg-opacity-20 text-light border-secondary placeholder-secondary fs-7 py-2' : 'bg-light text-dark border-light-subtle fs-7 py-2'}
+                      className="search-input"
                     />
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="position-absolute end-0 top-50 translate-middle-y me-2 border-0 bg-transparent text-secondary p-0"
-                        style={{ zIndex: 10 }}
+                        className="search-clear-btn"
                         title="Clear search"
                       >
                         <X size={14} />
                       </button>
                     )}
-                  </InputGroup>
-                </Col>
+                  </div>
+                </div>
+              </Col>
 
-                {/* Status Filter */}
-                <Col lg={2} md={4} xs={6} className="px-1">
-                  <Form.Select
-                    size="sm"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className={isDark ? 'bg-secondary bg-opacity-20 text-light border-secondary fs-7 py-2' : 'bg-light text-dark border-light-subtle fs-7 py-2'}
-                  >
-                    <option value="ALL">All Statuses</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="CANCELLED">Cancelled</option>
-                  </Form.Select>
-                </Col>
+              {/* Status Filter */}
+              <Col lg={2} md={4} xs={6} className="px-1">
+                <Form.Select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </Form.Select>
+              </Col>
 
-                {/* Priority Filter */}
-                <Col lg={2} md={4} xs={6} className="px-1">
-                  <Form.Select
-                    size="sm"
-                    value={priorityFilter}
-                    onChange={(e) => setPriorityFilter(e.target.value)}
-                    className={isDark ? 'bg-secondary bg-opacity-20 text-light border-secondary fs-7 py-2' : 'bg-light text-dark border-light-subtle fs-7 py-2'}
-                  >
-                    <option value="ALL">All Priorities</option>
-                    <option value="URGENT">Urgent</option>
-                    <option value="HIGH">High</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="LOW">Low</option>
-                  </Form.Select>
-                </Col>
+              {/* Priority Filter */}
+              <Col lg={2} md={4} xs={6} className="px-1">
+                <Form.Select
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                >
+                  <option value="ALL">All Priorities</option>
+                  <option value="URGENT">Urgent</option>
+                  <option value="HIGH">High</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="LOW">Low</option>
+                </Form.Select>
+              </Col>
 
-                {/* Assignee Filter */}
-                <Col lg={3} md={4} xs={12} className="px-1">
-                  <Form.Select
-                    size="sm"
-                    value={assigneeFilter}
-                    onChange={(e) => setAssigneeFilter(e.target.value)}
-                    className={isDark ? 'bg-secondary bg-opacity-20 text-light border-secondary fs-7 py-2' : 'bg-light text-dark border-light-subtle fs-7 py-2'}
-                  >
-                    <option value="ALL">All Employees / Assignees</option>
-                    <option value="UNASSIGNED">Unassigned Tasks</option>
-                    {users.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {getDisplayName(u)} (@{u.username})
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Col>
+              {/* Assignee Filter */}
+              <Col lg={3} md={4} xs={12} className="px-1">
+                <Form.Select
+                  value={assigneeFilter}
+                  onChange={(e) => setAssigneeFilter(e.target.value)}
+                >
+                  <option value="ALL">All Employees / Assignees</option>
+                  <option value="UNASSIGNED">Unassigned Tasks</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {getDisplayName(u)} (@{u.username})
+                    </option>
+                  ))}
+                </Form.Select>
+              </Col>
 
-                {/* Reset Filters */}
-                <Col lg={1} md={12} className="px-1 text-end">
-                  <Button
-                    variant={isDark ? 'outline-secondary' : 'outline-dark'}
-                    size="sm"
-                    className="w-100 py-1.5 fs-7 rounded-3"
-                    onClick={() => {
-                      setSearchQuery('')
-                      setStatusFilter('ALL')
-                      setPriorityFilter('ALL')
-                      setAssigneeFilter('ALL')
-                    }}
-                  >
-                    Reset
-                  </Button>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
+              {/* Reset Filters */}
+              <Col lg={1} md={12} className="px-1 text-end">
+                <button
+                  className="vpm-btn-secondary w-100 py-1.5 fs-7"
+                  onClick={() => {
+                    setSearchQuery('')
+                    setStatusFilter('ALL')
+                    setPriorityFilter('ALL')
+                    setAssigneeFilter('ALL')
+                  }}
+                >
+                  Reset
+                </button>
+              </Col>
+            </Row>
+          </div>
         </>
       )}
 
@@ -864,7 +858,7 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
                 return (
                   <div
                     key={t.id}
-                    className={`task-card ${isDark ? 'task-card-dark' : 'task-card-light'} ${isCompleted ? 'is-completed' : ''}`}
+                    className={`task-card ${isDark ? 'task-card-dark' : 'task-card-light'} ${isCompleted ? 'is-completed' : ''} priority-${t.priority.toLowerCase()} status-${t.status.toLowerCase()}`}
                   >
                     {/* Status Color Bar on Left */}
                     <div
@@ -965,7 +959,18 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
                       <div className="task-meta-row">
                         {/* Assignee */}
                         <span className={`task-meta-badge ${isDark ? 'meta-dark' : 'meta-light'}`}>
-                          <UserCheck size={13} className={t.assigned_to ? (isDark ? 'text-info' : 'text-primary') : 'opacity-50'} />
+                          {t.assigned_to ? (
+                            <div className="assignee-avatar-mini">
+                              {(getDisplayName(t.assigned_to) || 'A')
+                                .split(' ')
+                                .map((w) => w[0])
+                                .slice(0, 2)
+                                .join('')
+                                .toUpperCase()}
+                            </div>
+                          ) : (
+                            <UserCheck size={13} className="opacity-50" style={{ marginRight: '6px' }} />
+                          )}
                           <span>{getDisplayName(t.assigned_to)}</span>
                         </span>
 
@@ -1358,679 +1363,6 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
         </Form>
       </Modal>
 
-      {/* Modern CSS Rules */}
-      <style>{`
-        /* List View Task Cards */
-        .task-card {
-          display: flex;
-          align-items: stretch;
-          border-radius: 12px;
-          overflow: hidden;
-          transition: all 0.2s ease-in-out;
-          position: relative;
-          width: 100%;
-        }
-        .task-card-dark {
-          background: #1e293b;
-          border: 1px solid #334155;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-        }
-        .task-card-dark:hover {
-          border-color: #475569;
-          transform: translateY(-1px);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        }
-        .task-card-light {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        }
-        .task-card-light:hover {
-          border-color: #cbd5e1;
-          transform: translateY(-1px);
-          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-        }
-        .task-card.is-completed {
-          opacity: 0.8;
-        }
-
-        .status-strip {
-          width: 5px;
-          flex-shrink: 0;
-        }
-
-        .task-card-content {
-          flex: 1;
-          padding: 14px 18px;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          min-width: 0;
-        }
-
-        .task-header-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          width: 100%;
-        }
-
-        .task-title-group {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex: 1;
-          min-width: 0;
-          flex-wrap: wrap;
-        }
-
-        .task-check-toggle {
-          background: none;
-          border: none;
-          padding: 0;
-          cursor: pointer;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          transition: transform 0.15s ease;
-        }
-        .task-check-toggle:hover {
-          transform: scale(1.15);
-        }
-
-        .task-title-text {
-          margin: 0;
-          font-size: 1.02rem;
-          font-weight: 600;
-          line-height: 1.3;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .line-through {
-          text-decoration: line-through;
-        }
-
-        .task-badges-inline {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          flex-shrink: 0;
-        }
-
-        .task-actions-group {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-shrink: 0;
-          margin-left: auto;
-        }
-
-        .btn-status-dropdown {
-          font-size: 0.78rem;
-          padding: 4px 10px;
-          border-radius: 6px;
-          font-weight: 500;
-        }
-
-        .btn-icon {
-          width: 30px;
-          height: 30px;
-          border-radius: 6px;
-          border: 1px solid transparent;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          background: rgba(148, 163, 184, 0.1);
-          color: #94a3b8;
-        }
-        .btn-icon-edit:hover {
-          background: rgba(56, 189, 248, 0.15);
-          color: #0ea5e9;
-          border-color: rgba(56, 189, 248, 0.3);
-        }
-        .btn-icon-delete:hover {
-          background: rgba(239, 68, 68, 0.15);
-          color: #ef4444;
-          border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .task-description-text {
-          margin: 0;
-          font-size: 0.85rem;
-          line-height: 1.4;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-
-        .task-meta-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-top: 2px;
-        }
-
-        .task-meta-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.78rem;
-          font-weight: 500;
-          padding: 4px 10px;
-          border-radius: 6px;
-          white-space: nowrap;
-        }
-
-        .meta-dark {
-          background: rgba(51, 65, 85, 0.5);
-          color: #cbd5e1;
-          border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .meta-light {
-          background: #f1f5f9;
-          color: #475569;
-          border: 1px solid #e2e8f0;
-        }
-
-        .meta-overdue {
-          background: rgba(239, 68, 68, 0.12);
-          color: #ef4444;
-          border: 1px solid rgba(239, 68, 68, 0.25);
-          font-weight: 600;
-        }
-
-        .overdue-tag {
-          background: #ef4444;
-          color: #ffffff;
-          font-size: 0.65rem;
-          padding: 1px 5px;
-          border-radius: 4px;
-          font-weight: 700;
-          text-transform: uppercase;
-          margin-left: 2px;
-        }
-
-        .saas-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 0.70rem;
-          font-weight: 700;
-          padding: 3px 8px;
-          border-radius: 9999px;
-          text-transform: uppercase;
-          letter-spacing: 0.4px;
-          white-space: nowrap;
-        }
-        .badge-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          display: inline-block;
-        }
-        .badge-urgent { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .dot-urgent { background-color: #ef4444; }
-        .badge-high { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .dot-high { background-color: #f59e0b; }
-        .badge-medium { background: rgba(14, 165, 233, 0.15); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3); }
-        .dot-medium { background-color: #0ea5e9; }
-        .badge-low { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
-        .dot-low { background-color: #94a3b8; }
-
-        .badge-done { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-progress { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .badge-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .badge-cancelled { background: rgba(100, 116, 139, 0.15); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.3); }
-
-        /* Stat Cards */
-        .stat-card-dark {
-          background: rgba(30, 41, 59, 0.85);
-          border: 1px solid #334155 !important;
-        }
-        .stat-card-light {
-          background: #ffffff;
-          border: 1px solid #e2e8f0 !important;
-        }
-
-        /* Screen-Fitted Pro Calendar Styling */
-        .bg-dark-calendar {
-          background-color: #0f172a;
-          border: 1px solid rgba(51, 65, 85, 0.6) !important;
-        }
-        .bg-light-calendar {
-          background-color: #ffffff;
-          border: 1px solid rgba(226, 232, 240, 0.9) !important;
-        }
-
-        /* Pro SaaS Calendar Header Controller Bar */
-        .cal-header-bar {
-          min-height: 60px;
-          box-sizing: border-box;
-          padding: 14px 20px !important;
-        }
-
-        .cal-task-count-badge {
-          font-size: 0.76rem;
-          font-weight: 600;
-          padding: 4px 11px;
-          border-radius: 9999px;
-          letter-spacing: 0.2px;
-          white-space: nowrap;
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-        }
-        .count-badge-dark {
-          background: rgba(56, 189, 248, 0.12);
-          color: #38bdf8;
-          border: 1px solid rgba(56, 189, 248, 0.3);
-        }
-        .count-badge-light {
-          background: rgba(37, 99, 235, 0.08);
-          color: #2563eb;
-          border: 1px solid rgba(37, 99, 235, 0.25);
-        }
-
-        /* Segmented Month Navigation */
-        .cal-segmented-nav {
-          display: inline-flex;
-          align-items: center;
-          border-radius: 9px;
-          padding: 3px;
-          gap: 2px;
-          height: 36px;
-          box-sizing: border-box;
-        }
-        .nav-dark {
-          background: #1e293b;
-          border: 1px solid #334155;
-        }
-        .nav-light {
-          background: #f1f5f9;
-          border: 1px solid #cbd5e1;
-        }
-
-        .nav-btn-icon {
-          border: none;
-          background: transparent;
-          width: 28px;
-          height: 28px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 6px;
-          color: inherit;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          opacity: 0.8;
-        }
-        .nav-btn-icon:hover {
-          opacity: 1;
-          background: rgba(148, 163, 184, 0.25);
-          transform: scale(1.05);
-        }
-
-        .nav-btn-today {
-          border: none;
-          background: transparent;
-          padding: 2px 12px;
-          font-size: 0.78rem;
-          font-weight: 700;
-          color: inherit;
-          cursor: pointer;
-          border-radius: 6px;
-          transition: all 0.15s ease;
-          opacity: 0.9;
-          height: 28px;
-        }
-        .nav-btn-today:hover {
-          opacity: 1;
-          background: rgba(148, 163, 184, 0.25);
-        }
-
-        /* Integrated Search Box */
-        .cal-search-box {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 12px;
-          border-radius: 9px;
-          height: 38px;
-          box-sizing: border-box;
-          transition: all 0.15s ease;
-        }
-        .search-dark {
-          background: #1e293b;
-          border: 1px solid #334155;
-          color: #f8fafc;
-        }
-        .search-dark:focus-within {
-          border-color: #38bdf8;
-          box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-        }
-        .search-light {
-          background: #ffffff;
-          border: 1px solid #cbd5e1;
-          color: #0f172a;
-        }
-        .search-light:focus-within {
-          border-color: #2563eb;
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-        }
-
-        .search-icon {
-          flex-shrink: 0;
-          opacity: 0.55;
-        }
-
-        .search-input {
-          border: none;
-          outline: none;
-          background: transparent;
-          color: inherit;
-          font-size: 0.82rem;
-          width: 100%;
-        }
-        .search-input::placeholder {
-          opacity: 0.5;
-        }
-
-        .search-clear-btn {
-          border: none;
-          background: transparent;
-          padding: 0;
-          cursor: pointer;
-          color: inherit;
-          opacity: 0.5;
-          display: flex;
-          align-items: center;
-        }
-        .search-clear-btn:hover {
-          opacity: 1;
-        }
-
-        /* Metric Pills */
-        .cal-metric-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          padding: 4px 10px;
-          border-radius: 9999px;
-          white-space: nowrap;
-        }
-        .cal-metric-pill .dot {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-        }
-        .metric-done {
-          background: rgba(16, 185, 129, 0.12);
-          color: #10b981;
-          border: 1px solid rgba(16, 185, 129, 0.25);
-        }
-        .metric-progress {
-          background: rgba(59, 130, 246, 0.12);
-          color: #3b82f6;
-          border: 1px solid rgba(59, 130, 246, 0.25);
-        }
-        .metric-pending {
-          background: rgba(245, 158, 11, 0.12);
-          color: #f59e0b;
-          border: 1px solid rgba(245, 158, 11, 0.25);
-        }
-
-        /* Schedule Task Button */
-        .btn-schedule-task {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          font-size: 0.82rem;
-          font-weight: 700;
-          padding: 7px 16px;
-          border-radius: 9px;
-          border: none;
-          cursor: pointer;
-          white-space: nowrap;
-          transition: all 0.15s ease;
-        }
-        .btn-schedule-dark {
-          background: #38bdf8;
-          color: #090d16;
-          box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
-        }
-        .btn-schedule-dark:hover {
-          background: #0ea5e9;
-          color: #ffffff;
-          transform: translateY(-1px);
-          box-shadow: 0 6px 18px rgba(14, 165, 233, 0.45);
-        }
-        .btn-schedule-light {
-          background: #2563eb;
-          color: #ffffff;
-          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
-        }
-        .btn-schedule-light:hover {
-          background: #1d4ed8;
-          color: #ffffff;
-          transform: translateY(-1px);
-          box-shadow: 0 6px 18px rgba(29, 78, 216, 0.4);
-        }
-
-        .text-rose-500 { color: #f43f5e; }
-        .text-cyan-500 { color: #06b6d4; }
-
-        /* Optimized Cell Height for Balanced Desktop Proportion */
-        .min-cell-height {
-          min-height: 108px;
-        }
-
-        .cal-day-cell {
-          transition: background-color 0.15s ease, box-shadow 0.15s ease;
-        }
-        .cal-day-cell:hover {
-          background-color: rgba(56, 189, 248, 0.04) !important;
-          z-index: 5;
-        }
-        .cal-day-cell:hover .cal-cell-add-btn {
-          opacity: 1;
-        }
-
-        .cal-weekend-dark {
-          background-color: rgba(15, 23, 42, 0.6);
-        }
-        .cal-weekend-light {
-          background-color: #f8fafc;
-        }
-
-        .cal-today-dark {
-          background-color: rgba(56, 189, 248, 0.08) !important;
-          box-shadow: inset 0 0 0 2px rgba(56, 189, 248, 0.6);
-        }
-        .cal-today-light {
-          background-color: rgba(37, 99, 235, 0.06) !important;
-          box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.5);
-        }
-
-        .cal-cell-empty-dark {
-          background-color: rgba(15, 23, 42, 0.4);
-          background-image: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255, 255, 255, 0.015) 8px, rgba(255, 255, 255, 0.015) 16px);
-        }
-        .cal-cell-empty-light {
-          background-color: #f8fafc;
-          background-image: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0, 0, 0, 0.02) 8px, rgba(0, 0, 0, 0.02) 16px);
-        }
-
-        .cal-date-number {
-          font-weight: 700;
-          font-size: 0.82rem;
-          width: 24px;
-          height: 24px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-        }
-        .cal-date-today {
-          background-color: #0ea5e9;
-          color: #ffffff !important;
-          box-shadow: 0 2px 6px rgba(14, 165, 233, 0.4);
-        }
-
-        .cal-today-indicator {
-          font-size: 0.62rem;
-          font-weight: 800;
-          color: #0ea5e9;
-          letter-spacing: 0.5px;
-        }
-
-        .cal-cell-add-btn {
-          opacity: 0;
-          background: rgba(148, 163, 184, 0.15);
-          border: none;
-          border-radius: 4px;
-          width: 20px;
-          height: 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          color: #0ea5e9;
-          transition: all 0.15s ease;
-        }
-        .cal-cell-add-btn:hover {
-          background: #0ea5e9;
-          color: #ffffff;
-          transform: scale(1.1);
-        }
-
-        .cal-chips-container {
-          max-height: 74px;
-        }
-
-        .cal-task-chip {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          padding: 3px 7px;
-          border-radius: 5px;
-          font-size: 0.72rem;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          border: 1px solid transparent;
-        }
-        .cal-task-chip:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        .chip-title {
-          font-weight: 500;
-          line-height: 1.2;
-        }
-
-        .chip-dot {
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-
-        .chip-avatar {
-          font-size: 0.60rem;
-          font-weight: 700;
-          background: rgba(255, 255, 255, 0.25);
-          color: inherit;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .chip-done {
-          background: rgba(16, 185, 129, 0.15);
-          color: #10b981;
-          border-color: rgba(16, 185, 129, 0.3);
-          text-decoration: line-through;
-          opacity: 0.8;
-        }
-
-        .chip-urgent {
-          background: rgba(239, 68, 68, 0.15);
-          color: #ef4444;
-          border-color: rgba(239, 68, 68, 0.3);
-          font-weight: 600;
-        }
-
-        .chip-high {
-          background: rgba(245, 158, 11, 0.15);
-          color: #f59e0b;
-          border-color: rgba(245, 158, 11, 0.3);
-          font-weight: 600;
-        }
-
-        .chip-dark {
-          background: rgba(51, 65, 85, 0.6);
-          color: #e2e8f0;
-          border-color: rgba(255, 255, 255, 0.08);
-        }
-
-        .chip-light {
-          background: #f1f5f9;
-          color: #1e293b;
-          border-color: #cbd5e1;
-        }
-
-        .cal-more-btn {
-          font-size: 0.68rem;
-          font-weight: 600;
-          text-align: center;
-          cursor: pointer;
-          padding: 1px 0;
-          transition: opacity 0.15s ease;
-        }
-        .cal-more-btn:hover {
-          text-decoration: underline;
-          opacity: 0.9;
-        }
-
-        .grid-cols-7 {
-          display: grid;
-          grid-template-columns: repeat(7, minmax(0, 1fr));
-        }
-        .letter-spacing-1 {
-          letter-spacing: 1px;
-        }
-        .fs-7 { font-size: 0.82rem; }
-        .fs-8 { font-size: 0.72rem; }
-        .spin-icon {
-          animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-          100% { transform: rotate(360deg); }
-        }
-        .dark-modal .modal-content {
-          border-color: #334155;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .light-modal .modal-content {
-          border-color: #cbd5e1;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-      `}</style>
     </div>
   )
 }

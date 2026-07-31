@@ -1,0 +1,249 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — Header CSS  [PRO LEVEL v2]
+   Premium frosted glass header with rich visual depth.
+   ================================================================= */
+
+/* ── Header Shell ─────────────────────────────────────────────── */
+.vpm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 24px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 50;
+  animation: vpmFadeIn 0.4s 0.1s ease both;
+}
+
+/* ── Light Header — crystal glass ────────────────────────────── */
+.vpm-header.theme-light {
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.8) inset,
+    0 1px 12px rgba(15, 23, 42, 0.04);
+}
+
+/* ── Dark Header — deep glass ─────────────────────────────────── */
+.vpm-header.theme-dark {
+  background: rgba(13, 27, 53, 0.80);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.04) inset,
+    0 1px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Left Section ─────────────────────────────────────────────── */
+.vpm-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Page Title ───────────────────────────────────────────────── */
+.vpm-page-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 1.0rem;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theme-light .vpm-page-title { color: #0F172A; }
+.theme-dark  .vpm-page-title { color: #F1F5F9; }
+
+.vpm-page-title-icon { flex-shrink: 0; }
+.theme-light .vpm-page-title-icon { color: #0077B6; }
+.theme-dark  .vpm-page-title-icon { color: #00AEEF; }
+
+/* ── Right Controls ───────────────────────────────────────────── */
+.vpm-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Icon Buttons (hamburger, theme) ──────────────────────────── */
+.vpm-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.theme-light .vpm-icon-btn {
+  border-color: rgba(226, 232, 240, 0.9);
+  color: #64748B;
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.theme-light .vpm-icon-btn:hover {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #0F172A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.theme-dark .vpm-icon-btn {
+  border-color: rgba(255, 255, 255, 0.07);
+  color: #64748B;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.theme-dark .vpm-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #E2E8F0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.30);
+}
+
+/* ── App Branding Badge ───────────────────────────────────────── */
+.vpm-app-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0 12px;
+  height: 34px;
+  border-radius: 999px;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+  border: 1px solid;
+  transition: all 0.2s ease;
+}
+
+.theme-light .vpm-app-badge {
+  background: linear-gradient(135deg, rgba(0,119,182,0.05), rgba(0,174,239,0.04));
+  border-color: rgba(0, 119, 182, 0.14);
+  color: #0077B6;
+}
+
+.theme-dark .vpm-app-badge {
+  background: linear-gradient(135deg, rgba(0,174,239,0.10), rgba(0,119,182,0.06));
+  border-color: rgba(0, 174, 239, 0.18);
+  color: #00AEEF;
+}
+
+/* ── User Profile Badge ───────────────────────────────────────── */
+.vpm-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px 0 6px;
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.theme-light .vpm-user-badge {
+  background: #FFFFFF;
+  border-color: rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+}
+
+.theme-dark .vpm-user-badge {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Avatar */
+.vpm-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0077B6, #00AEEF);
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 119, 182, 0.30);
+}
+
+.vpm-user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.vpm-user-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vpm-user-role {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.theme-light .vpm-user-name { color: #0F172A; }
+.theme-dark  .vpm-user-name { color: #F1F5F9; }
+.theme-light .vpm-user-role { color: #0077B6; }
+.theme-dark  .vpm-user-role { color: #00AEEF; }
+
+/* ── Logout Button ────────────────────────────────────────────── */
+.vpm-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 38px;
+  border-radius: 11px;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.20);
+  letter-spacing: 0.1px;
+}
+
+.vpm-logout-btn:hover {
+  background: linear-gradient(135deg, #DC2626, #B91C1C);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
+}
+
+/* ── Divider ──────────────────────────────────────────────────── */
+.vpm-header-divider {
+  width: 1px;
+  height: 22px;
+  margin: 0 2px;
+}
+
+.theme-light .vpm-header-divider { background: rgba(226, 232, 240, 0.9); }
+.theme-dark  .vpm-header-divider { background: rgba(255, 255, 255, 0.07); }
