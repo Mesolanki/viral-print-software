@@ -11,6 +11,7 @@ import {
   Alert,
   Table
 } from 'react-bootstrap'
+import './UserManagement.css'
 import {
   Users,
   UserPlus,
@@ -531,7 +532,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
   }
 
   return (
-    <div className="w-100 py-1">
+    <div className="w-100 pt-1 pb-5 mb-4">
       {/* Toast Alert */}
       {successMsg && (
         <Alert variant="success" onClose={() => setSuccessMsg(null)} dismissible className="shadow-lg border-success mb-3 rounded-3">
@@ -560,14 +561,14 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       {/* Header & Register Action Controls */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 w-100">
         <div className="d-flex align-items-center gap-3">
-          <div className={`p-2.5 rounded-3 d-inline-flex align-items-center justify-content-center ${isDark ? 'bg-info bg-opacity-15 text-info' : 'bg-primary bg-opacity-10 text-primary'}`} style={{ width: '44px', height: '44px', flexShrink: 0 }}>
+          <div className="vpm-page-header-icon">
             <Shield size={22} />
           </div>
           <div>
-            <h2 className={`fw-bold mb-1 ${isDark ? 'text-light' : 'text-dark'} fs-4`} style={{ lineHeight: '1.2' }}>
-              Employee & Role-Based User Management
+            <h2 className="vpm-page-heading">
+              Employee &amp; Role-Based User Management
             </h2>
-            <p className={isDark ? 'text-secondary mb-0 fs-7' : 'text-muted mb-0 fs-7'}>
+            <p className="vpm-page-subheading">
               {isAdmin ? 'Admin Control Panel: Register shop employees, configure role-based permissions, and manage credentials.' : 'Employee Roster Directory: View team members, assigned role permissions, and contact details.'}
             </p>
           </div>
@@ -660,7 +661,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       </Row>
 
       {/* Filter Toolbar */}
-      <div className={`${isDark ? 'filter-toolbar-dark' : 'filter-toolbar-light'} mb-4 w-100`} style={{ padding: '16px 20px', borderRadius: '16px' }}>
+      <div className={`vpm-filter-toolbar ${isDark ? 'filter-toolbar-dark' : 'filter-toolbar-light'} mb-4 w-100`}>
         <Row className="g-2.5 align-items-center w-100 mx-0">
           {/* Search Input */}
           <Col lg={5} md={12} className="px-1">
@@ -692,13 +693,14 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
             <Form.Select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
+              className="vpm-filter-select"
             >
               <option value="ALL">All Roles</option>
               <option value="ADMIN">Administrator</option>
               <option value="MANAGER">Shop Manager</option>
               <option value="DESIGNER">Graphic Designer</option>
               <option value="OPERATOR">Print Operator</option>
-              <option value="SALES_BILLING">Sales & Billing</option>
+              <option value="SALES_BILLING">Sales &amp; Billing</option>
             </Form.Select>
           </Col>
 
@@ -707,6 +709,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
             <Form.Select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
+              className="vpm-filter-select"
             >
               <option value="ALL">All Statuses</option>
               <option value="ACTIVE">Active Account</option>
@@ -731,7 +734,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       </div>
 
       {/* User Roster Table */}
-      <Card className={`${isDark ? 'bg-dark border-secondary text-light' : 'bg-white border-light-subtle text-dark'} shadow-lg border-0 rounded-4 overflow-hidden w-100`}>
+      <Card className={`user-roster-card ${isDark ? 'text-light' : 'text-dark'} border-0 w-100`}>
         <Card.Body className="p-0 w-100">
           {loading ? (
             <div className="text-center py-5">
@@ -782,18 +785,22 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                         </td>
 
                         {/* Email */}
-                        <td className="py-3 fs-7">
-                          <div className="d-flex align-items-center gap-1.5 text-truncate">
-                            <Mail size={13} className="text-secondary flex-shrink-0" />
-                            <span>{u.email}</span>
+                        <td className="py-3">
+                          <div className="user-contact-pill" title={u.email}>
+                            <span className="user-contact-icon">
+                              <Mail size={13} />
+                            </span>
+                            <span className="user-contact-text">{u.email}</span>
                           </div>
                         </td>
 
                         {/* Phone */}
-                        <td className="py-3 fs-7">
-                          <div className="d-flex align-items-center gap-1.5 font-monospace text-secondary">
-                            <Phone size={13} className="flex-shrink-0" />
-                            <span>{u.phone || 'N/A'}</span>
+                        <td className="py-3">
+                          <div className="user-contact-pill" title={u.phone || 'N/A'}>
+                            <span className="user-contact-icon">
+                              <Phone size={13} />
+                            </span>
+                            <span className="user-contact-text user-contact-phone">{u.phone || 'N/A'}</span>
                           </div>
                         </td>
 
@@ -867,7 +874,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
               {/* SECTION 1: PERSONAL IDENTITY & CONTACT */}
               <div>
                 <div className="fs-8 fw-bold text-uppercase tracking-wider text-primary mb-2.5 d-flex align-items-center gap-1.5">
-                  <User size={14} /> 1. Personal Details & Contact Info
+                  <User size={14} /> 1. Personal Details &amp; Contact Info
                 </div>
                 <Row className="g-3">
                   {/* Full Name */}
@@ -953,7 +960,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
               {/* SECTION 2: ROLE & PERMISSION SELECTION */}
               <div>
                 <div className="fs-8 fw-bold text-uppercase tracking-wider text-primary mb-2.5 d-flex align-items-center gap-1.5">
-                  <ShieldCheck size={14} /> 2. Assign System Role & Access Level *
+                  <ShieldCheck size={14} /> 2. Assign System Role &amp; Access Level *
                 </div>
                 <Row className="g-2.5">
                   {[
@@ -965,28 +972,26 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                   ].map((rOption, idx) => {
                     const isSelected = selectedRole === rOption.id
                     const IconComp = rOption.icon
-                    const isFullWidth = idx === 4 // Sales & Billing full width for symmetry
+                    const isFullWidth = idx === 4
 
                     return (
-                      <Col key={rOption.id} md={isFullWidth ? 12 : 6} xs={12}>
+                      <Col key={rOption.id} md={isFullWidth ? 12 : 6} xs={12} className="d-flex">
                         <div
-                          className={`role-select-card ${isSelected ? 'is-selected' : ''} ${isDark ? 'role-card-dark' : 'role-card-light'} h-100`}
+                          className={`role-select-card ${isSelected ? 'is-selected' : ''} ${isDark ? 'role-card-dark' : 'role-card-light'}`}
                           onClick={() => setSelectedRole(rOption.id as RoleType)}
                         >
-                          <div className="d-flex align-items-center gap-2.5 h-100">
-                            <div className={`role-icon-box box-${rOption.color}`}>
-                              <IconComp size={18} />
-                            </div>
-                            <div className="flex-grow-1 min-w-0">
-                              <div className="fw-bold fs-7 text-truncate">{rOption.title}</div>
-                              <div className="fs-8 text-secondary text-truncate">{rOption.desc}</div>
-                            </div>
-                            {isSelected && (
-                              <div className="role-check-mark ms-auto">
-                                <Check size={13} />
-                              </div>
-                            )}
+                          <div className={`role-icon-box box-${rOption.color} me-3`}>
+                            <IconComp size={18} />
                           </div>
+                          <div className="flex-grow-1 min-w-0">
+                            <div className="fw-bold fs-7 text-truncate">{rOption.title}</div>
+                            <div className="fs-8 text-secondary text-truncate">{rOption.desc}</div>
+                          </div>
+                          {isSelected && (
+                            <div className="role-check-mark ms-2">
+                              <Check size={14} />
+                            </div>
+                          )}
                         </div>
                       </Col>
                     )
@@ -994,10 +999,10 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                 </Row>
               </div>
 
-              {/* SECTION 3: SECURITY CREDENTIALS & STATUS */}
+              {/* SECTION 3: SECURITY CREDENTIALS & ACCESS STATUS */}
               <div>
                 <div className="fs-8 fw-bold text-uppercase tracking-wider text-primary mb-2.5 d-flex align-items-center gap-1.5">
-                  <Lock size={14} /> 3. Security Credentials & Access Status
+                  <Lock size={14} /> 3. Security Credentials &amp; Access Status
                 </div>
                 <Row className="g-3">
                   {/* Password */}

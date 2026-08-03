@@ -1,52 +1,98 @@
 /* =================================================================
-   VIRAL PRINT MEDIA — Buttons & Controls CSS [PRO/GOD LEVEL]
-   Primary CTA, Segmented Controls, Icon buttons, Search Inputs
+   VIRAL PRINT MEDIA — buttons.css  ★ GOD-LEVEL PREMIUM EDITION ★
+   World-class CTA, segmented controls, icon buttons
    ================================================================= */
 
-/* ── Primary CTA Button (Add / Save Task) ────────────────────────── */
+/* ════════════════════════════════════════════════════════════════
+   PRIMARY CTA BUTTON — Add Task / Save
+   ════════════════════════════════════════════════════════════════ */
+
 .vpm-btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 0.84rem;
-  font-weight: 700;
-  height: 38px;
-  padding: 0 20px;
-  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  height: 40px;
+  padding: 0 22px;
+  border-radius: 13px;
   border: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: all var(--transition-fast);
-  letter-spacing: 0.1px;
+  letter-spacing: 0.2px;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform  0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.24s ease;
+}
+
+/* Inner shimmer */
+.vpm-btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmerSweep 2.4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmerSweep {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* Active spring */
+.vpm-btn-primary:active {
+  transform: scale(0.94) translateY(1px);
 }
 
 .theme-light .vpm-btn-primary {
-  background: linear-gradient(135deg, var(--vpm-primary), var(--vpm-cyan));
+  background: linear-gradient(135deg, var(--vpm-primary) 0%, #5B4FFA 50%, var(--vpm-cyan) 100%);
+  background-size: 200% auto;
   color: #FFFFFF;
-  box-shadow: 0 4px 14px rgba(0, 119, 182, 0.28);
+  box-shadow:
+    0 6px 20px rgba(115,110,254,0.38),
+    0 2px 6px rgba(115,110,254,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.22);
 }
 
 .theme-light .vpm-btn-primary:hover {
-  background: linear-gradient(135deg, #005F99, var(--vpm-primary));
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 119, 182, 0.40);
+  background-position: right center;
+  transform: translateY(-3px);
+  box-shadow:
+    0 12px 32px rgba(115,110,254,0.50),
+    0 4px 10px rgba(115,110,254,0.28),
+    inset 0 1px 0 rgba(255,255,255,0.22);
 }
 
 .theme-dark .vpm-btn-primary {
-  background: linear-gradient(135deg, var(--vpm-cyan), #00CFFF);
-  color: #05101F;
-  box-shadow: 0 4px 14px rgba(0, 174, 239, 0.30);
+  background: linear-gradient(135deg, var(--vpm-cyan) 0%, #00CFFF 50%, var(--vpm-primary) 100%);
+  background-size: 200% auto;
+  color: #050F1F;
+  box-shadow:
+    0 6px 22px rgba(0,210,255,0.40),
+    0 2px 8px rgba(0,210,255,0.24),
+    inset 0 1px 0 rgba(255,255,255,0.30);
 }
 
 .theme-dark .vpm-btn-primary:hover {
-  background: linear-gradient(135deg, #00CFFF, var(--vpm-cyan));
-  color: #000000;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 174, 239, 0.45);
+  background-position: right center;
+  color: #000D1C;
+  transform: translateY(-3px);
+  box-shadow:
+    0 12px 35px rgba(0,210,255,0.55),
+    0 4px 12px rgba(0,210,255,0.30),
+    inset 0 1px 0 rgba(255,255,255,0.30);
 }
 
-/* ── Secondary Button (Refresh / Cancel) ────────────────────────── */
+
+/* ════════════════════════════════════════════════════════════════
+   SECONDARY BUTTON — Refresh / Cancel
+   ════════════════════════════════════════════════════════════════ */
+
 .vpm-btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -54,65 +100,88 @@
   gap: 8px;
   font-size: 0.84rem;
   font-weight: 600;
-  height: 38px;
+  height: 40px;
   padding: 0 18px;
-  border-radius: 12px;
+  border-radius: 13px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all var(--transition-fast);
   border: 1px solid;
+  position: relative;
+  overflow: hidden;
+  transition:
+    background    0.22s ease,
+    border-color  0.22s ease,
+    color         0.22s ease,
+    transform     0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow    0.22s ease;
 }
+
+.vpm-btn-secondary svg {
+  transition: transform 0.30s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vpm-btn-secondary:hover svg {
+  transform: rotate(180deg);
+}
+
+.vpm-btn-secondary:active { transform: scale(0.95); }
 
 .theme-light .vpm-btn-secondary {
   border-color: rgba(226, 232, 240, 0.9);
   background: #FFFFFF;
   color: #475569;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
 }
 
 .theme-light .vpm-btn-secondary:hover {
   background: #F8FAFC;
-  border-color: #CBD5E1;
-  color: #0F172A;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  border-color: rgba(115,110,254,0.28);
+  color: var(--vpm-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
 .theme-dark .vpm-btn-secondary {
-  border-color: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: #CBD5E1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
 }
 
 .theme-dark .vpm-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: rgba(0,210,255,0.08);
+  border-color: rgba(0,210,255,0.30);
+  color: var(--vpm-cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,210,255,0.14);
 }
 
-/* ── Segmented Control Switcher (List vs Calendar View) ────────── */
+
+/* ════════════════════════════════════════════════════════════════
+   SEGMENTED CONTROL — List vs Calendar view switcher
+   ════════════════════════════════════════════════════════════════ */
+
 .vpm-segmented-control {
   display: inline-flex;
   align-items: center;
   border: 1px solid;
   padding: 3px;
   border-radius: 14px;
+  gap: 2px;
 }
 
 .theme-light .vpm-segmented-control {
   background: #F1F5F9;
   border-color: rgba(226, 232, 240, 0.9);
+  box-shadow: inset 0 1px 3px rgba(15,23,42,0.04);
 }
 
 .theme-dark .vpm-segmented-control {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.25);
 }
 
-/* Segment buttons */
 .vpm-segmented-btn {
   border: none;
   font-size: 0.82rem;
@@ -120,228 +189,283 @@
   padding: 8px 18px;
   border-radius: 11px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.22s var(--ease-out);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   background: transparent;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Light Active state */
+/* Active — Light */
 .theme-light .vpm-segmented-btn.active {
   background: #FFFFFF;
   color: var(--vpm-primary);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+  font-weight: 800;
+  transform: scale(1.02);
 }
 
-.theme-light .vpm-segmented-btn:not(.active) {
-  color: #64748B;
-}
+.theme-light .vpm-segmented-btn:not(.active) { color: #64748B; }
+.theme-light .vpm-segmented-btn:not(.active):hover { color: #0F172A; background: rgba(255,255,255,0.60); }
 
-.theme-light .vpm-segmented-btn:not(.active):hover {
-  color: #0F172A;
-}
-
-/* Dark Active state */
+/* Active — Dark */
 .theme-dark .vpm-segmented-btn.active {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0,210,255,0.10);
   color: var(--vpm-cyan);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+  font-weight: 800;
+  transform: scale(1.02);
+  border: 1px solid rgba(0,210,255,0.20);
 }
 
-.theme-dark .vpm-segmented-btn:not(.active) {
-  color: #475569;
-}
+.theme-dark .vpm-segmented-btn:not(.active) { color: #475569; }
+.theme-dark .vpm-segmented-btn:not(.active):hover { color: #CBD5E1; background: rgba(255,255,255,0.03); }
 
-.theme-dark .vpm-segmented-btn:not(.active):hover {
-  color: #CBD5E1;
-}
 
-/* ── Status Dropdown Button ───────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════
+   STATUS DROPDOWN BUTTON
+   ════════════════════════════════════════════════════════════════ */
+
 .btn-status-dropdown {
   font-size: 0.76rem;
-  padding: 5px 12px;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 9px;
+  font-weight: 700;
   border: 1px solid rgba(148, 163, 184, 0.20) !important;
-  transition: all var(--transition-fast);
+  transition: all 0.20s ease;
   background: transparent;
+  letter-spacing: 0.2px;
 }
 
 .btn-status-dropdown:hover {
   border-color: var(--vpm-cyan) !important;
-  background: rgba(0, 174, 239, 0.06) !important;
+  background: rgba(0, 210, 255, 0.07) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,210,255,0.12) !important;
 }
 
-/* ── Icon Action Buttons ──────────────────────────────────────── */
+
+/* ════════════════════════════════════════════════════════════════
+   ICON ACTION BUTTONS — Edit / Delete / View
+   ════════════════════════════════════════════════════════════════ */
+
 .btn-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   border: 1px solid transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition:
+    background   0.18s ease,
+    border-color 0.18s ease,
+    color        0.18s ease,
+    transform    0.25s var(--ease-out),
+    box-shadow   0.18s ease;
   background: rgba(148, 163, 184, 0.08);
   color: var(--vpm-gray-400);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-icon:active {
+  transform: scale(0.90) !important;
 }
 
 .btn-icon-edit:hover {
-  background: rgba(37, 99, 235, 0.10);
+  background: rgba(37, 99, 235, 0.12);
   color: #2563EB;
-  border-color: rgba(37, 99, 235, 0.20);
-  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.22);
+  transform: translateY(-2px) rotate(-5deg);
+  box-shadow: 0 4px 14px rgba(37,99,235,0.20);
 }
 
 .btn-icon-delete:hover {
-  background: rgba(239, 68, 68, 0.10);
-  color: var(--vpm-danger);
-  border-color: rgba(239, 68, 68, 0.20);
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+  border-color: rgba(239, 68, 68, 0.22);
+  transform: translateY(-2px) rotate(5deg);
+  box-shadow: 0 4px 14px rgba(220,38,38,0.20);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SEARCH INPUT — Premium with glow focus
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-search-input {
+  border-radius: 13px !important;
+  font-size: 0.86rem !important;
+  font-weight: 500 !important;
+  padding: 9px 14px 9px 40px !important;
+  height: 40px !important;
+  transition:
+    border-color 0.22s ease,
+    background   0.22s ease,
+    box-shadow   0.22s ease !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+}
+
+.theme-light .vpm-search-input {
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  box-shadow: 0 2px 6px rgba(15,23,42,0.04) !important;
+}
+
+.theme-light .vpm-search-input::placeholder { color: #94A3B8 !important; }
+
+.theme-light .vpm-search-input:focus {
+  border-color: var(--vpm-primary) !important;
+  box-shadow: 0 0 0 4px rgba(115,110,254,0.14), 0 2px 8px rgba(115,110,254,0.10) !important;
+  outline: none !important;
+}
+
+.theme-dark .vpm-search-input {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #F1F5F9 !important;
+}
+
+.theme-dark .vpm-search-input::placeholder { color: #475569 !important; }
+
+.theme-dark .vpm-search-input:focus {
+  border-color: var(--vpm-cyan) !important;
+  box-shadow: 0 0 0 4px rgba(0,210,255,0.14), 0 0 20px rgba(0,210,255,0.08) !important;
+  outline: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FILTER PILLS (All Statuses, Priorities, etc.)
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-filter-select {
+  border-radius: 12px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  padding: 8px 14px !important;
+  height: 40px !important;
+  cursor: pointer !important;
+  border: 1px solid !important;
+  transition: all 0.20s ease !important;
+  letter-spacing: 0.1px !important;
+  appearance: auto !important;
+}
+
+.theme-light .vpm-filter-select {
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  background: #FFFFFF !important;
+  color: #475569 !important;
+  box-shadow: 0 2px 6px rgba(15,23,42,0.04) !important;
+}
+
+.theme-light .vpm-filter-select:hover,
+.theme-light .vpm-filter-select:focus {
+  border-color: rgba(115,110,254,0.30) !important;
+  color: var(--vpm-primary) !important;
+  box-shadow: 0 0 0 3px rgba(115,110,254,0.10) !important;
+  outline: none !important;
+}
+
+.theme-dark .vpm-filter-select {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #94A3B8 !important;
+}
+
+.theme-dark .vpm-filter-select:hover,
+.theme-dark .vpm-filter-select:focus {
+  border-color: rgba(0,210,255,0.28) !important;
+  color: var(--vpm-cyan) !important;
+  box-shadow: 0 0 0 3px rgba(0,210,255,0.10) !important;
+  outline: none !important;
+}
+
+/* Reset Button */
+.vpm-btn-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.22s ease;
+  letter-spacing: 0.1px;
+}
+
+.theme-light .vpm-btn-reset {
+  border-color: rgba(226, 232, 240, 0.9);
+  background: #FFFFFF;
+  color: #64748B;
+}
+
+.theme-light .vpm-btn-reset:hover {
+  border-color: rgba(239,68,68,0.30);
+  background: rgba(239,68,68,0.04);
+  color: #DC2626;
   transform: translateY(-1px);
 }
 
-/* ── Calendar Navigation Buttons ─────────────────────────────── */
-.cal-segmented-nav {
-  display: inline-flex;
-  align-items: center;
-  border-radius: var(--radius-sm);
-  padding: 3px;
-  gap: 2px;
-  height: 36px;
+.theme-dark .vpm-btn-reset {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #64748B;
+}
+
+.theme-dark .vpm-btn-reset:hover {
+  border-color: rgba(239,68,68,0.30);
+  background: rgba(239,68,68,0.08);
+  color: #F87171;
+  transform: translateY(-1px);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CALENDAR NAV BUTTONS (Month navigation)
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-cal-nav-btn {
+  width: 34px; height: 34px;
+  border-radius: 10px;
   border: 1px solid;
-}
-
-.nav-dark  { background: var(--dark-surface); border-color: var(--dark-border); }
-.nav-light { background: var(--vpm-gray-100); border-color: var(--light-border); }
-
-.nav-btn-icon {
-  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
   background: transparent;
-  width: 28px; height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-xs);
-  color: inherit;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  opacity: 0.75;
+  transition:
+    background    0.20s ease,
+    border-color  0.20s ease,
+    color         0.20s ease,
+    transform     0.25s var(--ease-out);
 }
 
-.nav-btn-icon:hover {
-  opacity: 1;
-  background: rgba(148, 163, 184, 0.20);
-  transform: scale(1.05);
+.theme-light .vpm-cal-nav-btn {
+  border-color: rgba(226,232,240,0.9);
+  color: #64748B;
 }
 
-.nav-btn-today {
-  border: none;
-  background: transparent;
-  padding: 0 10px;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: inherit;
-  cursor: pointer;
-  border-radius: var(--radius-xs);
-  transition: all var(--transition-fast);
-  opacity: 0.85;
-  height: 28px;
+.theme-light .vpm-cal-nav-btn:hover {
+  background: rgba(115,110,254,0.08);
+  border-color: rgba(115,110,254,0.28);
+  color: var(--vpm-primary);
+  transform: scale(1.10);
 }
 
-.nav-btn-today:hover {
-  opacity: 1;
-  background: rgba(148, 163, 184, 0.20);
+.theme-dark .vpm-cal-nav-btn {
+  border-color: rgba(255,255,255,0.08);
+  color: #64748B;
 }
 
-/* ── Calendar "+" Add Button on cells ────────────────────────── */
-.cal-cell-add-btn {
-  opacity: 0;
-  background: rgba(148, 163, 184, 0.15);
-  border: none;
-  border-radius: var(--radius-xs);
-  width: 20px; height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+.theme-dark .vpm-cal-nav-btn:hover {
+  background: rgba(0,210,255,0.10);
+  border-color: rgba(0,210,255,0.28);
   color: var(--vpm-cyan);
-  transition: all var(--transition-fast);
+  transform: scale(1.10);
 }
-
-.cal-cell-add-btn:hover {
-  background: var(--vpm-cyan);
-  color: #ffffff;
-  transform: scale(1.1);
-}
-
-/* ── Schedule Task btn in cal header ─────────────────────────── */
-.cal-header-bar {
-  min-height: 60px;
-  box-sizing: border-box;
-  padding: 14px 20px !important;
-}
-
-/* ── Search Box ───────────────────────────────────────────────── */
-.cal-search-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 12px;
-  height: 38px;
-  box-sizing: border-box;
-  transition: all var(--transition-fast);
-  border: 1px solid;
-}
-
-.search-light {
-  background: var(--light-surface);
-  border-color: var(--light-border);
-  color: var(--light-text);
-}
-
-.search-light:focus-within {
-  border-color: var(--vpm-primary);
-  box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.12);
-}
-
-.search-dark {
-  background: var(--dark-surface);
-  border-color: var(--dark-border);
-  color: var(--dark-text);
-}
-
-.search-dark:focus-within {
-  border-color: var(--vpm-cyan);
-  box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.15);
-}
-
-.search-icon { flex-shrink: 0; opacity: 0.45; }
-
-.search-input {
-  border: none;
-  outline: none;
-  background: transparent;
-  color: inherit;
-  font-size: 0.88rem;
-  width: 100%;
-}
-
-.search-input::placeholder { opacity: 0.45; }
-
-.search-clear-btn {
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  color: inherit;
-  opacity: 0.45;
-  display: flex;
-  align-items: center;
-}
-
-.search-clear-btn:hover { opacity: 1; }

@@ -21,8 +21,8 @@ function VPMLogo(): React.JSX.Element {
       <svg viewBox="0 0 120 120" className="lp-logo-svg" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="vpm-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#0077B6" />
-            <stop offset="50%" stopColor="#00AEEF" />
+            <stop offset="0%" stopColor="#736efe" />
+            <stop offset="50%" stopColor="#38bdf8" />
             <stop offset="100%" stopColor="#00D2FF" />
           </linearGradient>
           <filter id="vpm-glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -39,7 +39,7 @@ function VPMLogo(): React.JSX.Element {
         <path d="M64 60 Q87 38 91 53 Q76 62 64 60Z" fill="#8DC63F" filter="url(#vpm-glow)" />
         <path d="M62 62 Q87 69 83 83 Q68 73 62 62Z" fill="#FFF200" filter="url(#vpm-glow)" />
         <path d="M38 72 Q46 48 62 42 Q67 59 69 65 Q52 68 38 72Z" fill="url(#vpm-grad-1)" />
-        <path d="M30 80 Q60 67 86 69 Q88 79 30 80Z" fill="#00AEEF" opacity="0.5" />
+        <path d="M30 80 Q60 67 86 69 Q88 79 30 80Z" fill="#00D2FF" opacity="0.5" />
       </svg>
     </div>
   )
@@ -214,7 +214,7 @@ export default function LoginPage(): React.JSX.Element {
                 {success ? (
                   <CheckCircle2 size={26} color="#10B981" />
                 ) : (
-                  <Lock size={22} color="#0077B6" />
+                  <Lock size={22} color="#736efe" />
                 )}
               </div>
               <h2 className="lp-card__title">

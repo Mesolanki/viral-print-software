@@ -1,0 +1,775 @@
+/* ╔══════════════════════════════════════════════════════════════════╗
+   ║  VIRAL PRINT MEDIA — UserManagement.css                         ║
+   ║  ★ PRO-LEVEL GOD-TIER USER & ROLE MANAGEMENT UI ★              ║
+   ╚══════════════════════════════════════════════════════════════════╝ */
+
+/* ════════════════════════════════════════════════════════════════
+   1. KEYFRAMES & ANIMATIONS
+   ════════════════════════════════════════════════════════════════ */
+
+@keyframes um-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes um-badge-pop {
+  0%   { opacity: 0; transform: scale(0.5); }
+  70%  { transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes um-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.spin-icon {
+  animation: um-spin 1s linear infinite;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   2. PAGE HEADER & GENERAL UTILITIES
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-page-header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(99, 102, 241, 0.2));
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.15);
+}
+
+.vpm-page-heading {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+}
+
+.vpm-page-subheading {
+  font-size: 0.83rem;
+  color: #94a3b8;
+  margin-bottom: 0;
+}
+
+/* Buttons */
+.vpm-btn-primary {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.55rem 1.25rem;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.vpm-btn-primary:hover {
+  background: linear-gradient(135deg, #0369a1, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45);
+  color: #ffffff;
+}
+
+.vpm-btn-secondary {
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.vpm-btn-secondary:hover {
+  background: rgba(148, 163, 184, 0.2);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #e2e8f0;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   3. STAT CARDS (CYAN, AMBER, INDIGO, EMERALD)
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-stat-card {
+  border-radius: 16px;
+  padding: 1.1rem 1.25rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  animation: um-fade-in 0.3s ease both;
+}
+
+.vpm-stat-card:hover {
+  transform: translateY(-3px);
+}
+
+.vpm-stat-card-light {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+.vpm-stat-card-dark {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.vpm-stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.vpm-stat-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+.vpm-stat-icon-ring {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vpm-stat-divider {
+  height: 1px;
+  width: 100%;
+  margin: 0.4rem 0 0.6rem 0;
+  opacity: 0.2;
+  background: currentColor;
+}
+
+.vpm-stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.3rem;
+}
+
+.vpm-stat-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.vpm-stat-cyan { border-top: 3px solid #06b6d4; }
+.vpm-stat-cyan .vpm-stat-icon-ring { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+.vpm-stat-cyan .vpm-stat-value { color: #06b6d4; }
+
+.vpm-stat-amber { border-top: 3px solid #f59e0b; }
+.vpm-stat-amber .vpm-stat-icon-ring { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.vpm-stat-amber .vpm-stat-value { color: #f59e0b; }
+
+.vpm-stat-indigo { border-top: 3px solid #6366f1; }
+.vpm-stat-indigo .vpm-stat-icon-ring { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+.vpm-stat-indigo .vpm-stat-value { color: #6366f1; }
+
+.vpm-stat-emerald { border-top: 3px solid #10b981; }
+.vpm-stat-emerald .vpm-stat-icon-ring { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.vpm-stat-emerald .vpm-stat-value { color: #10b981; }
+
+/* ════════════════════════════════════════════════════════════════
+   4. FILTER TOOLBAR, SEARCH & PRO DROPDOWNS (MATCHING REFERENCE IMAGE)
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-filter-toolbar {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+}
+
+.filter-toolbar-light {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.filter-toolbar-dark {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.cal-search-box {
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  padding: 0.45rem 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.search-light {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+}
+
+.search-dark {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.cal-search-box:focus-within {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25);
+}
+
+.search-icon {
+  color: #94a3b8;
+  margin-right: 0.6rem;
+  flex-shrink: 0;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.85rem;
+  width: 100%;
+  color: inherit;
+}
+
+.search-clear-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  margin-left: 0.4rem;
+}
+
+.search-clear-btn:hover {
+  color: #ef4444;
+}
+
+/* PRO LEVEL FILTER SELECT DROPDOWNS (MATCHING REFERENCE IMAGE) */
+.vpm-filter-select {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  padding: 0.55rem 2.2rem 0.55rem 0.95rem !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 0.9rem !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+  background-color: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #1e293b !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230284c7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+.vpm-filter-select:hover {
+  border-color: #0284c7 !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.15) !important;
+}
+
+.vpm-filter-select:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25) !important;
+  outline: none !important;
+}
+
+.filter-toolbar-dark .vpm-filter-select {
+  background-color: #1e293b !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+.filter-toolbar-dark .vpm-filter-select:hover {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2) !important;
+}
+
+/* DROPDOWN OPTIONS STYLING (EXACT REFERENCE MATCH) */
+.vpm-filter-select option {
+  padding: 10px 14px !important;
+  font-weight: 600 !important;
+  font-size: 0.88rem !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Header Option ("All Priorities", "All Roles", "All Statuses") */
+.vpm-filter-select option[value="ALL"] {
+  background-color: #1565c0 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  padding: 12px 14px !important;
+}
+
+/* Priority Options */
+.vpm-filter-select option[value="URGENT"] {
+  color: #9333ea !important;
+  font-weight: 700 !important;
+  background-color: #fcf5ff !important;
+}
+
+.vpm-filter-select option[value="HIGH"] {
+  color: #6366f1 !important;
+  font-weight: 700 !important;
+  background-color: #f5f3ff !important;
+}
+
+.vpm-filter-select option[value="MEDIUM"] {
+  color: #0284c7 !important;
+  font-weight: 600 !important;
+  background-color: #f0f9ff !important;
+}
+
+.vpm-filter-select option[value="LOW"] {
+  color: #38bdf8 !important;
+  font-weight: 600 !important;
+  background-color: #f8fafc !important;
+}
+
+/* Role Options */
+.vpm-filter-select option[value="ADMIN"] {
+  color: #9333ea !important;
+  font-weight: 700 !important;
+}
+
+.vpm-filter-select option[value="MANAGER"] {
+  color: #2563eb !important;
+  font-weight: 600 !important;
+}
+
+.vpm-filter-select option[value="DESIGNER"] {
+  color: #0284c7 !important;
+  font-weight: 600 !important;
+}
+
+.vpm-filter-select option[value="OPERATOR"] {
+  color: #d97706 !important;
+  font-weight: 600 !important;
+}
+
+.vpm-filter-select option[value="SALES_BILLING"] {
+  color: #10b981 !important;
+  font-weight: 600 !important;
+}
+
+/* Status Options */
+.vpm-filter-select option[value="ACTIVE"],
+.vpm-filter-select option[value="COMPLETED"] {
+  color: #10b981 !important;
+  font-weight: 600 !important;
+}
+
+.vpm-filter-select option[value="PENDING"],
+.vpm-filter-select option[value="IN_PROGRESS"] {
+  color: #0284c7 !important;
+  font-weight: 600 !important;
+}
+
+.vpm-filter-select option[value="INACTIVE"],
+.vpm-filter-select option[value="CANCELLED"] {
+  color: #ef4444 !important;
+  font-weight: 600 !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   5. USER ROSTER TABLE & CARDS
+   ════════════════════════════════════════════════════════════════ */
+
+.user-roster-card {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.user-roster-table {
+  font-size: 0.88rem;
+}
+
+.user-roster-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.user-roster-table tbody tr:hover {
+  background-color: rgba(14, 165, 233, 0.04) !important;
+}
+
+.user-avatar-ring {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.avatar-role-admin {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(124, 58, 237, 0.4));
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.avatar-role-manager {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.4));
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.avatar-role-designer {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(14, 165, 233, 0.4));
+  color: #38bdf8;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+}
+
+.avatar-role-operator {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.4));
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.avatar-role-sales_billing {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.4));
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.role-admin {
+  background: rgba(168, 85, 247, 0.12);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+}
+
+.role-manager {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.role-designer {
+  background: rgba(6, 182, 212, 0.12);
+  color: #06b6d4;
+  border: 1px solid rgba(6, 182, 212, 0.25);
+}
+
+.role-operator {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.role-sales {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.user-contact-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.user-contact-icon {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
+.user-contact-text {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-contact-phone {
+  font-family: monospace;
+}
+
+.badge-status-toggle {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.status-active:hover {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.status-inactive {
+  background: rgba(148, 163, 184, 0.12);
+  color: #64748b;
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.status-inactive:hover {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.status-dot-mini {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.btn-user-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.action-edit:hover {
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+.action-delete:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   6. MODAL CONTAINER STYLING
+   ════════════════════════════════════════════════════════════════ */
+
+.dark-modal .modal-content {
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 20px !important;
+  overflow: hidden;
+}
+
+.light-modal .modal-content {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 25px 50px rgba(15, 23, 42, 0.15) !important;
+  border-radius: 20px !important;
+  overflow: hidden;
+}
+
+.text-primary, .vpm-section-title {
+  color: #0284c7 !important;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.dark-modal .text-primary, .dark-modal .vpm-section-title {
+  color: #38bdf8 !important;
+}
+
+.form-control, .input-group-text, .form-select {
+  border-radius: 12px !important;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2) !important;
+}
+
+.input-group > .form-control {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.input-group > .input-group-text {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.input-group > .btn {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-top-right-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   7. PERFECTLY ALIGNED ROLE SELECTION CARDS
+   ════════════════════════════════════════════════════════════════ */
+
+.role-select-card {
+  display: flex;
+  align-items: center;
+  min-height: 76px;
+  padding: 0.85rem 1.1rem;
+  border-radius: 16px;
+  cursor: pointer;
+  position: relative;
+  box-sizing: border-box !important;
+  user-select: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+
+/* Light Theme Cards */
+.role-card-light {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0 !important;
+  color: #0f172a;
+}
+
+.role-card-light:hover {
+  background: #ffffff;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.role-card-light.is-selected {
+  background: #f0f9ff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 1px #0284c7, 0 4px 16px rgba(2, 132, 199, 0.12) !important;
+}
+
+/* Dark Theme Cards */
+.role-card-dark {
+  background: rgba(30, 41, 59, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc;
+}
+
+.role-card-dark:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.role-card-dark.is-selected {
+  background: rgba(14, 165, 233, 0.12) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 1px #38bdf8, 0 4px 20px rgba(56, 189, 248, 0.2) !important;
+}
+
+/* Role Icon Box - Vertically centered fixed size */
+.role-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.box-purple {
+  background: rgba(168, 85, 247, 0.14);
+  color: #a855f7;
+}
+
+.box-blue {
+  background: rgba(59, 130, 246, 0.14);
+  color: #3b82f6;
+}
+
+.box-cyan {
+  background: rgba(6, 182, 212, 0.14);
+  color: #06b6d4;
+}
+
+.box-amber {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+}
+
+.box-green {
+  background: rgba(16, 185, 129, 0.14);
+  color: #10b981;
+}
+
+/* Right side check badge */
+.role-check-mark {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0284c7;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+  animation: um-badge-pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.role-card-dark .role-check-mark {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+/* Form Switch */
+.form-switch .form-check-input:checked {
+  background-color: #0284c7 !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 8px rgba(2, 132, 199, 0.3) !important;
+}
+
+.dark-modal .form-switch .form-check-input:checked {
+  background-color: #38bdf8 !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4) !important;
+}

@@ -1,0 +1,62 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — Versions Component CSS
+   ================================================================= */
+
+.vpm-versions-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  border: 1px solid;
+  transition: all var(--transition);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.theme-light .vpm-versions-container {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(226, 232, 240, 0.8);
+  color: var(--vpm-primary);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
+}
+
+.theme-dark .vpm-versions-container {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(255, 255, 255, 0.05);
+  color: var(--vpm-cyan);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.vpm-version-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+}
+
+.vpm-version-label {
+  opacity: 0.6;
+}
+
+.vpm-version-value {
+  font-weight: 700;
+}
+
+.vpm-version-divider {
+  display: none;
+}
+
+@media (min-width: 576px) {
+  .vpm-version-divider {
+    display: block;
+    width: 1px;
+    height: 16px;
+    opacity: 0.3;
+  }
+  .theme-light .vpm-version-divider { background: var(--vpm-primary); }
+  .theme-dark .vpm-version-divider { background: var(--vpm-cyan); }
+}

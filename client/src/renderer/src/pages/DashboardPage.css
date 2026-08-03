@@ -20,12 +20,12 @@
 }
 .dp-blob--1 {
   width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(0,174,239,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(115,110,254,0.18) 0%, transparent 70%);
   top: -10%; left: -5%;
 }
 .dp-blob--2 {
   width: 300px; height: 300px;
-  background: radial-gradient(circle, rgba(141,198,63,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0,210,255,0.12) 0%, transparent 70%);
   bottom: -5%; right: -5%;
   animation-delay: -4s;
 }
@@ -45,10 +45,10 @@
 .dp-card {
   background: rgba(13,20,38,0.9);
   backdrop-filter: blur(24px);
-  border: 1px solid rgba(0,174,239,0.15);
+  border: 1px solid rgba(115,110,254,0.25);
   border-radius: 20px;
   padding: 36px;
-  box-shadow: 0 8px 48px rgba(0,0,0,0.6), 0 0 80px rgba(0,174,239,0.08);
+  box-shadow: 0 8px 48px rgba(0,0,0,0.6), 0 0 80px rgba(115,110,254,0.1);
   animation: cardIn 0.4s ease forwards;
 }
 @keyframes cardIn {
@@ -58,8 +58,8 @@
 
 .dp-icon-wrap {
   width: 60px; height: 60px;
-  background: rgba(0,174,239,0.1);
-  border: 1px solid rgba(0,174,239,0.25);
+  background: rgba(115,110,254,0.12);
+  border: 1px solid rgba(115,110,254,0.3);
   border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 20px;
@@ -73,7 +73,7 @@
   font-size: 14px; color: rgba(255,255,255,0.5);
   text-align: center; margin-bottom: 24px;
 }
-.dp-sub strong { color: #00AEEF; }
+.dp-sub strong { color: #00D2FF; }
 
 .dp-info-grid {
   display: grid; grid-template-columns: 1fr 1fr;
@@ -94,8 +94,8 @@
 }
 .dp-info-badge {
   font-size: 11px; font-weight: 600;
-  background: rgba(0,174,239,0.15);
-  color: #00AEEF; border-radius: 6px;
+  background: rgba(0,210,255,0.15);
+  color: #00D2FF; border-radius: 6px;
   padding: 2px 8px; display: inline-block;
 }
 .dp-info-badge--green {

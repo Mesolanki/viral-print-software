@@ -29,7 +29,7 @@ export default function DashboardPage(): React.JSX.Element {
         <div className="dp-card">
           {/* Icon */}
           <div className="dp-icon-wrap">
-            <ShieldCheck size={32} color="#00AEEF" />
+            <ShieldCheck size={32} color="#736efe" />
           </div>
 
           {/* Message */}
