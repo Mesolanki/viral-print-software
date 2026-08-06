@@ -29,7 +29,6 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
-    // On 401 — clear stored token (React state update handled by AuthContext)
     if (error.response?.status === 401) {
       localStorage.removeItem(TOKEN_KEY)
     }
@@ -63,21 +62,11 @@ export interface ChangePasswordPayload {
 }
 
 export const authApi = {
-  login: (payload: LoginPayload) =>
-    apiClient.post('/auth/login', payload),
-
-  register: (payload: RegisterPayload) =>
-    apiClient.post('/auth/register', payload),
-
-  getMe: () =>
-    apiClient.get('/auth/me'),
-
-  changePassword: (payload: ChangePasswordPayload) =>
-    apiClient.patch('/auth/change-password', payload),
-
-  logout: () => {
-    tokenStorage.remove()
-  },
+  login: (payload: LoginPayload) => apiClient.post('/auth/login', payload),
+  register: (payload: RegisterPayload) => apiClient.post('/auth/register', payload),
+  getMe: () => apiClient.get('/auth/me'),
+  changePassword: (payload: ChangePasswordPayload) => apiClient.patch('/auth/change-password', payload),
+  logout: () => { tokenStorage.remove() },
 }
 
 // ── User Management API ──────────────────────────────────────
@@ -94,12 +83,31 @@ export const usersApi = {
   getAll: () => apiClient.get('/users'),
   getById: (id: number) => apiClient.get(`/users/${id}`),
   create: (payload: CreateUserPayload) => apiClient.post('/users', payload),
-  update: (id: number, payload: Partial<CreateUserPayload>) =>
-    apiClient.patch(`/users/${id}`, payload),
+  update: (id: number, payload: Partial<CreateUserPayload>) => apiClient.patch(`/users/${id}`, payload),
   toggleStatus: (id: number) => apiClient.patch(`/users/${id}/toggle-status`),
-  resetPassword: (id: number, newPassword: string) =>
-    apiClient.post(`/users/${id}/reset-password`, { newPassword }),
+  resetPassword: (id: number, newPassword: string) => apiClient.post(`/users/${id}/reset-password`, { newPassword }),
   getRoles: () => apiClient.get('/users/roles'),
+}
+
+// ── Customer & GST API ───────────────────────────────────────
+export interface CustomerData {
+  id?: number
+  name: string
+  mobile?: string
+  email?: string
+  gst_no?: string
+  billing_address?: string
+}
+
+export const customersApi = {
+  getAll: (query?: string) => apiClient.get('/customers', { params: { query } }),
+  lookupGst: (gstNo: string) => apiClient.get(`/customers/lookup-gst/${encodeURIComponent(gstNo)}`),
+  save: (customer: CustomerData) => apiClient.post('/customers', customer),
+}
+
+// ── Products API ─────────────────────────────────────────────
+export const productsApi = {
+  getAll: () => apiClient.get('/products'),
 }
 
 export default apiClient

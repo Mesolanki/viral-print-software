@@ -5,26 +5,34 @@ import {
   LogOut,
   Menu,
   Moon,
+  Package,
   Sparkles,
   Sun,
-  UserCheck,
-  Users
+  Users,
+  Receipt,
+  FileText,
+  Tag
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import type { ActiveTabType } from './AppLayout'
 import './Header.css'
 
 interface HeaderProps {
   theme: 'dark' | 'light'
   toggleTheme: () => void
-  activeTab: 'tasks' | 'users' | 'dashboard'
+  activeTab: ActiveTabType
   onToggleSidebar: () => void
 }
 
 const pageTitles = {
+  invoice: { icon: <Receipt size={18} />, label: 'Tax Invoice (GST Billing - PDF Page 1)' },
+  quotation: { icon: <FileText size={18} />, label: 'Quotation (Rate Quote - PDF Page 2)' },
+  estimate: { icon: <Tag size={18} />, label: 'Estimate Bill (Slip Format - PDF Page 3)' },
   tasks: { icon: <CheckSquare size={18} />, label: 'Task Management & Calendar' },
   users: { icon: <Users size={18} />, label: 'Users & Role Management' },
-  dashboard: { icon: <LayoutDashboard size={18} />, label: 'System Diagnostics' }
+  dashboard: { icon: <LayoutDashboard size={18} />, label: 'System Diagnostics' },
+  products: { icon: <Package size={18} />, label: 'Products & Rate Management' },
 }
 
 const Header: React.FC<HeaderProps> = ({ theme, toggleTheme, activeTab, onToggleSidebar }) => {
@@ -32,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({ theme, toggleTheme, activeTab, onToggle
   const navigate = useNavigate()
   const themeClass = `theme-${theme}`
 
-  const pageInfo = pageTitles[activeTab]
+  const pageInfo = pageTitles[activeTab] || pageTitles.invoice
 
   const handleLogout = (): void => {
     logout()

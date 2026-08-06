@@ -3,11 +3,13 @@ import Sidebar from './Sidebar'
 import Header from './Header'
 import './AppLayout.css'
 
+export type ActiveTabType = 'invoice' | 'quotation' | 'estimate' | 'products' | 'tasks' | 'users' | 'dashboard'
+
 interface AppLayoutProps {
   theme: 'dark' | 'light'
   toggleTheme: () => void
-  activeTab: 'tasks' | 'users' | 'dashboard'
-  onTabChange: (tab: 'tasks' | 'users' | 'dashboard') => void
+  activeTab: ActiveTabType
+  onTabChange: (tab: ActiveTabType) => void
   children: ReactNode
 }
 

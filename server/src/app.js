@@ -4,6 +4,7 @@ import userRouter from './routes/user.routes.js';
 import categoryRouter from './routes/category.routes.js';
 import productRouter from './routes/product.routes.js';
 import taskRouter from './routes/task.routes.js';
+import customerRouter from './routes/customer.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 
 const app = express();
@@ -46,6 +47,7 @@ app.use('/api/users', userRouter);
 app.use('/api/categories', categoryRouter);
 app.use('/api/products', productRouter);
 app.use('/api/tasks', taskRouter);
+app.use('/api/customers', customerRouter);
 
 // ── 5. 404 Handler ───────────────────────────────────────────
 app.use((req, res) => {

@@ -36,7 +36,6 @@ import {
   Columns,
   LayoutGrid,
   Phone,
-  MapPin,
   TrendingUp,
   Check,
   Flame,

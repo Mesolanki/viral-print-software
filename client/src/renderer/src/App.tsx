@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { Row, Col, Card, Button, Alert } from 'react-bootstrap'
 import Versions from './components/Versions'
 import TaskManagement from './components/TaskManagement'
 import UserManagement from './components/UserManagement'
-import AppLayout from './components/layout/AppLayout'
+import ProductManagement from './components/ProductManagement'
+import EstimateBill from './components/EstimateBill'
+import AppLayout, { type ActiveTabType } from './components/layout/AppLayout'
 import LoginPage from './pages/LoginPage'
-import { useAuth } from './context/AuthContext'
 import { LayoutDashboard } from 'lucide-react'
 
 /* ── Dashboard View ─────────────────────────────────────────────── */
@@ -17,9 +18,7 @@ function DashboardView({
   theme: 'dark' | 'light'
   toggleTheme: () => void
 }): React.JSX.Element {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
-  const [activeTab, setActiveTab] = useState<'tasks' | 'users' | 'dashboard'>('tasks')
+  const [activeTab, setActiveTab] = useState<ActiveTabType>('invoice')
   const [pingStatus, setPingStatus] = useState<string | null>(null)
   const isDark = theme === 'dark'
 
@@ -54,10 +53,18 @@ function DashboardView({
       )}
 
       {/* ── Page Content ─────────────────────────────────── */}
-      {activeTab === 'tasks' ? (
+      {activeTab === 'invoice' ? (
+        <EstimateBill key="tax-invoice" theme={theme} formatType="TAX_INVOICE" />
+      ) : activeTab === 'quotation' ? (
+        <EstimateBill key="quotation" theme={theme} formatType="QUOTATION" />
+      ) : activeTab === 'estimate' ? (
+        <EstimateBill key="estimate-slip" theme={theme} formatType="ESTIMATE" />
+      ) : activeTab === 'tasks' ? (
         <TaskManagement theme={theme} />
       ) : activeTab === 'users' ? (
         <UserManagement theme={theme} />
+      ) : activeTab === 'products' ? (
+        <ProductManagement theme={theme} />
       ) : (
         /* ── System Overview / Diagnostics Page ─────────── */
         <Row className="gy-4">
@@ -112,7 +119,7 @@ function DashboardView({
                     }}
                   >
                     A premium desktop application built with Electron, React, TypeScript, and
-                    Bootstrap. The backend runs on Express, PostgreSQL, and Prisma ORM.
+                    Bootstrap. Running offline with local MySQL database.
                   </p>
                 </div>
 
@@ -176,7 +183,7 @@ function DashboardView({
               <Card.Body className="p-4 d-flex flex-column justify-content-between">
                 <div>
                   {[
-                    { label: 'Database Engine', value: 'PostgreSQL (Prisma ORM)' },
+                    { label: 'Database Engine', value: 'Local MySQL (XAMPP Offline)' },
                     { label: 'Backend Service', value: 'Express Server (Port 5000)' }
                   ].map((item) => (
                     <div key={item.label} className="mb-4">

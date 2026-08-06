@@ -786,7 +786,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
 
                         {/* Email */}
                         <td className="py-3">
-                          <div className="user-contact-pill" title={u.email}>
+                          <div className="user-contact-pill" title={u.email || ''}>
                             <span className="user-contact-icon">
                               <Mail size={13} />
                             </span>

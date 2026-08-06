@@ -1,12 +1,13 @@
 import type React from 'react'
-import { CheckSquare, LayoutDashboard, Users } from 'lucide-react'
+import { CheckSquare, LayoutDashboard, Users, Package, FileText, Receipt, Tag } from 'lucide-react'
 import electronLogo from '../../assets/electron.svg'
+import type { ActiveTabType } from './AppLayout'
 import './Sidebar.css'
 
 interface SidebarProps {
   theme: 'dark' | 'light'
-  activeTab: 'tasks' | 'users' | 'dashboard'
-  onTabChange: (tab: 'tasks' | 'users' | 'dashboard') => void
+  activeTab: ActiveTabType
+  onTabChange: (tab: ActiveTabType) => void
   mode: 'open' | 'compact' | 'hidden'
 }
 
@@ -33,8 +34,56 @@ const Sidebar: React.FC<SidebarProps> = ({ theme, activeTab, onTabChange, mode }
       {/* ── Navigation ─────────────────────────────────────── */}
       <nav className="vpm-sidebar-nav">
         {mode === 'open' && (
-          <span className="vpm-nav-section-label">Main Menu</span>
+          <span className="vpm-nav-section-label">Billing & Invoices</span>
         )}
+
+        <button
+          className={`vpm-nav-item ${activeTab === 'invoice' ? 'active' : ''}`}
+          onClick={() => onTabChange('invoice')}
+          title="Tax Invoice (GST)"
+        >
+          <span className="vpm-nav-icon">
+            <Receipt size={18} />
+          </span>
+          {mode === 'open' && <span className="vpm-nav-label">Tax Invoice</span>}
+        </button>
+
+        <button
+          className={`vpm-nav-item ${activeTab === 'quotation' ? 'active' : ''}`}
+          onClick={() => onTabChange('quotation')}
+          title="Quotation"
+        >
+          <span className="vpm-nav-icon">
+            <FileText size={18} />
+          </span>
+          {mode === 'open' && <span className="vpm-nav-label">Quotation</span>}
+        </button>
+
+        <button
+          className={`vpm-nav-item ${activeTab === 'estimate' ? 'active' : ''}`}
+          onClick={() => onTabChange('estimate')}
+          title="Estimate Bill"
+        >
+          <span className="vpm-nav-icon">
+            <Tag size={18} />
+          </span>
+          {mode === 'open' && <span className="vpm-nav-label">Estimate Bill</span>}
+        </button>
+
+        {mode === 'open' && (
+          <span className="vpm-nav-section-label" style={{ marginTop: 12 }}>Management</span>
+        )}
+
+        <button
+          className={`vpm-nav-item ${activeTab === 'products' ? 'active' : ''}`}
+          onClick={() => onTabChange('products')}
+          title="Products & Rates"
+        >
+          <span className="vpm-nav-icon">
+            <Package size={18} />
+          </span>
+          {mode === 'open' && <span className="vpm-nav-label">Products & Rates</span>}
+        </button>
 
         <button
           className={`vpm-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}

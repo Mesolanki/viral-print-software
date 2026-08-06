@@ -10,5 +10,8 @@
     "dev": "cd server && start /b npm run dev && cd ../client && npm run dev",
     "build": "cd client && npm run build",
     "build:win": "cd client && npm run build:win"
+  },
+  "dependencies": {
+    "pdf-parse": "^2.4.5"
   }
 }
