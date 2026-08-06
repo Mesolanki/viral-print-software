@@ -941,8 +941,10 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
                     key={t.id}
                     className={`task-card ${isDark ? 'task-card-dark' : 'task-card-light'} ${isCompleted ? 'is-completed' : ''} priority-${t.priority.toLowerCase()} status-${t.status.toLowerCase()}`}
                   >
-                    {/* Status Color Bar on Left (Sky Blue Gradient) */}
-                    <div className="status-strip" />
+                    {/* Background Shell: Clips status-strip to exact card border-radius */}
+                    <div className="task-card-bg-shell">
+                      <div className="status-strip" />
+                    </div>
 
                     <div className="task-card-content">
                       {/* Top Row: Checkbox + Title + Badges (Inline Flex Row) + Actions on Right */}
@@ -973,7 +975,7 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
                         {/* Action Buttons (Right Aligned) */}
                         <div className="task-actions-group">
                           {/* Quick Status Picker Dropdown */}
-                          <Dropdown align="end">
+                          <Dropdown align="end" popperConfig={{ strategy: 'fixed' }} renderOnMount>
                             <Dropdown.Toggle
                               variant={isDark ? 'outline-secondary' : 'outline-dark'}
                               size="sm"
