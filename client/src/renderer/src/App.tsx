@@ -79,10 +79,10 @@ function DashboardView({
                     className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3"
                     style={{
                       background: isDark
-                        ? 'rgba(0,174,239,0.10)'
-                        : 'rgba(0,119,182,0.06)',
-                      border: `1px solid ${isDark ? 'rgba(0,174,239,0.20)' : 'rgba(0,119,182,0.15)'}`,
-                      color: isDark ? '#00AEEF' : '#0077B6',
+                        ? 'rgba(0,210,255,0.10)'
+                        : 'rgba(115,110,254,0.06)',
+                      border: `1px solid ${isDark ? 'rgba(0,210,255,0.20)' : 'rgba(115,110,254,0.15)'}`,
+                      color: isDark ? '#00D2FF' : '#736efe',
                       fontSize: '0.72rem',
                       fontWeight: 700,
                       letterSpacing: '0.5px',
@@ -121,16 +121,16 @@ function DashboardView({
                     onClick={ipcHandle}
                     style={{
                       background: isDark
-                        ? 'linear-gradient(135deg, #00AEEF, #00CFFF)'
-                        : 'linear-gradient(135deg, #0077B6, #00AEEF)',
+                        ? 'linear-gradient(135deg, #00D2FF, #00E5FF)'
+                        : 'linear-gradient(135deg, #736efe, #00D2FF)',
                       border: 'none',
                       borderRadius: '10px',
                       padding: '10px 22px',
                       fontWeight: 700,
                       color: isDark ? '#05101F' : '#FFF',
                       boxShadow: isDark
-                        ? '0 4px 14px rgba(0,174,239,0.30)'
-                        : '0 4px 14px rgba(0,119,182,0.28)'
+                        ? '0 4px 14px rgba(0,210,255,0.30)'
+                        : '0 4px 14px rgba(115,110,254,0.28)'
                     }}
                   >
                     Send IPC Ping

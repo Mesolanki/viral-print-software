@@ -1,9 +1,7 @@
 /* =================================================================
-   VIRAL PRINT MEDIA — Sidebar CSS  [PRO LEVEL v2]
-   Premium sidebar with gradient active indicator, glass surface.
+   VIRAL PRINT MEDIA — Sidebar Component CSS
    ================================================================= */
 
-/* ── Sidebar Shell ────────────────────────────────────────────── */
 .vpm-sidebar {
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);

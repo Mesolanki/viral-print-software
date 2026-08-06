@@ -1,6 +1,7 @@
 import type React from 'react'
 import { CheckSquare, LayoutDashboard, Users } from 'lucide-react'
 import electronLogo from '../../assets/electron.svg'
+import './Sidebar.css'
 
 interface SidebarProps {
   theme: 'dark' | 'light'

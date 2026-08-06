@@ -1,30 +1,57 @@
 /* =================================================================
-   VIRAL PRINT MEDIA — Cards CSS  [HERO HIGHLIGHT v4]
-   Premium dashboard cards styled directly after the user's screenshot.
+   VIRAL PRINT MEDIA — cards.css  ★ GOD-LEVEL PREMIUM EDITION ★
+   World-class stat cards, task cards with elite animations
    ================================================================= */
 
-/* ── Stat Card Base Shell ─────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════
+   STAT CARD BASE — Premium glass shell
+   ════════════════════════════════════════════════════════════════ */
+
 .vpm-stat-card {
   position: relative;
-  border-radius: 18px !important;
-  padding: 18px 20px 16px !important;
+  border-radius: 20px !important;
+  padding: 20px 22px 18px !important;
   overflow: hidden;
   cursor: default;
   display: flex;
   flex-direction: column;
   border: 1px solid transparent;
   transition:
-    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.3s ease,
+    transform  0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.30s ease,
     border-color 0.25s ease;
-  animation: vpmSlideUp 0.4s var(--ease-out) both;
+  will-change: transform;
+  animation: vpmSlideUp 0.50s var(--ease-out) both;
 }
 
 .vpm-stat-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px) scale(1.01);
 }
 
-/* Header row (Label + Icon) */
+/* Top shimmer sweep on hover */
+.vpm-stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -150%;
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.22),
+    transparent
+  );
+  transform: skewX(-18deg);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.vpm-stat-card:hover::after {
+  left: 150%;
+  transition: left 0.90s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Header row */
 .vpm-stat-top {
   display: flex;
   align-items: center;
@@ -33,220 +60,349 @@
 }
 
 .vpm-stat-label {
-  font-size: 0.82rem;
+  font-size: 0.83rem;
   font-weight: 700;
   letter-spacing: -0.1px;
 }
 
-/* Mini icon container on the right (like the external link icon in screenshot) */
+/* Right icon ring */
 .vpm-stat-icon-ring {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.65;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  opacity: 0.75;
+  transition: transform 0.25s var(--ease-out), opacity 0.25s ease, box-shadow 0.25s ease;
 }
 
 .vpm-stat-card:hover .vpm-stat-icon-ring {
-  transform: scale(1.1) rotate(5deg);
+  transform: scale(1.15) rotate(8deg);
   opacity: 1;
 }
 
-/* Thin Divider Line (like screenshot) */
+/* Thin divider */
 .vpm-stat-divider {
   height: 1px;
   width: 100%;
-  margin: 10px 0 12px 0;
+  margin: 12px 0 14px 0;
+  border-radius: 999px;
   transition: background-color 0.2s ease;
 }
 
-/* Big Number Value */
+/* Big Number */
 .vpm-stat-value {
-  font-size: 2.2rem;
-  font-weight: 700;
-  letter-spacing: -1px;
-  line-height: 1.1;
-  margin-bottom: 4px;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1;
+  margin-bottom: 5px;
+  animation: vpmNumberReveal 0.50s var(--ease-out) both;
   transition: color 0.2s ease;
 }
 
-/* Subtitle Description (like "Lorem ipsum dolor" in screenshot) */
+/* Subtitle */
 .vpm-stat-desc {
   font-size: 0.78rem;
   font-weight: 500;
   margin: 0;
+  line-height: 1.4;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   HERO CARD STYLING (First Card / Total Stats)
-   Solid background color with white text, just like screenshot!
-   ══════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════
+   HERO CARD — Total Tasks / Total (Gradient solid fill)
+   ════════════════════════════════════════════════════════════════ */
 
-/* ── Light Mode — Hero Card (Total Tasks / Employees) ────────── */
+/* ── Light Mode HERO ──────────────────────────────────────────── */
 .theme-light .vpm-stat-cyan {
-  background: linear-gradient(135deg, #005F99 0%, #003D66 100%) !important;
-  border-color: #004D7A !important;
+  background: linear-gradient(135deg, #736efe 0%, #4f46e5 60%, #312e81 100%) !important;
+  border-color: rgba(115,110,254,0.50) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 10px 24px rgba(0, 95, 153, 0.15) !important;
+  box-shadow:
+    0 14px 40px rgba(115,110,254,0.30),
+    0 4px 12px rgba(115,110,254,0.20),
+    inset 0 1px 0 rgba(255,255,255,0.18) !important;
 }
 
-.theme-light .vpm-stat-cyan .vpm-stat-label { color: #FFFFFF !important; }
-.theme-light .vpm-stat-cyan .vpm-stat-value { color: #FFFFFF !important; }
-.theme-light .vpm-stat-cyan .vpm-stat-desc  { color: rgba(255, 255, 255, 0.75) !important; }
-.theme-light .vpm-stat-cyan .vpm-stat-divider { background-color: rgba(255, 255, 255, 0.15) !important; }
-.theme-light .vpm-stat-cyan .vpm-stat-icon-ring { color: #FFFFFF !important; }
+.theme-light .vpm-stat-cyan:hover {
+  box-shadow:
+    0 20px 55px rgba(115,110,254,0.40),
+    0 6px 18px rgba(115,110,254,0.28),
+    inset 0 1px 0 rgba(255,255,255,0.18) !important;
+}
 
-/* ── Dark Mode — Hero Card ───────────────────────────────────── */
+.theme-light .vpm-stat-cyan .vpm-stat-label { color: rgba(255,255,255,0.90) !important; }
+.theme-light .vpm-stat-cyan .vpm-stat-value { color: #FFFFFF !important; text-shadow: 0 2px 12px rgba(0,0,0,0.20); }
+.theme-light .vpm-stat-cyan .vpm-stat-desc  { color: rgba(255,255,255,0.72) !important; }
+.theme-light .vpm-stat-cyan .vpm-stat-divider { background: rgba(255,255,255,0.18) !important; }
+.theme-light .vpm-stat-cyan .vpm-stat-icon-ring {
+  color: #FFFFFF !important;
+  background: rgba(255,255,255,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+/* ── Dark Mode HERO ───────────────────────────────────────────── */
 .theme-dark .vpm-stat-cyan {
-  background: linear-gradient(135deg, #0D2D54 0%, #081C35 100%) !important;
-  border-color: rgba(0, 174, 239, 0.2) !important;
+  background: linear-gradient(135deg, rgba(115,110,254,0.25) 0%, rgba(79,70,229,0.18) 60%, rgba(10,21,37,0.90) 100%) !important;
+  border-color: rgba(115,110,254,0.35) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35) !important;
+  box-shadow:
+    0 14px 40px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(115,110,254,0.30),
+    0 0 40px rgba(115,110,254,0.12) !important;
 }
 
-.theme-dark .vpm-stat-cyan .vpm-stat-label { color: #FFFFFF !important; }
-.theme-dark .vpm-stat-cyan .vpm-stat-value { color: #FFFFFF !important; }
-.theme-dark .vpm-stat-cyan .vpm-stat-desc  { color: rgba(255, 255, 255, 0.70) !important; }
-.theme-dark .vpm-stat-cyan .vpm-stat-divider { background-color: rgba(255, 255, 255, 0.12) !important; }
-.theme-dark .vpm-stat-cyan .vpm-stat-icon-ring { color: #00AEEF !important; }
+.theme-dark .vpm-stat-cyan:hover {
+  box-shadow:
+    0 20px 55px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(115,110,254,0.35),
+    0 0 60px rgba(115,110,254,0.20) !important;
+}
 
-/* ══════════════════════════════════════════════════════════════
-   STANDARD CARDS STYLING (Other Cards)
-   White background with colored numbers, just like screenshot!
-   ══════════════════════════════════════════════════════════════ */
+.theme-dark .vpm-stat-cyan .vpm-stat-label { color: rgba(255,255,255,0.85) !important; }
+.theme-dark .vpm-stat-cyan .vpm-stat-value {
+  color: #FFFFFF !important;
+  background: linear-gradient(90deg, #FFFFFF, var(--vpm-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.theme-dark .vpm-stat-cyan .vpm-stat-desc  { color: rgba(255,255,255,0.65) !important; }
+.theme-dark .vpm-stat-cyan .vpm-stat-divider { background: rgba(115,110,254,0.25) !important; }
+.theme-dark .vpm-stat-cyan .vpm-stat-icon-ring {
+  color: var(--vpm-cyan) !important;
+  background: rgba(0,210,255,0.12);
+}
 
-/* ── Light Mode — Standard Cards ────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════
+   STANDARD CARDS — White / dark glass with colored numbers
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Light Standard ───────────────────────────────────────────── */
 .vpm-stat-card-light:not(.vpm-stat-cyan) {
   background: #FFFFFF !important;
-  border-color: rgba(226, 232, 240, 0.8) !important;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(226, 232, 240, 0.90) !important;
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255,255,255,1) !important;
   color: #334155 !important;
 }
 
 .vpm-stat-card-light:not(.vpm-stat-cyan):hover {
-  border-color: #CBD5E1 !important;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(115,110,254,0.22) !important;
+  box-shadow:
+    0 16px 40px rgba(15, 23, 42, 0.08),
+    0 4px 12px rgba(115,110,254,0.06),
+    inset 0 1px 0 rgba(255,255,255,1) !important;
 }
 
-.vpm-stat-card-light:not(.vpm-stat-cyan) .vpm-stat-label { color: #475569 !important; }
+.vpm-stat-card-light:not(.vpm-stat-cyan) .vpm-stat-label { color: #64748B !important; }
 .vpm-stat-card-light:not(.vpm-stat-cyan) .vpm-stat-desc  { color: #94A3B8 !important; }
-.vpm-stat-card-light:not(.vpm-stat-cyan) .vpm-stat-divider { background-color: rgba(226, 232, 240, 0.8) !important; }
+.vpm-stat-card-light:not(.vpm-stat-cyan) .vpm-stat-divider { background: rgba(226,232,240,0.90) !important; }
+.vpm-stat-card-light:not(.vpm-stat-cyan) .vpm-stat-icon-ring {
+  background: rgba(241, 245, 249, 0.9);
+  border-radius: 9px;
+}
 
-/* ── Dark Mode — Standard Cards ─────────────────────────────── */
+/* ── Dark Standard ────────────────────────────────────────────── */
 .vpm-stat-card-dark:not(.vpm-stat-cyan) {
-  background: rgba(255, 255, 255, 0.02) !important;
-  border-color: rgba(255, 255, 255, 0.06) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20) !important;
+  background: linear-gradient(145deg, rgba(15,25,46,0.98), rgba(12,20,40,0.95)) !important;
+  border-color: rgba(255,255,255,0.07) !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255,255,255,0.04) !important;
   color: #E2E8F0 !important;
 }
 
 .vpm-stat-card-dark:not(.vpm-stat-cyan):hover {
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35) !important;
+  border-color: rgba(255,255,255,0.14) !important;
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.50),
+    inset 0 1px 0 rgba(255,255,255,0.06) !important;
 }
 
-.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-label { color: #94A3B8 !important; }
+.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-label { color: #64748B !important; }
 .vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-desc  { color: #475569 !important; }
-.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-divider { background-color: rgba(255, 255, 255, 0.06) !important; }
+.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-divider { background: rgba(255,255,255,0.07) !important; }
+.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-icon-ring {
+  background: rgba(255,255,255,0.04);
+  border-radius: 9px;
+}
 
-/* ── Standard Cards Colored Numbers & Icons ───────────────────── */
+/* ── Number & Icon Color Variants ─────────────────────────────── */
+
 /* Pending — Amber/Orange */
 .vpm-stat-amber .vpm-stat-value { color: #D97706 !important; }
 .vpm-stat-amber .vpm-stat-icon-ring { color: #F59E0B !important; }
+.vpm-stat-card-light.vpm-stat-amber:not(.vpm-stat-cyan):hover { border-color: rgba(245,158,11,0.28) !important; }
+.vpm-stat-card-dark.vpm-stat-amber:not(.vpm-stat-cyan) .vpm-stat-value {
+  background: linear-gradient(135deg, #FBBF24, #D97706);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
 
 /* In Progress — Indigo/Blue */
 .vpm-stat-indigo .vpm-stat-value { color: #2563EB !important; }
 .vpm-stat-indigo .vpm-stat-icon-ring { color: #3B82F6 !important; }
+.vpm-stat-card-light.vpm-stat-indigo:not(.vpm-stat-cyan):hover { border-color: rgba(59,130,246,0.28) !important; }
+.vpm-stat-card-dark.vpm-stat-indigo:not(.vpm-stat-cyan) .vpm-stat-value {
+  background: linear-gradient(135deg, #60A5FA, #2563EB);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
 
 /* Completed — Emerald/Green */
 .vpm-stat-emerald .vpm-stat-value { color: #059669 !important; }
 .vpm-stat-emerald .vpm-stat-icon-ring { color: #10B981 !important; }
+.vpm-stat-card-light.vpm-stat-emerald:not(.vpm-stat-cyan):hover { border-color: rgba(16,185,129,0.28) !important; }
+.vpm-stat-card-dark.vpm-stat-emerald:not(.vpm-stat-cyan) .vpm-stat-value {
+  background: linear-gradient(135deg, #34D399, #059669);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
 
 /* Overdue — Rose/Red */
 .vpm-stat-rose .vpm-stat-value { color: #DC2626 !important; }
 .vpm-stat-rose .vpm-stat-icon-ring { color: #EF4444 !important; }
+.vpm-stat-card-light.vpm-stat-rose:not(.vpm-stat-cyan):hover { border-color: rgba(239,68,68,0.28) !important; }
+.vpm-stat-card-dark.vpm-stat-rose:not(.vpm-stat-cyan) .vpm-stat-value {
+  background: linear-gradient(135deg, #F87171, #DC2626);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
 
 
-/* ══════════════════════════════════════════════════════════════
-   TASK LIST CARDS — Elevated interactive cards
-   ══════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════
+   TASK LIST CARDS — Premium interactive row cards
+   ════════════════════════════════════════════════════════════════ */
 
 .task-card {
   display: flex;
   align-items: stretch;
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
   transition:
-    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.3s ease,
-    border-color 0.2s ease;
+    transform  0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.28s ease,
+    border-color 0.22s ease;
   position: relative;
   width: 100%;
   border: 1px solid transparent;
-  animation: vpmSlideUp 0.4s var(--ease-out) both;
+  animation: vpmSlideUp 0.45s var(--ease-out) both;
+  will-change: transform;
 }
 
-.task-card:nth-child(1) { animation-delay: 0.04s; }
-.task-card:nth-child(2) { animation-delay: 0.08s; }
-.task-card:nth-child(3) { animation-delay: 0.12s; }
-.task-card:nth-child(4) { animation-delay: 0.16s; }
-.task-card:nth-child(5) { animation-delay: 0.20s; }
-.task-card:nth-child(n+6) { animation-delay: 0.24s; }
+/* Staggered entrance delays */
+.task-card:nth-child(1) { animation-delay: 0.05s; }
+.task-card:nth-child(2) { animation-delay: 0.10s; }
+.task-card:nth-child(3) { animation-delay: 0.15s; }
+.task-card:nth-child(4) { animation-delay: 0.20s; }
+.task-card:nth-child(5) { animation-delay: 0.25s; }
+.task-card:nth-child(n+6) { animation-delay: 0.28s; }
 
-/* Light task card */
+.task-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Shimmer sweep on hover */
+.task-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -160%;
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
+  transform: skewX(-18deg);
+  pointer-events: none;
+  z-index: 5;
+}
+.task-card:hover::after {
+  left: 160%;
+  transition: left 0.90s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Light task card ──────────────────────────────────────────── */
 .task-card-light {
   background: #FFFFFF;
-  border-color: rgba(226, 232, 240, 0.9);
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+  border-color: rgba(226, 232, 240, 0.90);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
 }
 
-/* Light task card hover configurations */
 .task-card-light:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.09) !important;
 }
 
-.task-card-light.priority-urgent:hover   { border-color: rgba(239, 68, 68, 0.4) !important; box-shadow: 0 12px 36px rgba(239, 68, 68, 0.06), 0 2px 8px rgba(239, 68, 68, 0.04) !important; }
-.task-card-light.priority-high:hover     { border-color: rgba(245, 158, 11, 0.4) !important; box-shadow: 0 12px 36px rgba(245, 158, 11, 0.06), 0 2px 8px rgba(245, 158, 11, 0.04) !important; }
-.task-card-light.priority-medium:hover   { border-color: rgba(59, 130, 246, 0.4) !important; box-shadow: 0 12px 36px rgba(59, 130, 246, 0.06), 0 2px 8px rgba(59, 130, 246, 0.04) !important; }
-.task-card-light.priority-low:hover      { border-color: rgba(148, 163, 184, 0.4) !important; box-shadow: 0 12px 36px rgba(148, 163, 184, 0.06), 0 2px 8px rgba(148, 163, 184, 0.04) !important; }
-.task-card-light.status-completed:hover  { border-color: rgba(16, 185, 129, 0.4) !important; box-shadow: 0 12px 36px rgba(16, 185, 129, 0.06), 0 2px 8px rgba(16, 185, 129, 0.04) !important; }
+.task-card-light.priority-urgent:hover   {
+  border-color: rgba(239,68,68,0.40) !important;
+  box-shadow: 0 16px 48px rgba(239,68,68,0.08), 0 0 0 4px rgba(239,68,68,0.04) !important;
+}
+.task-card-light.priority-high:hover     {
+  border-color: rgba(245,158,11,0.40) !important;
+  box-shadow: 0 16px 48px rgba(245,158,11,0.08), 0 0 0 4px rgba(245,158,11,0.04) !important;
+}
+.task-card-light.priority-medium:hover   {
+  border-color: rgba(59,130,246,0.40) !important;
+  box-shadow: 0 16px 48px rgba(59,130,246,0.08), 0 0 0 4px rgba(59,130,246,0.04) !important;
+}
+.task-card-light.priority-low:hover      {
+  border-color: rgba(148,163,184,0.40) !important;
+  box-shadow: 0 16px 48px rgba(148,163,184,0.08), 0 0 0 4px rgba(148,163,184,0.04) !important;
+}
+.task-card-light.status-completed:hover  {
+  border-color: rgba(16,185,129,0.40) !important;
+  box-shadow: 0 16px 48px rgba(16,185,129,0.08), 0 0 0 4px rgba(16,185,129,0.04) !important;
+}
 
-/* Dark task card */
+/* ── Dark task card ───────────────────────────────────────────── */
 .task-card-dark {
   background: linear-gradient(145deg, #0F1929, #111D35);
-  border-color: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.30);
 }
 
-/* Dark task card hover configurations */
 .task-card-dark:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.50) !important;
 }
 
-.task-card-dark.priority-urgent:hover    { border-color: rgba(239, 68, 68, 0.35) !important; box-shadow: 0 12px 36px rgba(239, 68, 68, 0.08), 0 0 15px rgba(239, 68, 68, 0.1) !important; }
-.task-card-dark.priority-high:hover      { border-color: rgba(245, 158, 11, 0.35) !important; box-shadow: 0 12px 36px rgba(245, 158, 11, 0.08), 0 0 15px rgba(245, 158, 11, 0.1) !important; }
-.task-card-dark.priority-medium:hover    { border-color: rgba(59, 130, 246, 0.35) !important; box-shadow: 0 12px 36px rgba(59, 130, 246, 0.08), 0 0 15px rgba(59, 130, 246, 0.1) !important; }
-.task-card-dark.priority-low:hover       { border-color: rgba(148, 163, 184, 0.35) !important; box-shadow: 0 12px 36px rgba(148, 163, 184, 0.08), 0 0 15px rgba(148, 163, 184, 0.1) !important; }
-.task-card-dark.status-completed:hover   { border-color: rgba(16, 185, 129, 0.35) !important; box-shadow: 0 12px 36px rgba(16, 185, 129, 0.08), 0 0 15px rgba(16, 185, 129, 0.1) !important; }
+.task-card-dark.priority-urgent:hover    {
+  border-color: rgba(239,68,68,0.38) !important;
+  box-shadow: 0 16px 48px rgba(239,68,68,0.12), 0 0 25px rgba(239,68,68,0.10) !important;
+}
+.task-card-dark.priority-high:hover      {
+  border-color: rgba(245,158,11,0.38) !important;
+  box-shadow: 0 16px 48px rgba(245,158,11,0.12), 0 0 25px rgba(245,158,11,0.10) !important;
+}
+.task-card-dark.priority-medium:hover    {
+  border-color: rgba(59,130,246,0.38) !important;
+  box-shadow: 0 16px 48px rgba(59,130,246,0.12), 0 0 25px rgba(59,130,246,0.10) !important;
+}
+.task-card-dark.priority-low:hover       {
+  border-color: rgba(148,163,184,0.38) !important;
+  box-shadow: 0 16px 48px rgba(148,163,184,0.10) !important;
+}
+.task-card-dark.status-completed:hover   {
+  border-color: rgba(16,185,129,0.38) !important;
+  box-shadow: 0 16px 48px rgba(16,185,129,0.12), 0 0 25px rgba(16,185,129,0.10) !important;
+}
 
+/* Completed state dimming */
+.task-card.is-completed { opacity: 0.60; }
 
-.task-card.is-completed { opacity: 0.6; }
-
+/* ── Sky Blue Gradient Status Strip ───────────────────────────── */
 .status-strip {
   width: 5px;
   flex-shrink: 0;
-  transition: width 0.2s ease, opacity 0.2s ease;
+  border-radius: 18px 0 0 18px;
+  background: linear-gradient(180deg, #736efe 0%, #00D2FF 100%) !important;
+  box-shadow: 2px 0 12px rgba(0, 210, 255, 0.45) !important;
+  transition: width 0.22s ease, opacity 0.22s ease, box-shadow 0.22s ease;
 }
 
 .task-card:hover .status-strip {
-  width: 7px;
+  width: 8px;
+  box-shadow: 3px 0 16px rgba(0, 210, 255, 0.65) !important;
 }
 
+/* ── Task Card Content ────────────────────────────────────────── */
 .task-card-content {
-  flex: 1; padding: 14px 18px;
-  display: flex; flex-direction: column; gap: 9px; min-width: 0;
+  flex: 1; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
 }
 
 .task-header-row {
@@ -260,7 +416,7 @@
 }
 
 .task-title-text {
-  margin: 0; font-size: 0.95rem; font-weight: 700;
+  margin: 0; font-size: 0.96rem; font-weight: 700;
   line-height: 1.3; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.1px;
 }
@@ -269,7 +425,7 @@
 .task-actions-group { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: auto; }
 
 .task-description-text {
-  margin: 0; font-size: 0.83rem; line-height: 1.5; opacity: 0.60;
+  margin: 0; font-size: 0.83rem; line-height: 1.55; opacity: 0.60;
 }
 
 .task-meta-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
@@ -281,91 +437,83 @@
 }
 
 .meta-light  { background: var(--vpm-gray-100); color: var(--vpm-gray-600); border: 1px solid var(--light-border); }
-.meta-dark   { background: rgba(30,41,59,0.5); color: var(--vpm-gray-400); border: 1px solid rgba(255,255,255,0.06); }
-.meta-overdue { background: rgba(239,68,68,0.08); color: var(--vpm-danger); border: 1px solid rgba(239,68,68,0.20); font-weight: 700; }
+.meta-dark   { background: rgba(30,41,59,0.55); color: var(--vpm-gray-400); border: 1px solid rgba(255,255,255,0.06); }
+.meta-overdue { background: rgba(239,68,68,0.10); color: var(--vpm-danger); border: 1px solid rgba(239,68,68,0.22); font-weight: 800; animation: vpmShake 1.2s ease infinite; }
 
 .assignee-avatar-mini {
-  width: 18px;
-  height: 18px;
+  width: 20px; height: 20px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--vpm-primary), var(--vpm-cyan));
   color: #FFFFFF;
-  font-size: 0.62rem;
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 0.62rem; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
   margin-right: 6px;
-  box-shadow: 0 1px 3px rgba(0, 119, 182, 0.25);
+  box-shadow: 0 2px 6px rgba(115,110,254,0.30);
   flex-shrink: 0;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.task-card:hover .assignee-avatar-mini {
+  transform: scale(1.12);
 }
 
 .overdue-tag {
   background: var(--vpm-danger); color: #fff;
-  font-size: 0.62rem; padding: 1px 6px;
-  border-radius: 4px; font-weight: 800; text-transform: uppercase; margin-left: 4px;
+  font-size: 0.62rem; padding: 2px 7px;
+  border-radius: 5px; font-weight: 800; text-transform: uppercase; margin-left: 4px;
+  animation: vpmShake 1.8s ease-in-out infinite;
 }
 
 .task-check-toggle {
   background: none; border: none; padding: 0; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s ease;
 }
-.task-check-toggle:hover { transform: scale(1.2); }
+.task-check-toggle:hover {
+  transform: scale(1.22);
+  filter: drop-shadow(0 0 5px rgba(115,110,254,0.40));
+}
+
 .line-through { text-decoration: line-through; }
 
-/* ══════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════════
    CALENDAR + FILTER CARDS
-   ══════════════════════════════════════════════════════════════ */
+   ════════════════════════════════════════════════════════════════ */
 
 .bg-dark-calendar {
-  background: linear-gradient(145deg, #0F1929, #0A1525) !important;
-  border: 1px solid rgba(255,255,255,0.06) !important;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.35) !important;
+  background: linear-gradient(145deg, #0D1829, #0A1525) !important;
+  border: 1px solid rgba(115,110,254,0.10) !important;
+  border-radius: 22px;
+  box-shadow:
+    0 10px 40px rgba(0,0,0,0.40),
+    inset 0 1px 0 rgba(115,110,254,0.08) !important;
 }
 
 .bg-light-calendar {
   background: #FFFFFF !important;
-  border: 1px solid rgba(226, 232, 240, 0.8) !important;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(15,23,42,0.05) !important;
+  border: 1px solid rgba(115,110,254,0.08) !important;
+  border-radius: 22px;
+  box-shadow:
+    0 6px 28px rgba(15,23,42,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.90) !important;
 }
 
-/* Generic card */
+/* Generic vpm-card */
 .vpm-card {
-  border-radius: var(--radius-xl); border: 1px solid;
-  transition: all var(--transition); position: relative; overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
 }
-.vpm-card.theme-light { background: var(--light-surface); border-color: var(--light-border); box-shadow: var(--shadow-sm); }
-.vpm-card.theme-dark  { background: var(--dark-surface); border-color: var(--dark-border); box-shadow: var(--shadow-dark-sm); }
-
-/* ── Shimmer Sweep Glass Hover Effect ── */
-.vpm-stat-card::after,
-.task-card::after,
-.vpm-card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -150%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.16),
-    transparent
-  );
-  transform: skewX(-20deg);
-  transition: none;
-  z-index: 5;
-  pointer-events: none;
+.vpm-card.theme-light {
+  background: var(--light-surface);
+  border-color: var(--light-border);
+  box-shadow: var(--shadow-sm);
 }
-
-.vpm-stat-card:hover::after,
-.task-card:hover::after,
-.vpm-card:hover::after {
-  left: 150%;
-  transition: left 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+.vpm-card.theme-dark  {
+  background: var(--dark-surface);
+  border-color: var(--dark-border);
+  box-shadow: var(--shadow-dark-sm);
 }

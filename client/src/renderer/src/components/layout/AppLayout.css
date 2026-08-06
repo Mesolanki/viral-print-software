@@ -1,6 +1,5 @@
 /* =================================================================
-   VIRAL PRINT MEDIA — Layout CSS  [PRO LEVEL v2]
-   Root shell, god-level backgrounds, page container.
+   VIRAL PRINT MEDIA — AppLayout Component CSS
    ================================================================= */
 
 /* ── Base Reset ───────────────────────────────────────────────── */
@@ -90,7 +89,7 @@ body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 24px 28px 64px 28px;
+  padding: 24px 28px;
   animation: vpmFadeIn 0.35s ease both;
 }
 

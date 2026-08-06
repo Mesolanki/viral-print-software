@@ -11,6 +11,7 @@ import {
   Spinner,
   Alert
 } from 'react-bootstrap'
+import './TaskManagement.css'
 import {
   Calendar as CalendarIcon,
   List as ListIcon,
@@ -31,7 +32,20 @@ import {
   Sparkles,
   RefreshCw,
   X,
-  ChevronDown
+  ChevronDown,
+  Columns,
+  LayoutGrid,
+  Phone,
+  MapPin,
+  TrendingUp,
+  Check,
+  Flame,
+  Pin,
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  Target,
+  FileText
 } from 'lucide-react'
 
 const API_HOST = typeof window !== 'undefined' && window.location?.hostname ? window.location.hostname : 'localhost'
@@ -107,6 +121,21 @@ export const formatDate = (dateStr?: string | null): string => {
   return cleanStr
 }
 
+export const formatFullDate = (dateStr?: string | null): string => {
+  if (!dateStr) return ''
+  const cleanStr = dateStr.split('T')[0]
+  const parts = cleanStr.split('-')
+  if (parts.length !== 3) return cleanStr
+  const [y, m, d] = parts
+  const dateObj = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10))
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const dayName = dayNames[dateObj.getDay()] || ''
+  const monthName = monthNames[dateObj.getMonth()] || ''
+  const dayNum = String(parseInt(d, 10)).padStart(2, '0')
+  return `${dayName}, ${dayNum} ${monthName}, ${y}`
+}
+
 export default function TaskManagement({ theme = 'dark' }: TaskManagementProps): React.JSX.Element {
   const isDark = theme === 'dark'
   const [tasks, setTasks] = useState<TaskItem[]>([])
@@ -117,6 +146,13 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
 
   // View state: 'list' | 'calendar'
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
+  // Calendar Sub-View: 'split' (Mini Calendar + Agenda Feed) | 'grid' (Full Month Grid)
+  const [calSubView, setCalSubView] = useState<'split' | 'grid'>('split')
+  // Selected Date string (YYYY-MM-DD) for Split Agenda view
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -497,8 +533,51 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
   }
 
   const handleToday = (): void => {
-    setCurrentCalendarDate(new Date())
+    const today = new Date()
+    setCurrentCalendarDate(today)
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    setSelectedDateStr(todayStr)
   }
+
+  // Set of dates having scheduled tasks (for Mini Calendar indicators)
+  const datesWithTasksSet = useMemo(() => {
+    const set = new Set<string>()
+    filteredTasks.forEach((t) => {
+      if (t.due_date) set.add(t.due_date.split('T')[0])
+      if (t.start_date) set.add(t.start_date.split('T')[0])
+    })
+    return set
+  }, [filteredTasks])
+
+  // Selected Date Task Feed for Split View Agenda
+  const selectedDateTasks = useMemo(() => {
+    return filteredTasks.filter((t) => {
+      const tDue = t.due_date ? t.due_date.split('T')[0] : null
+      const tStart = t.start_date ? t.start_date.split('T')[0] : null
+      return tDue === selectedDateStr || tStart === selectedDateStr
+    })
+  }, [filteredTasks, selectedDateStr])
+
+  // Today's schedule count
+  const todayScheduleCount = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0]
+    return tasks.filter((t) => {
+      const tDue = t.due_date ? t.due_date.split('T')[0] : null
+      const tStart = t.start_date ? t.start_date.split('T')[0] : null
+      return tDue === todayStr || tStart === todayStr
+    }).length
+  }, [tasks])
+
+  // Upcoming non-completed tasks count
+  const upcomingCount = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0]
+    return tasks.filter((t) => {
+      if (t.status === 'COMPLETED') return false
+      const tDue = t.due_date ? t.due_date.split('T')[0] : null
+      const tStart = t.start_date ? t.start_date.split('T')[0] : null
+      return (tDue && tDue >= todayStr) || (tStart && tStart >= todayStr)
+    }).length
+  }, [tasks])
 
   // Monthly task metrics for Calendar Header
   const monthMetrics = useMemo(() => {
@@ -583,7 +662,7 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
   }
 
   return (
-    <div className="w-100 py-1">
+    <div className="w-100 pt-1 pb-5 mb-4">
       {/* Toast Alert */}
       {successMsg && (
         <Alert variant="success" onClose={() => setSuccessMsg(null)} dismissible className="shadow-lg border-success mb-3 rounded-3">
@@ -602,14 +681,14 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
       {/* Header & Main Controls */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 w-100">
         <div className="d-flex align-items-center gap-3">
-          <div className={`p-2.5 rounded-3 d-inline-flex align-items-center justify-content-center ${isDark ? 'bg-info bg-opacity-15 text-info' : 'bg-primary bg-opacity-10 text-primary'}`} style={{ width: '44px', height: '44px', flexShrink: 0 }}>
+          <div className="vpm-page-header-icon">
             <CalendarDays size={22} />
           </div>
           <div>
-            <h2 className={`fw-bold mb-1 ${isDark ? 'text-light' : 'text-dark'} fs-4`} style={{ lineHeight: '1.2' }}>
-              To-Do & Task Management
+            <h2 className="vpm-page-heading">
+              To-Do &amp; Task Management
             </h2>
-            <p className={isDark ? 'text-secondary mb-0 fs-7' : 'text-muted mb-0 fs-7'}>
+            <p className="vpm-page-subheading">
               Organize print shop orders, assign employees, track status, and view calendar schedule in real-time.
             </p>
           </div>
@@ -737,7 +816,7 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
 
 
           {/* Filters Toolbar */}
-          <div className={`${isDark ? 'filter-toolbar-dark' : 'filter-toolbar-light'} mb-4 w-100`} style={{ padding: '16px 20px', borderRadius: '16px' }}>
+          <div className={`vpm-filter-toolbar ${isDark ? 'filter-toolbar-dark' : 'filter-toolbar-light'} mb-4 w-100`}>
             <Row className="g-2.5 align-items-center w-100 mx-0">
               {/* Search Input */}
               <Col lg={4} md={12} className="px-1">
@@ -769,6 +848,7 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
                 <Form.Select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
+                  className="vpm-filter-select"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="PENDING">Pending</option>
@@ -783,6 +863,7 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
                 <Form.Select
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
+                  className="vpm-filter-select"
                 >
                   <option value="ALL">All Priorities</option>
                   <option value="URGENT">Urgent</option>
@@ -797,6 +878,7 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
                 <Form.Select
                   value={assigneeFilter}
                   onChange={(e) => setAssigneeFilter(e.target.value)}
+                  className="vpm-filter-select"
                 >
                   <option value="ALL">All Employees / Assignees</option>
                   <option value="UNASSIGNED">Unassigned Tasks</option>
@@ -860,20 +942,8 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
                     key={t.id}
                     className={`task-card ${isDark ? 'task-card-dark' : 'task-card-light'} ${isCompleted ? 'is-completed' : ''} priority-${t.priority.toLowerCase()} status-${t.status.toLowerCase()}`}
                   >
-                    {/* Status Color Bar on Left */}
-                    <div
-                      className={`status-strip ${
-                        isCompleted
-                          ? 'bg-success'
-                          : isOverdue
-                            ? 'bg-danger'
-                            : t.priority === 'URGENT'
-                              ? 'bg-danger'
-                              : t.priority === 'HIGH'
-                                ? 'bg-warning'
-                                : 'bg-primary'
-                      }`}
-                    />
+                    {/* Status Color Bar on Left (Sky Blue Gradient) */}
+                    <div className="status-strip" />
 
                     <div className="task-card-content">
                       {/* Top Row: Checkbox + Title + Badges (Inline Flex Row) + Actions on Right */}
@@ -908,22 +978,34 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
                             <Dropdown.Toggle
                               variant={isDark ? 'outline-secondary' : 'outline-dark'}
                               size="sm"
-                              className="btn-status-dropdown d-flex align-items-center gap-1 fs-7 py-1 px-2.5 rounded-3"
+                              className="btn-status-dropdown d-flex align-items-center gap-1.5 fs-7 py-1 px-2.5 rounded-3"
                             >
                               <span>Status</span> <ChevronDown size={12} />
                             </Dropdown.Toggle>
-                            <Dropdown.Menu variant={isDark ? 'dark' : 'light'} className="shadow-lg fs-7 p-1">
-                              <Dropdown.Item onClick={() => handleChangeStatus(t, 'PENDING')} className="d-flex align-items-center gap-2 py-1.5 rounded-2">
-                                <AlertCircle size={14} className="text-warning" /> Pending
+                            <Dropdown.Menu variant={isDark ? 'dark' : 'light'} className="vpm-dropdown-menu shadow-lg">
+                              <Dropdown.Item onClick={() => handleChangeStatus(t, 'PENDING')} className="vpm-dropdown-item">
+                                <span className="vpm-dropdown-icon vpm-dropdown-icon-warning">
+                                  <AlertCircle size={14} />
+                                </span>
+                                <span>Pending</span>
                               </Dropdown.Item>
-                              <Dropdown.Item onClick={() => handleChangeStatus(t, 'IN_PROGRESS')} className="d-flex align-items-center gap-2 py-1.5 rounded-2">
-                                <Clock size={14} className="text-primary" /> In Progress
+                              <Dropdown.Item onClick={() => handleChangeStatus(t, 'IN_PROGRESS')} className="vpm-dropdown-item">
+                                <span className="vpm-dropdown-icon vpm-dropdown-icon-primary">
+                                  <Clock size={14} />
+                                </span>
+                                <span>In Progress</span>
                               </Dropdown.Item>
-                              <Dropdown.Item onClick={() => handleChangeStatus(t, 'COMPLETED')} className="d-flex align-items-center gap-2 py-1.5 rounded-2">
-                                <CheckCircle2 size={14} className="text-success" /> Completed
+                              <Dropdown.Item onClick={() => handleChangeStatus(t, 'COMPLETED')} className="vpm-dropdown-item">
+                                <span className="vpm-dropdown-icon vpm-dropdown-icon-success">
+                                  <CheckCircle2 size={14} />
+                                </span>
+                                <span>Completed</span>
                               </Dropdown.Item>
-                              <Dropdown.Item onClick={() => handleChangeStatus(t, 'CANCELLED')} className="d-flex align-items-center gap-2 py-1.5 rounded-2">
-                                <XCircle size={14} className="text-secondary" /> Cancelled
+                              <Dropdown.Item onClick={() => handleChangeStatus(t, 'CANCELLED')} className="vpm-dropdown-item">
+                                <span className="vpm-dropdown-icon vpm-dropdown-icon-secondary">
+                                  <XCircle size={14} />
+                                </span>
+                                <span>Cancelled</span>
                               </Dropdown.Item>
                             </Dropdown.Menu>
                           </Dropdown>
@@ -1000,363 +1082,746 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
         </div>
       ) : (
         /* PRO SAAS CALENDAR VIEW */
-        <Card className={`w-100 ${isDark ? 'bg-dark-calendar' : 'bg-light-calendar'} shadow-lg border-0 rounded-4 overflow-hidden`}>
-          {/* Pro SaaS Calendar Header Controller Bar */}
-          <div className={`cal-header-bar px-4 py-3 d-flex flex-wrap align-items-center justify-content-between gap-3 border-bottom ${isDark ? 'border-secondary border-opacity-30 bg-dark bg-opacity-80' : 'border-light-subtle bg-white'}`}>
-            {/* Left: Month Title + Task Count Badge + Segmented Navigation */}
-            <div className="d-flex align-items-center gap-3 flex-wrap">
-              <h4 className={`mb-0 fw-bold fs-4 d-flex align-items-center gap-2 ${isDark ? 'text-white' : 'text-dark'}`}>
-                {monthNames[month]} <span className={isDark ? 'text-info' : 'text-primary'}>{year}</span>
-              </h4>
+        <div className="d-flex flex-column gap-4 w-100">
+          {/* Main Card Shell for Calendar */}
+          <Card className={`w-100 ${isDark ? 'bg-dark-calendar' : 'bg-light-calendar'} shadow-lg border-0 rounded-4 overflow-hidden`}>
+            {/* Calendar Controller Header Bar */}
+            <div className={`cal-header-bar px-4 py-3 d-flex flex-wrap align-items-center justify-content-between gap-3 border-bottom ${isDark ? 'border-secondary border-opacity-30 bg-dark bg-opacity-80' : 'border-light-subtle bg-white'}`}>
+              {/* Left: Month Title + Task Count Badge + Month Nav */}
+              <div className="d-flex align-items-center gap-3 flex-wrap">
+                <h4 className={`mb-0 fw-bold fs-4 d-flex align-items-center gap-2 ${isDark ? 'text-white' : 'text-dark'}`}>
+                  {monthNames[month]} <span className={isDark ? 'text-info' : 'text-primary'}>{year}</span>
+                </h4>
 
-              <span className={`cal-task-count-badge ${isDark ? 'count-badge-dark' : 'count-badge-light'}`}>
-                <CalendarDays size={13} />
-                <span>{monthMetrics.monthTotal} {monthMetrics.monthTotal === 1 ? 'Task' : 'Tasks'}</span>
-              </span>
+                <span className={`cal-task-count-badge ${isDark ? 'count-badge-dark' : 'count-badge-light'}`}>
+                  <CalendarDays size={13} />
+                  <span>{monthMetrics.monthTotal} {monthMetrics.monthTotal === 1 ? 'Task' : 'Tasks'}</span>
+                </span>
 
-              {/* Modern Segmented Navigation */}
-              <div className={`cal-segmented-nav ${isDark ? 'nav-dark' : 'nav-light'}`}>
-                <button type="button" onClick={handlePrevMonth} className="nav-btn-icon" title="Previous Month">
-                  <ChevronLeft size={16} />
-                </button>
-                <button type="button" onClick={handleToday} className="nav-btn-today" title="Jump to Today">
-                  Today
-                </button>
-                <button type="button" onClick={handleNextMonth} className="nav-btn-icon" title="Next Month">
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-
-            {/* Center: Integrated Search Box */}
-            <div className="d-flex align-items-center flex-grow-1 justify-content-center" style={{ maxWidth: '360px' }}>
-              <div className={`cal-search-box ${isDark ? 'search-dark' : 'search-light'} w-100`}>
-                <Search size={15} className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Filter calendar tasks..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="search-input"
-                />
-                {searchQuery && (
-                  <button type="button" onClick={() => setSearchQuery('')} className="search-clear-btn">
-                    <X size={14} />
+                {/* Modern Month Nav */}
+                <div className={`cal-segmented-nav ${isDark ? 'nav-dark' : 'nav-light'}`}>
+                  <button type="button" onClick={handlePrevMonth} className="nav-btn-icon" title="Previous Month">
+                    <ChevronLeft size={16} />
                   </button>
-                )}
+                  <button type="button" onClick={handleToday} className="nav-btn-today" title="Jump to Today">
+                    Today
+                  </button>
+                  <button type="button" onClick={handleNextMonth} className="nav-btn-icon" title="Next Month">
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Subview Toggle Switcher (Split Agenda View vs Month Grid View) */}
+              <div className={`cal-subview-nav ${isDark ? 'nav-dark' : 'nav-light'}`}>
+                <button
+                  type="button"
+                  onClick={() => setCalSubView('split')}
+                  className={`subview-btn ${calSubView === 'split' ? 'active' : ''}`}
+                  title="Split Mini Calendar + Schedule Agenda View"
+                >
+                  <Columns size={15} />
+                  <span className="d-none d-md-inline ms-1">Split Schedule</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCalSubView('grid')}
+                  className={`subview-btn ${calSubView === 'grid' ? 'active' : ''}`}
+                  title="Full Month Grid View"
+                >
+                  <LayoutGrid size={15} />
+                  <span className="d-none d-md-inline ms-1">Month Grid</span>
+                </button>
+              </div>
+
+              {/* Search Box */}
+              <div className="d-flex align-items-center flex-grow-1 justify-content-center" style={{ maxWidth: '300px' }}>
+                <div className={`cal-search-box ${isDark ? 'search-dark' : 'search-light'} w-100`}>
+                  <Search size={15} className="search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Filter calendar tasks..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="search-input"
+                  />
+                  {searchQuery && (
+                    <button type="button" onClick={() => setSearchQuery('')} className="search-clear-btn">
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Right: Schedule Task CTA Button */}
+              <div className="d-flex align-items-center gap-3 ms-auto">
+                <button
+                  type="button"
+                  onClick={() => handleOpenAddModal(selectedDateStr)}
+                  className={`btn-schedule-task ${isDark ? 'btn-schedule-dark' : 'btn-schedule-light'}`}
+                >
+                  <Plus size={16} />
+                  <span>Schedule Task</span>
+                </button>
               </div>
             </div>
 
-            {/* Right: Metric Pills + Schedule Task Button */}
-            <div className="d-flex align-items-center gap-3 flex-wrap ms-auto">
-              <div className="d-none d-lg-flex align-items-center gap-2 me-1">
-                <span className="cal-metric-pill metric-done">
-                  <span className="dot bg-success" /> {monthMetrics.completed} Done
-                </span>
-                <span className="cal-metric-pill metric-progress">
-                  <span className="dot bg-primary" /> {monthMetrics.inProgress} Progress
-                </span>
-                <span className="cal-metric-pill metric-pending">
-                  <span className="dot bg-warning" /> {monthMetrics.pending} Pending
-                </span>
-              </div>
+            {/* If Split SubView: Render top KPI stats + Split layout (Image 2 style) */}
+            {calSubView === 'split' ? (
+              <Card.Body className="p-4 w-100">
+                {/* Top 4 KPI Metrics Row */}
+                <Row className="g-3 mb-4">
+                  <Col xl={3} md={6} xs={12}>
+                    <div className={`kpi-card ${isDark ? 'kpi-dark' : 'kpi-light'}`}>
+                      <div className="d-flex align-items-center justify-content-between mb-2">
+                        <span className="kpi-title">TOTAL TASKS</span>
+                        <div className="kpi-icon-badge kpi-icon-purple">
+                          <Phone size={16} />
+                        </div>
+                      </div>
+                      <div className="kpi-value">{tasks.length}</div>
+                      <div className="kpi-subtitle">All logged inquiries & tasks</div>
+                    </div>
+                  </Col>
+                  <Col xl={3} md={6} xs={12}>
+                    <div className={`kpi-card ${isDark ? 'kpi-dark' : 'kpi-light'}`}>
+                      <div className="d-flex align-items-center justify-content-between mb-2">
+                        <span className="kpi-title">TODAY'S SCHEDULE</span>
+                        <div className="kpi-icon-badge kpi-icon-blue">
+                          <CalendarDays size={16} />
+                        </div>
+                      </div>
+                      <div className="kpi-value">{todayScheduleCount}</div>
+                      <div className="kpi-subtitle">Due today (initial + next)</div>
+                    </div>
+                  </Col>
+                  <Col xl={3} md={6} xs={12}>
+                    <div className={`kpi-card ${isDark ? 'kpi-dark' : 'kpi-light'}`}>
+                      <div className="d-flex align-items-center justify-content-between mb-2">
+                        <span className="kpi-title">UPCOMING</span>
+                        <div className="kpi-icon-badge kpi-icon-green">
+                          <TrendingUp size={16} />
+                        </div>
+                      </div>
+                      <div className="kpi-value">{upcomingCount}</div>
+                      <div className="kpi-subtitle">Next task scheduled</div>
+                    </div>
+                  </Col>
+                  <Col xl={3} md={6} xs={12}>
+                    <div className={`kpi-card ${isDark ? 'kpi-dark' : 'kpi-light'}`}>
+                      <div className="d-flex align-items-center justify-content-between mb-2">
+                        <span className="kpi-title">CLOSED / COMPLETED</span>
+                        <div className="kpi-icon-badge kpi-icon-gray">
+                          <CheckCircle2 size={16} />
+                        </div>
+                      </div>
+                      <div className="kpi-value">{metrics.completed}</div>
+                      <div className="kpi-subtitle">Completed or closed tasks</div>
+                    </div>
+                  </Col>
+                </Row>
 
-              <button
-                type="button"
-                onClick={() => handleOpenAddModal()}
-                className={`btn-schedule-task ${isDark ? 'btn-schedule-dark' : 'btn-schedule-light'}`}
-              >
-                <Plus size={16} />
-                <span>Schedule Task</span>
-              </button>
-            </div>
-          </div>
-
-          <Card.Body className="p-0 w-100">
-            {/* Day Header Row (Sun - Sat) */}
-            <div className={`d-grid grid-cols-7 border-bottom ${isDark ? 'border-secondary border-opacity-30 bg-dark bg-opacity-60 text-secondary' : 'border-light-subtle bg-light text-secondary'} text-center fw-bold py-1.5 fs-8 text-uppercase letter-spacing-1 w-100`}>
-              <div className="text-rose-500 fw-bold">Sun</div>
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div className="text-cyan-500 fw-bold">Sat</div>
-            </div>
-
-            {/* Month Days Grid */}
-            <div className={`d-grid grid-cols-7 cal-grid ${isDark ? 'text-light' : 'text-dark'} w-100`}>
-              {/* Empty leading padding cells */}
-              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-                <div
-                  key={`empty-${i}`}
-                  className={`p-1.5 border-end border-bottom ${isDark ? 'border-secondary border-opacity-20 cal-cell-empty-dark' : 'border-light-subtle cal-cell-empty-light'} min-cell-height`}
-                />
-              ))}
-
-              {/* Month Day Cells */}
-              {Array.from({ length: daysInMonth }).map((_, dayIdx) => {
-                const dayNum = dayIdx + 1
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
-                const dayOfWeek = new Date(year, month, dayNum).getDay()
-                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
-
-                const isToday =
-                  new Date().getDate() === dayNum &&
-                  new Date().getMonth() === month &&
-                  new Date().getFullYear() === year
-
-                // Tasks for this specific date
-                const dayTasks = filteredTasks.filter((t) => {
-                  const tDue = t.due_date ? t.due_date.split('T')[0] : null
-                  const tStart = t.start_date ? t.start_date.split('T')[0] : null
-                  return tDue === dateStr || tStart === dateStr
-                })
-
-                return (
-                  <div
-                    key={`day-${dayNum}`}
-                    className={`p-1.5 border-end border-bottom ${isDark ? 'border-secondary border-opacity-20' : 'border-light-subtle'} min-cell-height cal-day-cell position-relative transition-all ${
-                      isToday
-                        ? isDark
-                          ? 'cal-today-dark'
-                          : 'cal-today-light'
-                        : isWeekend
-                          ? isDark
-                            ? 'cal-weekend-dark'
-                            : 'cal-weekend-light'
-                          : isDark
-                            ? 'bg-dark'
-                            : 'bg-white'
-                    }`}
-                    onClick={() => handleOpenAddModal(dateStr)}
-                  >
-                    {/* Header inside Day Cell */}
-                    <div className="d-flex justify-content-between align-items-center mb-1">
-                      <div className="d-flex align-items-center gap-1">
-                        <span
-                          className={`cal-date-number ${
-                            isToday
-                              ? 'cal-date-today'
-                              : isDark
-                                ? 'text-light opacity-85'
-                                : 'text-dark opacity-85'
-                          }`}
-                        >
-                          {dayNum}
-                        </span>
-                        {isToday && <span className="cal-today-indicator">TODAY</span>}
+                {/* Main Split Grid (Mini Calendar on Left + Schedule Feed on Right) */}
+                <Row className="g-4">
+                  {/* Left Column: Mini Calendar Widget */}
+                  <Col lg={4} md={5} xs={12}>
+                    <div className={`mini-cal-card ${isDark ? 'mini-dark' : 'mini-light'} p-0 rounded-4 overflow-hidden border`}>
+                      {/* Mini Calendar Header with Gradient */}
+                      <div className="mini-cal-header p-3 d-flex align-items-center justify-content-between text-white">
+                        <button type="button" onClick={handlePrevMonth} className="btn-mini-nav" title="Previous Month">
+                          <ChevronLeft size={16} />
+                        </button>
+                        <h6 className="mb-0 fw-bold fs-6 text-white text-center">
+                          {monthNames[month]} {year}
+                        </h6>
+                        <button type="button" onClick={handleNextMonth} className="btn-mini-nav" title="Next Month">
+                          <ChevronRight size={16} />
+                        </button>
                       </div>
 
-                      {/* Quick Schedule Plus Button on Cell Hover */}
-                      <button
-                        type="button"
-                        className="cal-cell-add-btn"
-                        title={`Schedule task on ${dateStr}`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleOpenAddModal(dateStr)
-                        }}
-                      >
-                        <Plus size={12} />
-                      </button>
+                      {/* Mini Grid Header (S M T W T F S) */}
+                      <div className="mini-grid-header py-2 text-center fw-bold fs-8 opacity-75">
+                        <span>S</span>
+                        <span>M</span>
+                        <span>T</span>
+                        <span>W</span>
+                        <span>T</span>
+                        <span>F</span>
+                        <span>S</span>
+                      </div>
+
+                      {/* Mini Days Grid */}
+                      <div className="mini-days-grid p-2">
+                        {/* Empty leading padding cells */}
+                        {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                          <div key={`mini-empty-${i}`} className="mini-cell-empty" />
+                        ))}
+
+                        {/* Month Days */}
+                        {Array.from({ length: daysInMonth }).map((_, dayIdx) => {
+                          const dayNum = dayIdx + 1
+                          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
+                          const isSelected = selectedDateStr === dateStr
+                          const isToday =
+                            new Date().getDate() === dayNum &&
+                            new Date().getMonth() === month &&
+                            new Date().getFullYear() === year
+                          const hasTask = datesWithTasksSet.has(dateStr)
+
+                          return (
+                            <button
+                              key={`mini-day-${dayNum}`}
+                              type="button"
+                              onClick={() => setSelectedDateStr(dateStr)}
+                              className={`mini-day-cell ${isSelected ? 'active-selected' : ''} ${isToday ? 'is-today' : ''} ${hasTask ? 'has-task' : ''}`}
+                            >
+                              <span className="mini-day-num">{dayNum}</span>
+                              {hasTask && <span className="mini-dot-indicator" />}
+                            </button>
+                          )
+                        })}
+                      </div>
+
+                      {/* Mini Calendar Footer Legend */}
+                      <div className={`mini-cal-footer p-3 border-top d-flex align-items-center justify-content-center gap-3 fs-8 ${isDark ? 'border-secondary border-opacity-30 text-secondary' : 'border-light-subtle text-muted'}`}>
+                        <div className="d-flex align-items-center gap-1.5">
+                          <span className="mini-dot-sample bg-primary" />
+                          <span>Has Task</span>
+                        </div>
+                        <div className="d-flex align-items-center gap-1.5">
+                          <span className="mini-dot-sample border-today" />
+                          <span>Today</span>
+                        </div>
+                      </div>
                     </div>
+                  </Col>
 
-                    {/* Task Chips inside Cell */}
-                    <div className="d-flex flex-column gap-1 overflow-hidden cal-chips-container">
-                      {dayTasks.slice(0, 2).map((t) => {
-                        const isDone = t.status === 'COMPLETED'
-                        const isUrgent = t.priority === 'URGENT'
-                        const isHigh = t.priority === 'HIGH'
-
-                        return (
-                          <div
-                            key={`cal-chip-${t.id}`}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleOpenEditModal(t)
-                            }}
-                            className={`cal-task-chip ${
-                              isDone
-                                ? 'chip-done'
-                                : isUrgent
-                                  ? 'chip-urgent'
-                                  : isHigh
-                                    ? 'chip-high'
-                                    : isDark
-                                      ? 'chip-dark'
-                                      : 'chip-light'
-                            }`}
-                            title={`${t.title} (${t.status})`}
-                          >
-                            <span className={`chip-dot ${isDone ? 'bg-success' : isUrgent ? 'bg-danger' : isHigh ? 'bg-warning' : 'bg-primary'}`} />
-                            <span className="text-truncate flex-grow-1 chip-title">{t.title}</span>
-                            {t.assigned_to && (
-                              <span className="chip-avatar" title={getDisplayName(t.assigned_to)}>
-                                {getUserInitials(getDisplayName(t.assigned_to))}
-                              </span>
-                            )}
+                  {/* Right Column: Selected Date Task Agenda Feed */}
+                  <Col lg={8} md={7} xs={12}>
+                    <div className={`schedule-agenda-panel p-4 rounded-4 ${isDark ? 'agenda-dark' : 'agenda-light'} border h-100`}>
+                      {/* Agenda Section Title */}
+                      <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                        <div>
+                          <div className="agenda-subtitle text-uppercase tracking-wider fw-bold text-muted fs-8">
+                            UPCOMING SCHEDULE
                           </div>
-                        )
-                      })}
+                          <h5 className={`mb-0 fw-bold fs-4 ${isDark ? 'text-white' : 'text-dark'}`}>
+                            {formatFullDate(selectedDateStr)}
+                          </h5>
+                        </div>
 
-                      {dayTasks.length > 2 && (
-                        <div
-                          className={`cal-more-btn ${isDark ? 'text-info' : 'text-primary'}`}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setSearchQuery(dateStr)
-                            setViewMode('list')
-                          }}
-                        >
-                          +{dayTasks.length - 2} more tasks
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="agenda-entry-badge">
+                            {selectedDateTasks.length} {selectedDateTasks.length === 1 ? 'Entry' : 'Entries'}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant={isDark ? 'outline-info' : 'outline-primary'}
+                            onClick={() => handleOpenAddModal(selectedDateStr)}
+                            className="rounded-pill px-3 fw-bold d-flex align-items-center gap-1 shadow-sm"
+                          >
+                            <Plus size={14} /> Add Task
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Tasks Feed for Selected Date */}
+                      {selectedDateTasks.length > 0 ? (
+                        <div className="d-flex flex-column gap-3">
+                          {selectedDateTasks.map((t) => {
+                            const isDone = t.status === 'COMPLETED'
+                            const isUrgent = t.priority === 'URGENT'
+
+                            return (
+                              <div
+                                key={`agenda-task-${t.id}`}
+                                className={`agenda-task-card p-3 rounded-4 transition-all ${isDark ? 'card-dark' : 'card-light'} ${isDone ? 'card-completed' : ''}`}
+                              >
+                                <div className="d-flex align-items-start justify-content-between gap-3 mb-2">
+                                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                                    <h6 className={`mb-0 fw-bold fs-6 ${isDark ? 'text-white' : 'text-dark'} ${isDone ? 'text-decoration-line-through text-muted' : ''}`}>
+                                      {t.title}
+                                    </h6>
+                                    {isUrgent && (
+                                      <span className="agenda-hot-badge">
+                                        <Flame size={11} /> Hot
+                                      </span>
+                                    )}
+                                    <span className="agenda-task-id-badge">
+                                      <Pin size={10} />
+                                      TASK-{t.id}
+                                    </span>
+                                  </div>
+
+                                  {/* Quick Action Buttons */}
+                                  <div className="d-flex align-items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleStatus(t)}
+                                      className={`btn-action-icon ${isDone ? 'active-done' : ''}`}
+                                      title={isDone ? 'Mark as Incomplete' : 'Mark as Complete'}
+                                    >
+                                      <CheckCircle2 size={16} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenEditModal(t)}
+                                      className="btn-action-icon"
+                                      title="Edit Task"
+                                    >
+                                      <Edit2 size={15} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteTask(t.id)}
+                                      className="btn-action-icon text-danger"
+                                      title="Delete Task"
+                                    >
+                                      <Trash2 size={15} />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Status & Priority Badges Row */}
+                                <div className="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                                  {renderStatusBadge(t.status)}
+                                  {renderPriorityBadge(t.priority)}
+                                </div>
+
+                                {/* Metadata Bar (Assignee / Date / Duration) */}
+                                <div className="agenda-meta-bar mb-3">
+                                  <div className="d-flex align-items-center gap-2">
+                                    <UserIcon size={14} className="text-primary opacity-80" />
+                                    <span>{getDisplayName(t.assigned_to)}</span>
+                                  </div>
+                                  <div className="d-flex align-items-center gap-2">
+                                    <Clock size={14} className="text-info opacity-80" />
+                                    <span>{t.due_date ? formatDate(t.due_date) : 'Flexible'}</span>
+                                  </div>
+                                  {t.start_date && t.due_date && (
+                                    <div className="d-flex align-items-center gap-1.5 text-primary fw-bold">
+                                      <CalendarDays size={13} />
+                                      <span>{formatDate(t.start_date)}</span>
+                                      <ArrowRight size={12} />
+                                      <span>{formatDate(t.due_date)}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Task Description / Notes */}
+                                {t.description && (
+                                  <p className={`mb-0 fs-7 ${isDark ? 'text-light opacity-80' : 'text-secondary'}`}>
+                                    {t.description}
+                                  </p>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        /* Empty Agenda State */
+                        <div className="d-flex flex-column align-items-center justify-content-center py-5 text-center my-4">
+                          <div className={`empty-icon-circle mb-3 ${isDark ? 'bg-dark text-info border-secondary' : 'bg-light text-primary border-light-subtle'} border`}>
+                            <CalendarDays size={32} />
+                          </div>
+                          <h6 className={`fw-bold mb-1 ${isDark ? 'text-white' : 'text-dark'}`}>
+                            No tasks scheduled for {formatFullDate(selectedDateStr)}
+                          </h6>
+                          <p className="text-muted fs-7 mb-3" style={{ maxWidth: '320px' }}>
+                            You have no pending tasks or appointments on this date. Click below to add a new task.
+                          </p>
+                          <Button
+                            variant={isDark ? 'info' : 'primary'}
+                            onClick={() => handleOpenAddModal(selectedDateStr)}
+                            className="rounded-pill px-4 fw-bold text-white d-flex align-items-center gap-2 shadow-sm"
+                          >
+                            <Plus size={16} /> Schedule Task for {selectedDateStr}
+                          </Button>
                         </div>
                       )}
                     </div>
-                  </div>
-                )
-              })}
+                  </Col>
+                </Row>
+              </Card.Body>
+            ) : (
+              /* Month Grid View (Image 1 style) */
+              <Card.Body className="p-0 w-100">
+                {/* Day Header Row (Sun - Sat) */}
+                <div className={`d-grid grid-cols-7 border-bottom ${isDark ? 'border-secondary border-opacity-30 bg-dark bg-opacity-60 text-secondary' : 'border-light-subtle bg-light text-secondary'} text-center fw-bold py-1.5 fs-8 text-uppercase letter-spacing-1 w-100`}>
+                  <div className="text-rose-500 fw-bold">Sun</div>
+                  <div>Mon</div>
+                  <div>Tue</div>
+                  <div>Wed</div>
+                  <div>Thu</div>
+                  <div>Fri</div>
+                  <div className="text-cyan-500 fw-bold">Sat</div>
+                </div>
 
-              {/* Trailing Empty Cells */}
-              {Array.from({ length: trailingEmptyCount }).map((_, i) => (
-                <div
-                  key={`trailing-${i}`}
-                  className={`p-1.5 border-end border-bottom ${isDark ? 'border-secondary border-opacity-20 cal-cell-empty-dark' : 'border-light-subtle cal-cell-empty-light'} min-cell-height`}
-                />
-              ))}
-            </div>
-          </Card.Body>
-        </Card>
+                {/* Month Days Grid */}
+                <div className={`d-grid grid-cols-7 cal-grid ${isDark ? 'text-light' : 'text-dark'} w-100`}>
+                  {/* Empty leading padding cells */}
+                  {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                    <div
+                      key={`empty-${i}`}
+                      className={`p-1.5 border-end border-bottom ${isDark ? 'border-secondary border-opacity-20 cal-cell-empty-dark' : 'border-light-subtle cal-cell-empty-light'} min-cell-height`}
+                    />
+                  ))}
+
+                  {/* Month Day Cells */}
+                  {Array.from({ length: daysInMonth }).map((_, dayIdx) => {
+                    const dayNum = dayIdx + 1
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
+                    const dayOfWeek = new Date(year, month, dayNum).getDay()
+                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+
+                    const isToday =
+                      new Date().getDate() === dayNum &&
+                      new Date().getMonth() === month &&
+                      new Date().getFullYear() === year
+
+                    // Tasks for this specific date
+                    const dayTasks = filteredTasks.filter((t) => {
+                      const tDue = t.due_date ? t.due_date.split('T')[0] : null
+                      const tStart = t.start_date ? t.start_date.split('T')[0] : null
+                      return tDue === dateStr || tStart === dateStr
+                    })
+
+                    return (
+                      <div
+                        key={`day-${dayNum}`}
+                        className={`p-1.5 border-end border-bottom ${isDark ? 'border-secondary border-opacity-20' : 'border-light-subtle'} min-cell-height cal-day-cell position-relative transition-all ${
+                          isToday
+                            ? isDark
+                              ? 'cal-today-dark'
+                              : 'cal-today-light'
+                            : isWeekend
+                              ? isDark
+                                ? 'cal-weekend-dark'
+                                : 'cal-weekend-light'
+                              : isDark
+                                ? 'bg-dark'
+                                : 'bg-white'
+                        }`}
+                        onClick={() => {
+                          setSelectedDateStr(dateStr)
+                          handleOpenAddModal(dateStr)
+                        }}
+                      >
+                        {/* Header inside Day Cell */}
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                          <div className="d-flex align-items-center gap-1">
+                            <span
+                              className={`cal-date-number ${
+                                isToday
+                                  ? 'cal-date-today'
+                                  : isDark
+                                    ? 'text-light opacity-85'
+                                    : 'text-dark opacity-85'
+                              }`}
+                            >
+                              {dayNum}
+                            </span>
+                            {isToday && <span className="cal-today-indicator">TODAY</span>}
+                          </div>
+
+                          {/* Quick Schedule Plus Button on Cell Hover */}
+                          <button
+                            type="button"
+                            className="cal-cell-add-btn"
+                            title={`Schedule task on ${dateStr}`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedDateStr(dateStr)
+                              handleOpenAddModal(dateStr)
+                            }}
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
+
+                        {/* Task Chips inside Cell */}
+                        <div className="d-flex flex-column gap-1 overflow-hidden cal-chips-container">
+                          {dayTasks.slice(0, 2).map((t) => {
+                            const isDone = t.status === 'COMPLETED'
+                            const isUrgent = t.priority === 'URGENT'
+                            const isHigh = t.priority === 'HIGH'
+
+                            return (
+                              <div
+                                key={`cal-chip-${t.id}`}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleOpenEditModal(t)
+                                }}
+                                className={`cal-task-chip ${
+                                  isDone
+                                    ? 'chip-done'
+                                    : isUrgent
+                                      ? 'chip-urgent'
+                                      : isHigh
+                                        ? 'chip-high'
+                                        : isDark
+                                          ? 'chip-dark'
+                                          : 'chip-light'
+                                }`}
+                                title={`${t.title} (${t.status})`}
+                              >
+                                <span className={`chip-dot ${isDone ? 'bg-success' : isUrgent ? 'bg-danger' : isHigh ? 'bg-warning' : 'bg-primary'}`} />
+                                <span className="text-truncate flex-grow-1 chip-title">{t.title}</span>
+                                {t.assigned_to && (
+                                  <span className="chip-avatar" title={getDisplayName(t.assigned_to)}>
+                                    {getUserInitials(getDisplayName(t.assigned_to))}
+                                  </span>
+                                )}
+                              </div>
+                            )
+                          })}
+
+                          {dayTasks.length > 2 && (
+                            <div
+                              className="cal-more-btn"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedDateStr(dateStr)
+                                setCalSubView('split')
+                              }}
+                              title={`View all ${dayTasks.length} tasks for ${dateStr}`}
+                            >
+                              <span>+{dayTasks.length - 2} more tasks</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  {/* Trailing Empty Cells */}
+                  {Array.from({ length: trailingEmptyCount }).map((_, i) => (
+                    <div
+                      key={`trailing-${i}`}
+                      className={`p-1.5 border-end border-bottom ${isDark ? 'border-secondary border-opacity-20 cal-cell-empty-dark' : 'border-light-subtle cal-cell-empty-light'} min-cell-height`}
+                    />
+                  ))}
+                </div>
+              </Card.Body>
+            )}
+          </Card>
+        </div>
       )}
 
-      {/* Add / Edit Task Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg" className={isDark ? 'dark-modal' : 'light-modal'}>
-        <Modal.Header closeButton className={isDark ? 'bg-dark text-light border-secondary' : 'bg-white text-dark border-light-subtle'}>
+      {/* Add / Edit Task Modal - ULTRA-PREMIUM PRO LEVEL FORM */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg" className={`vpm-pro-modal ${isDark ? 'dark-modal' : 'light-modal'}`}>
+        <Modal.Header closeButton className={`px-4 py-3 border-bottom ${isDark ? 'bg-dark text-light border-secondary border-opacity-40' : 'bg-white text-dark border-light-subtle'}`}>
           <Modal.Title className={`fw-bold d-flex align-items-center gap-2 ${isDark ? 'text-info' : 'text-primary'} fs-5`}>
-            {editingTask ? <Edit2 size={20} /> : <Plus size={20} />}
-            {editingTask ? `Edit Task #${editingTask.id}` : 'Create New Task'}
+            <div className="vpm-modal-icon-badge">
+              {editingTask ? <Edit2 size={18} /> : <Plus size={18} />}
+            </div>
+            <span>{editingTask ? `Edit Task #${editingTask.id}` : 'Create New Shop Task'}</span>
           </Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSaveTask}>
-          <Modal.Body className={`${isDark ? 'bg-dark text-light border-secondary' : 'bg-white text-dark border-light-subtle'} p-4`}>
-            <Row className="g-3">
-              {/* Task Title */}
-              <Col xs={12}>
-                <Form.Group>
-                  <Form.Label className={`fw-bold fs-7 text-uppercase ${isDark ? 'text-secondary' : 'text-muted'}`}>Task Title *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    required
-                    placeholder="e.g. Print 1000 Flex Banners for Apex Corp"
-                    value={formTitle}
-                    onChange={(e) => setFormTitle(e.target.value)}
-                    className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary' : 'bg-light text-dark border-light-subtle'}
-                  />
-                </Form.Group>
-              </Col>
+          <Modal.Body className={`${isDark ? 'bg-dark text-light' : 'bg-white text-dark'} p-4`}>
+            <div className="d-flex flex-column gap-4">
+              {/* SECTION 1: GENERAL TASK DETAILS & INFORMATION */}
+              <div className="vpm-form-section">
+                <div className="vpm-section-header mb-3">
+                  <div className="vpm-section-title">
+                    <UserIcon size={16} className="text-primary me-2" />
+                    <span>1. GENERAL TASK DETAILS & INFORMATION</span>
+                  </div>
+                </div>
 
-              {/* Task Description */}
-              <Col xs={12}>
-                <Form.Group>
-                  <Form.Label className={`fw-bold fs-7 text-uppercase ${isDark ? 'text-secondary' : 'text-muted'}`}>Description / Details</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    placeholder="Enter specific printing guidelines, client notes, paper stock specifications..."
-                    value={formDescription}
-                    onChange={(e) => setFormDescription(e.target.value)}
-                    className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary' : 'bg-light text-dark border-light-subtle'}
-                  />
-                </Form.Group>
-              </Col>
+                <Row className="g-3">
+                  {/* Task Title Input with Left Icon Addon */}
+                  <Col xs={12}>
+                    <Form.Group>
+                      <Form.Label className="vpm-input-label">TASK TITLE *</Form.Label>
+                      <InputGroup className="vpm-input-group">
+                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
+                          <FileText size={16} />
+                        </InputGroup.Text>
+                        <Form.Control
+                          type="text"
+                          required
+                          placeholder="e.g. Print 1000 Flex Banners for Apex Corp"
+                          value={formTitle}
+                          onChange={(e) => setFormTitle(e.target.value)}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
+                        />
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
 
-              {/* Assigned Employee */}
-              <Col md={6} xs={12}>
-                <Form.Group>
-                  <Form.Label className={`fw-bold fs-7 text-uppercase ${isDark ? 'text-secondary' : 'text-muted'} d-flex align-items-center gap-1`}>
-                    <UserIcon size={14} className={isDark ? 'text-info' : 'text-primary'} /> Assign Employee
-                  </Form.Label>
-                  <Form.Select
-                    value={formAssignedTo}
-                    onChange={(e) => setFormAssignedTo(e.target.value)}
-                    className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary' : 'bg-light text-dark border-light-subtle'}
-                  >
-                    <option value="">Unassigned</option>
-                    {users.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {getDisplayName(u)} (@{u.username})
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
+                  {/* Task Description */}
+                  <Col xs={12}>
+                    <Form.Group>
+                      <Form.Label className="vpm-input-label">DESCRIPTION & INSTRUCTIONS</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        placeholder="Enter specific printing guidelines, paper stock GSM, client notes..."
+                        value={formDescription}
+                        onChange={(e) => setFormDescription(e.target.value)}
+                        className={`vpm-control-input vpm-textarea ${isDark ? 'input-dark' : 'input-light'}`}
+                      />
+                    </Form.Group>
+                  </Col>
 
-              {/* Priority */}
-              <Col md={3} xs={6}>
-                <Form.Group>
-                  <Form.Label className={`fw-bold fs-7 text-uppercase ${isDark ? 'text-secondary' : 'text-muted'}`}>Priority</Form.Label>
-                  <Form.Select
-                    value={formPriority}
-                    onChange={(e) => setFormPriority(e.target.value as any)}
-                    className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary' : 'bg-light text-dark border-light-subtle'}
-                  >
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                    <option value="URGENT">Urgent</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
+                  {/* Assigned Employee Select with Left Addon */}
+                  <Col xs={12}>
+                    <Form.Group>
+                      <Form.Label className="vpm-input-label">ASSIGNED EMPLOYEE / OPERATOR</Form.Label>
+                      <InputGroup className="vpm-input-group">
+                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
+                          <UserCheck size={16} />
+                        </InputGroup.Text>
+                        <Form.Select
+                          value={formAssignedTo}
+                          onChange={(e) => setFormAssignedTo(e.target.value)}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
+                        >
+                          <option value="">Unassigned (Open Pool)</option>
+                          {users.map((u) => (
+                            <option key={u.id} value={u.id}>
+                              {getDisplayName(u)} (@{u.username})
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+                </Row>
+              </div>
 
-              {/* Status */}
-              <Col md={3} xs={6}>
-                <Form.Group>
-                  <Form.Label className={`fw-bold fs-7 text-uppercase ${isDark ? 'text-secondary' : 'text-muted'}`}>Status</Form.Label>
-                  <Form.Select
-                    value={formStatus}
-                    onChange={(e) => setFormStatus(e.target.value as any)}
-                    className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary' : 'bg-light text-dark border-light-subtle'}
-                  >
-                    <option value="PENDING">Pending</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="CANCELLED">Cancelled</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
+              {/* SECTION 2: PRIORITY & WORKFLOW STATUS */}
+              <div className="vpm-form-section">
+                <div className="vpm-section-header mb-3">
+                  <div className="vpm-section-title">
+                    <ShieldCheck size={16} className="text-primary me-2" />
+                    <span>2. PRIORITY LEVEL & WORKFLOW STATUS *</span>
+                  </div>
+                </div>
 
-              {/* Start Date */}
-              <Col md={6} xs={12}>
-                <Form.Group>
-                  <Form.Label className={`fw-bold fs-7 text-uppercase ${isDark ? 'text-secondary' : 'text-muted'}`}>Start Date</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={formStartDate}
-                    onChange={(e) => setFormStartDate(e.target.value)}
-                    className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary' : 'bg-light text-dark border-light-subtle'}
-                  />
-                </Form.Group>
-              </Col>
+                {/* Rich Selectable Priority Card Grid */}
+                <div className="mb-3">
+                  <Form.Label className="vpm-input-label mb-2">SELECT PRIORITY</Form.Label>
+                  <Row className="g-2">
+                    {[
+                      { id: 'URGENT', title: 'Urgent Priority', desc: 'Critical order - Fast-track', icon: Flame, colorClass: 'card-p-urgent' },
+                      { id: 'HIGH', title: 'High Priority', desc: 'Important client deadline', icon: Zap, colorClass: 'card-p-high' },
+                      { id: 'MEDIUM', title: 'Medium Priority', desc: 'Standard production queue', icon: Target, colorClass: 'card-p-medium' },
+                      { id: 'LOW', title: 'Low Priority', desc: 'Flexible delivery schedule', icon: Clock, colorClass: 'card-p-low' }
+                    ].map((item) => {
+                      const IconComp = item.icon
+                      const isSelected = formPriority === item.id
+                      return (
+                        <Col key={item.id} md={6} xs={12}>
+                          <div
+                            onClick={() => setFormPriority(item.id as any)}
+                            className={`vpm-role-card ${item.colorClass} ${isSelected ? 'selected' : ''} ${isDark ? 'role-dark' : 'role-light'}`}
+                          >
+                            <div className="vpm-role-icon">
+                              <IconComp size={18} />
+                            </div>
+                            <div className="vpm-role-info">
+                              <div className="vpm-role-name">{item.title}</div>
+                              <div className="vpm-role-desc">{item.desc}</div>
+                            </div>
+                            {isSelected && (
+                              <div className="vpm-check-badge">
+                                <Check size={14} />
+                              </div>
+                            )}
+                          </div>
+                        </Col>
+                      )
+                    })}
+                  </Row>
+                </div>
 
-              {/* Due Date */}
-              <Col md={6} xs={12}>
-                <Form.Group>
-                  <Form.Label className={`fw-bold fs-7 text-uppercase ${isDark ? 'text-secondary' : 'text-muted'}`}>Due Date</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={formDueDate}
-                    onChange={(e) => setFormDueDate(e.target.value)}
-                    className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary' : 'bg-light text-dark border-light-subtle'}
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+                {/* Status Selection Chips */}
+                <div>
+                  <Form.Label className="vpm-input-label mb-2">WORKFLOW STATUS</Form.Label>
+                  <div className="d-flex flex-wrap gap-2">
+                    {[
+                      { id: 'PENDING', label: 'Pending', icon: AlertCircle, variant: 'status-chip-pending' },
+                      { id: 'IN_PROGRESS', label: 'In Progress', icon: Clock, variant: 'status-chip-progress' },
+                      { id: 'COMPLETED', label: 'Completed', icon: CheckCircle2, variant: 'status-chip-completed' },
+                      { id: 'CANCELLED', label: 'Cancelled', icon: XCircle, variant: 'status-chip-cancelled' }
+                    ].map((st) => {
+                      const StIcon = st.icon
+                      const isSel = formStatus === st.id
+                      return (
+                        <button
+                          key={st.id}
+                          type="button"
+                          onClick={() => setFormStatus(st.id as any)}
+                          className={`vpm-status-chip ${st.variant} ${isSel ? 'selected' : ''} ${isDark ? 'chip-dark' : 'chip-light'}`}
+                        >
+                          <StIcon size={14} />
+                          <span>{st.label}</span>
+                          {isSel && <Check size={12} className="ms-1" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: SCHEDULE & DATES */}
+              <div className="vpm-form-section">
+                <div className="vpm-section-header mb-3">
+                  <div className="vpm-section-title">
+                    <CalendarDays size={16} className="text-primary me-2" />
+                    <span>3. PRODUCTION TIMELINE & DEADLINES</span>
+                  </div>
+                </div>
+
+                <Row className="g-3">
+                  {/* Start Date */}
+                  <Col md={6} xs={12}>
+                    <Form.Group>
+                      <Form.Label className="vpm-input-label">START DATE</Form.Label>
+                      <InputGroup className="vpm-input-group">
+                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
+                          <CalendarDays size={16} />
+                        </InputGroup.Text>
+                        <Form.Control
+                          type="date"
+                          value={formStartDate}
+                          onChange={(e) => setFormStartDate(e.target.value)}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
+                        />
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+
+                  {/* Due Date */}
+                  <Col md={6} xs={12}>
+                    <Form.Group>
+                      <Form.Label className="vpm-input-label">DUE / DELIVERY DATE</Form.Label>
+                      <InputGroup className="vpm-input-group">
+                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
+                          <Clock size={16} />
+                        </InputGroup.Text>
+                        <Form.Control
+                          type="date"
+                          value={formDueDate}
+                          onChange={(e) => setFormDueDate(e.target.value)}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
+                        />
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+                </Row>
+              </div>
+            </div>
           </Modal.Body>
-          <Modal.Footer className={isDark ? 'bg-dark border-secondary' : 'bg-white border-light-subtle'}>
-            <Button variant={isDark ? 'outline-secondary' : 'outline-dark'} onClick={() => setShowModal(false)}>
+          <Modal.Footer className={`px-4 py-3 border-top ${isDark ? 'bg-dark border-secondary border-opacity-40' : 'bg-white border-light-subtle'}`}>
+            <Button variant={isDark ? 'outline-secondary' : 'outline-dark'} onClick={() => setShowModal(false)} className="rounded-pill px-4 fw-bold">
               Cancel
             </Button>
-            <Button variant={isDark ? 'info' : 'primary'} type="submit" disabled={submitting} className={`${isDark ? 'text-dark' : 'text-white'} fw-bold px-4`}>
+            <Button variant={isDark ? 'info' : 'primary'} type="submit" disabled={submitting} className={`rounded-pill px-5 fw-bold ${isDark ? 'text-dark' : 'text-white'} shadow-sm`}>
               {submitting ? <Spinner size="sm" animation="border" /> : editingTask ? 'Save Changes' : 'Create Task'}
             </Button>
           </Modal.Footer>

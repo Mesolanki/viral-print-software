@@ -1,0 +1,611 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — Header.css  ★ GOD-LEVEL PRO EDITION ★
+   Premium glassmorphism · shimmer glow · micro-animations
+   ================================================================= */
+
+/* ════════════════════════════════════════════════════════════════
+   KEYFRAME ANIMATIONS — THE ENGINE ROOM
+   ════════════════════════════════════════════════════════════════ */
+
+/* Slide + fade on mount */
+@keyframes headerReveal {
+  0%   { opacity: 0; transform: translateY(-18px) scale(0.98); }
+  60%  { opacity: 1; transform: translateY(3px)   scale(1.003); }
+  100% { opacity: 1; transform: translateY(0)     scale(1); }
+}
+
+/* Moving shimmer gradient sweep */
+@keyframes shimmerSweep {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* Subtle aurora shift on the border bottom */
+@keyframes auroraShift {
+  0%   { opacity: 0.6; background-position: 0%   50%; }
+  50%  { opacity: 1.0; background-position: 100% 50%; }
+  100% { opacity: 0.6; background-position: 0%   50%; }
+}
+
+/* Pulse glow ring for avatar */
+@keyframes avatarPulse {
+  0%, 100% { box-shadow: 0 0 0 0px rgba(115,110,254,0.55), 0 2px 8px rgba(115,110,254,0.30); }
+  50%       { box-shadow: 0 0 0 5px rgba(115,110,254,0.08), 0 2px 8px rgba(115,110,254,0.30); }
+}
+
+/* Floating on hover */
+@keyframes floatUp {
+  0%   { transform: translateY(0px);  }
+  50%  { transform: translateY(-3px); }
+  100% { transform: translateY(0px);  }
+}
+
+/* Spinning sparkle icon */
+@keyframes sparkleRotate {
+  0%   { transform: rotate(0deg)   scale(1); }
+  25%  { transform: rotate(10deg)  scale(1.15); }
+  75%  { transform: rotate(-6deg)  scale(1.05); }
+  100% { transform: rotate(0deg)   scale(1); }
+}
+
+/* Badge text gradient animation */
+@keyframes badgeGlow {
+  0%, 100% { filter: brightness(1)    drop-shadow(0 0  4px rgba(0,210,255,0.00)); }
+  50%       { filter: brightness(1.15) drop-shadow(0 0 10px rgba(0,210,255,0.40)); }
+}
+
+/* Icon button wobble on click */
+@keyframes btnPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.88); }
+  70%  { transform: scale(1.10); }
+  100% { transform: scale(1); }
+}
+
+/* Logout btn heartbeat */
+@keyframes logoutPulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(220,38,38,0.25); }
+  50%       { box-shadow: 0 2px 20px rgba(220,38,38,0.55); }
+}
+
+/* Bottom aurora line */
+@keyframes borderAurora {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   HEADER SHELL — GLASSMORPHISM FOUNDATION
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 20px 0 22px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 50;
+  overflow: hidden;
+  animation: headerReveal 0.55s var(--ease-out) both;
+  will-change: transform, opacity;
+}
+
+/* ── Animated bottom aurora border ─────────────────────────────── */
+.vpm-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(115,110,254,0.80) 20%,
+    rgba(0,210,255,1.00)   50%,
+    rgba(115,110,254,0.80) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: borderAurora 4s ease-in-out infinite;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ── Top specular shine line ────────────────────────────────────── */
+.vpm-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.50) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* ── Light Theme ────────────────────────────────────────────────── */
+.vpm-header.theme-light {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.05);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.05);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.90) inset,
+    0 4px 24px rgba(15, 23, 42, 0.05),
+    0 1px 0 rgba(226,232,240,0.60);
+}
+
+/* ── Dark Theme ─────────────────────────────────────────────────── */
+.vpm-header.theme-dark {
+  background: rgba(10, 15, 29, 0.72);
+  backdrop-filter: blur(28px) saturate(200%) brightness(0.95);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(0.95);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.04) inset,
+    0 4px 32px rgba(0, 0, 0, 0.45);
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   LEFT SIDE — HAMBURGER + PAGE TITLE
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Page Title ─────────────────────────────────────────────────── */
+.vpm-page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.25s ease;
+}
+
+.theme-light .vpm-page-title { color: #0F172A; }
+.theme-dark  .vpm-page-title { color: #F1F5F9; }
+
+/* Title icon with animated gradient */
+.vpm-page-title-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s ease;
+}
+
+.theme-light .vpm-page-title-icon {
+  background: linear-gradient(135deg, rgba(115,110,254,0.12), rgba(0,210,255,0.08));
+  color: var(--vpm-primary);
+  border: 1px solid rgba(115,110,254,0.18);
+  box-shadow: 0 2px 8px rgba(115,110,254,0.12);
+}
+
+.theme-dark .vpm-page-title-icon {
+  background: linear-gradient(135deg, rgba(0,210,255,0.15), rgba(115,110,254,0.10));
+  color: var(--vpm-cyan);
+  border: 1px solid rgba(0,210,255,0.20);
+  box-shadow: 0 2px 8px rgba(0,210,255,0.15);
+}
+
+.vpm-page-title:hover .vpm-page-title-icon {
+  transform: rotate(-8deg) scale(1.12);
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   RIGHT SIDE — CONTROLS
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Icon Buttons (Hamburger / Theme Toggle) ────────────────────── */
+.vpm-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition:
+    background     0.22s ease,
+    border-color   0.22s ease,
+    color          0.22s ease,
+    transform      0.28s var(--ease-out),
+    box-shadow     0.22s ease;
+}
+
+/* Ripple / shine layer */
+.vpm-icon-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.20) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.vpm-icon-btn:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.vpm-icon-btn:active {
+  animation: btnPop 0.3s ease forwards;
+}
+
+/* Light */
+.theme-light .vpm-icon-btn {
+  border-color: rgba(226, 232, 240, 0.9);
+  color: #64748B;
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.theme-light .vpm-icon-btn:hover {
+  background: #FFFFFF;
+  border-color: rgba(115,110,254,0.35);
+  color: var(--vpm-primary);
+  transform: translateY(-3px) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(115,110,254,0.18), 0 2px 6px rgba(115,110,254,0.12);
+}
+
+/* Dark */
+.theme-dark .vpm-icon-btn {
+  border-color: rgba(255, 255, 255, 0.07);
+  color: #64748B;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.theme-dark .vpm-icon-btn:hover {
+  background: rgba(0, 210, 255, 0.10);
+  border-color: rgba(0, 210, 255, 0.35);
+  color: var(--vpm-cyan);
+  transform: translateY(-3px) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(0,210,255,0.18), 0 2px 6px rgba(0,210,255,0.12);
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   APP BRANDING BADGE — Animated shimmer pill
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-app-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0 14px;
+  height: 36px;
+  border-radius: 999px;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+  border: 1px solid;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s ease;
+}
+
+/* Shimmer sweep layer */
+.vpm-app-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent   30%,
+    rgba(255,255,255,0.20) 50%,
+    transparent   70%
+  );
+  background-size: 200% 100%;
+  animation: shimmerSweep 2.8s linear infinite;
+  pointer-events: none;
+}
+
+/* Sparkle icon animation */
+.vpm-app-badge svg {
+  animation: sparkleRotate 3.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.vpm-app-badge:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Light */
+.theme-light .vpm-app-badge {
+  background: linear-gradient(135deg, rgba(115,110,254,0.10), rgba(0,210,255,0.07));
+  border-color: rgba(115, 110, 254, 0.22);
+  color: var(--vpm-primary);
+  box-shadow: 0 2px 12px rgba(115,110,254,0.10);
+}
+
+.theme-light .vpm-app-badge:hover {
+  box-shadow: 0 6px 24px rgba(115,110,254,0.22);
+}
+
+/* Dark */
+.theme-dark .vpm-app-badge {
+  background: linear-gradient(135deg, rgba(0,210,255,0.12), rgba(115,110,254,0.08));
+  border-color: rgba(0, 210, 255, 0.25);
+  color: var(--vpm-cyan);
+  box-shadow: 0 2px 12px rgba(0,210,255,0.12);
+  animation: badgeGlow 3.5s ease-in-out infinite;
+}
+
+.theme-dark .vpm-app-badge:hover {
+  box-shadow: 0 6px 28px rgba(0,210,255,0.28);
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   USER PROFILE BADGE — Premium card with pulse avatar
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px 0 6px;
+  height: 40px;
+  border-radius: 13px;
+  border: 1px solid;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  transition:
+    background     0.25s ease,
+    border-color   0.25s ease,
+    transform      0.28s var(--ease-out),
+    box-shadow     0.25s ease;
+}
+
+/* Inner shine gradient */
+.vpm-user-badge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Light */
+.theme-light .vpm-user-badge {
+  background: #FFFFFF;
+  border-color: rgba(226, 232, 240, 0.9);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+
+.theme-light .vpm-user-badge:hover {
+  border-color: rgba(115,110,254,0.30);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(115,110,254,0.14);
+}
+
+/* Dark */
+.theme-dark .vpm-user-badge {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.theme-dark .vpm-user-badge:hover {
+  border-color: rgba(0, 210, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,210,255,0.12);
+}
+
+/* ── Avatar ─────────────────────────────────────────────────────── */
+.vpm-user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--vpm-primary) 0%, var(--vpm-cyan) 100%);
+  color: white;
+  flex-shrink: 0;
+  animation: avatarPulse 3s ease-in-out infinite;
+  transition: transform 0.25s var(--ease-out);
+}
+
+.vpm-user-badge:hover .vpm-user-avatar {
+  transform: scale(1.12) rotate(-5deg);
+  animation: none;
+  box-shadow: 0 0 0 3px rgba(115,110,254,0.30), 0 4px 12px rgba(115,110,254,0.35);
+}
+
+.vpm-user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.vpm-user-name {
+  font-size: 0.83rem;
+  font-weight: 800;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+
+.vpm-user-role {
+  font-size: 0.60rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.theme-light .vpm-user-name { color: #0F172A; }
+.theme-dark  .vpm-user-name { color: #F1F5F9; }
+
+.theme-light .vpm-user-role {
+  background: linear-gradient(90deg, var(--vpm-primary), var(--vpm-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.theme-dark .vpm-user-role {
+  background: linear-gradient(90deg, var(--vpm-cyan), var(--vpm-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   LOGOUT BUTTON — Danger gradient with pulse glow
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 16px;
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: #FFFFFF;
+  animation: logoutPulse 3s ease-in-out infinite;
+  transition:
+    background     0.22s ease,
+    transform      0.28s var(--ease-out),
+    box-shadow     0.22s ease;
+}
+
+/* Shimmer on logout btn */
+.vpm-logout-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent   25%,
+    rgba(255,255,255,0.18) 50%,
+    transparent   75%
+  );
+  background-size: 200% 100%;
+  animation: shimmerSweep 2.2s linear infinite;
+  pointer-events: none;
+}
+
+.vpm-logout-btn svg {
+  transition: transform 0.25s var(--ease-out);
+}
+
+.vpm-logout-btn:hover {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(220, 38, 38, 0.50);
+  animation: none;
+}
+
+.vpm-logout-btn:hover svg {
+  transform: translateX(2px) rotate(12deg);
+}
+
+.vpm-logout-btn:active {
+  transform: translateY(0px) scale(0.96);
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   DIVIDER
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-header-divider {
+  width: 1px;
+  height: 24px;
+  margin: 0 2px;
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.theme-light .vpm-header-divider {
+  background: linear-gradient(180deg, transparent, rgba(115,110,254,0.35), transparent);
+}
+
+.theme-dark .vpm-header-divider {
+  background: linear-gradient(180deg, transparent, rgba(0,210,255,0.30), transparent);
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   STAGGERED ENTRY — Children slide in with delay
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-header-left  { animation: headerReveal 0.50s 0.05s var(--ease-out) both; }
+.vpm-header-right { animation: headerReveal 0.50s 0.12s var(--ease-out) both; }
+
+.vpm-header-right > *:nth-child(1) { animation: headerReveal 0.40s 0.14s var(--ease-out) both; }
+.vpm-header-right > *:nth-child(2) { animation: headerReveal 0.40s 0.18s var(--ease-out) both; }
+.vpm-header-right > *:nth-child(3) { animation: headerReveal 0.40s 0.22s var(--ease-out) both; }
+.vpm-header-right > *:nth-child(4) { animation: headerReveal 0.40s 0.26s var(--ease-out) both; }
+.vpm-header-right > *:nth-child(5) { animation: headerReveal 0.40s 0.30s var(--ease-out) both; }
+.vpm-header-right > *:nth-child(6) { animation: headerReveal 0.40s 0.34s var(--ease-out) both; }
+
+
+/* ════════════════════════════════════════════════════════════════
+   REDUCED-MOTION RESPECT
+   ════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .vpm-header,
+  .vpm-header::after,
+  .vpm-app-badge::after,
+  .vpm-logout-btn::after,
+  .vpm-user-avatar,
+  .vpm-app-badge svg,
+  .vpm-logout-btn {
+    animation: none !important;
+  }
+  .vpm-icon-btn:hover,
+  .vpm-app-badge:hover,
+  .vpm-user-badge:hover,
+  .vpm-logout-btn:hover {
+    transform: none !important;
+  }
+}

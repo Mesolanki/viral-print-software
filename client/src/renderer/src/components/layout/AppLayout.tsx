@@ -1,6 +1,7 @@
 import React, { useState, type ReactNode } from 'react'
 import Sidebar from './Sidebar'
 import Header from './Header'
+import './AppLayout.css'
 
 interface AppLayoutProps {
   theme: 'dark' | 'light'

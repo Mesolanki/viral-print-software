@@ -6,9 +6,9 @@
 
 /* Keep brand color aliases for legacy code */
 :root {
-  --brand-cyan:       #00AEEF;
-  --brand-cyan-dark:  #0077B6;
-  --brand-cyan-light: #E8F8FF;
+  --brand-cyan:       #00D2FF;
+  --brand-cyan-dark:  #736efe;
+  --brand-cyan-light: #E8F0FF;
   --brand-orange:     #F7941D;
   --brand-green:      #8DC63F;
   --brand-red:        #ED1C24;

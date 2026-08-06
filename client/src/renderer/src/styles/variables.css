@@ -5,9 +5,9 @@
 
 :root {
   /* ── Brand Colors ─────────────────────────────────────────── */
-  --vpm-cyan:         #00AEEF;
-  --vpm-cyan-dark:    #0077B6;
-  --vpm-cyan-light:   #E8F8FF;
+  --vpm-cyan:         #00D2FF;        /* Premium Electric Sky Blue */
+  --vpm-cyan-dark:    #736efe;        /* Premium Royal Purple-Blue */
+  --vpm-cyan-light:   #E8F0FF;        /* Light Sky tint */
   --vpm-orange:       #F7941D;
   --vpm-green:        #8DC63F;
   --vpm-green-dark:   #5A9622;
@@ -29,29 +29,29 @@
   --vpm-gray-900:     #0F172A;
 
   /* ── Semantic Colors ──────────────────────────────────────── */
-  --vpm-primary:      #0077B6;
-  --vpm-primary-end:  #00AEEF;
+  --vpm-primary:      #736efe;        /* Main premium #736efe */
+  --vpm-primary-end:  #00D2FF;        /* Sky blue gradient end */
   --vpm-success:      #10B981;
   --vpm-warning:      #F59E0B;
   --vpm-danger:       #EF4444;
-  --vpm-info:         #3B82F6;
+  --vpm-info:         #736efe;        /* Updated semantic info to match primary */
 
   /* ── Light Theme Surfaces ─────────────────────────────────── */
-  --light-bg:         #EDF1F7;
+  --light-bg:         #F0F4FA;        /* Premium soft cool grey-blue */
   --light-surface:    #FFFFFF;
   --light-surface-2:  #F8FAFC;
   --light-border:     #E2E8F0;
-  --light-border-hover: rgba(0, 119, 182, 0.3);
+  --light-border-hover: rgba(115, 110, 254, 0.3);
   --light-text:       #0F172A;
   --light-text-2:     #475569;
   --light-text-muted: #94A3B8;
 
   /* ── Dark Theme Surfaces ──────────────────────────────────── */
-  --dark-bg:          #08101F;
-  --dark-surface:     #0F1929;
-  --dark-surface-2:   #152033;
+  --dark-bg:          #0A0F1D;        /* Deeper indigo-toned premium dark background */
+  --dark-surface:     #0F172A;
+  --dark-surface-2:   #152035;
   --dark-border:      rgba(255, 255, 255, 0.07);
-  --dark-border-hover: rgba(0, 174, 239, 0.35);
+  --dark-border-hover: rgba(0, 210, 255, 0.35);
   --dark-text:        #F1F5F9;
   --dark-text-2:      #94A3B8;
   --dark-text-muted:  #475569;
