@@ -44,21 +44,23 @@ enum PaymentType {
 // ============================================================
 
 model Company {
-  id           Int        @id @default(autoincrement())
-  company_name String     @map("company_name")
-  gst_number   String?    @map("gst_number")
-  address      String?
-  phone        String?
-  logo         String?
-  users        User[]
-  customers    Customer[]
-  suppliers    Supplier[]
-  categories   Category[]
-  products     Product[]
-  purchases    Purchase[]
-  invoices     Invoice[]
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime   @updatedAt @map("updated_at")
+  id                Int               @id @default(autoincrement())
+  company_name      String            @map("company_name")
+  gst_number        String?           @map("gst_number")
+  address           String?
+  phone             String?
+  logo              String?
+  users             User[]
+  customers         Customer[]
+  suppliers         Supplier[]
+  categories        Category[]
+  products          Product[]
+  purchases         Purchase[]
+  invoices          Invoice[]
+  expenseCategories ExpenseCategory[]
+  officeExpenses    OfficeExpense[]
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
 
   @@map("companies")
 }
@@ -100,19 +102,20 @@ model RolePermission {
 // ============================================================
 
 model User {
-  id            Int        @id @default(autoincrement())
-  company_id    Int        @map("company_id")
-  company       Company    @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  full_name     String     @map("full_name")
-  username      String     @unique
-  password_hash String     @map("password_hash")
-  role_id       Int        @map("role_id")
-  role          Role       @relation(fields: [role_id], references: [id])
-  status        UserStatus @default(ACTIVE)
-  created_by    Int?       @map("created_by")
-  last_login    DateTime?  @map("last_login")
-  createdAt     DateTime   @default(now()) @map("created_at")
-  updatedAt     DateTime   @updatedAt @map("updated_at")
+  id               Int             @id @default(autoincrement())
+  company_id       Int             @map("company_id")
+  company          Company         @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  full_name        String          @map("full_name")
+  username         String          @unique
+  password_hash    String          @map("password_hash")
+  role_id          Int             @map("role_id")
+  role             Role            @relation(fields: [role_id], references: [id])
+  status           UserStatus      @default(ACTIVE)
+  created_by       Int?            @map("created_by")
+  last_login       DateTime?       @map("last_login")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  expensesRecorded OfficeExpense[] @relation("ExpenseRecorder")
 
   @@map("users")
 }
@@ -319,4 +322,58 @@ model Ledger {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("ledger")
+}
+
+// ============================================================
+// OFFICE EXPENSES
+// ============================================================
+
+/// Lookup table for expense types (Rent, Electricity, Salary, etc.)
+/// Company-scoped so each company can customise their categories.
+model ExpenseCategory {
+  id          Int             @id @default(autoincrement())
+  company_id  Int             @map("company_id")
+  company     Company         @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  is_active   Boolean         @default(true) @map("is_active")
+  expenses    OfficeExpense[]
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  // Each category name must be unique per company
+  @@unique([company_id, name])
+  @@map("expense_categories")
+}
+
+/// Office / overhead expense record.
+/// Tracks every operational cost incurred by the shop.
+model OfficeExpense {
+  id            Int             @id @default(autoincrement())
+  company_id    Int             @map("company_id")
+  company       Company         @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  category_id   Int             @map("category_id")
+  category      ExpenseCategory @relation(fields: [category_id], references: [id])
+  /// Short description (e.g. "Monthly office rent – July 2026")
+  title         String
+  amount        Decimal         @db.Decimal(12, 2)
+  payment_mode  PaymentType     @default(CASH) @map("payment_mode")
+  /// The actual date the expense was incurred (not the record creation date)
+  expense_date  DateTime        @map("expense_date")
+  /// Optional bill/receipt number for audit trail
+  reference_no  String?         @map("reference_no")
+  /// Vendor / payee name (landlord, electricity board, etc.)
+  vendor_name   String?         @map("vendor_name")
+  notes         String?
+  /// User who recorded this expense entry
+  recorded_by   Int             @map("recorded_by")
+  recorder      User            @relation("ExpenseRecorder", fields: [recorded_by], references: [id])
+  /// Future: path or URL to scanned receipt/bill image
+  receipt_url   String?         @map("receipt_url")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  @@index([company_id, expense_date])
+  @@index([company_id, category_id])
+  @@map("office_expenses")
 }
