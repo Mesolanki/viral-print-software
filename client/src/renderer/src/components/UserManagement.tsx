@@ -532,7 +532,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
   }
 
   return (
-    <div className="w-100 pt-1 pb-5 mb-4">
+    <div className={`um-page-container ${isDark ? 'theme-dark' : 'theme-light'} w-100 pt-1 pb-5 mb-4`}>
       {/* Toast Alert */}
       {successMsg && (
         <Alert variant="success" onClose={() => setSuccessMsg(null)} dismissible className="shadow-lg border-success mb-3 rounded-3">
@@ -734,7 +734,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       </div>
 
       {/* User Roster Table */}
-      <Card className={`user-roster-card ${isDark ? 'text-light' : 'text-dark'} border-0 w-100`}>
+      <Card className={`user-roster-card ${isDark ? 'user-roster-card-dark' : 'user-roster-card-light'} border-0 w-100`}>
         <Card.Body className="p-0 w-100">
           {loading ? (
             <div className="text-center py-5">
@@ -749,9 +749,9 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
             </div>
           ) : (
             <div className="table-responsive w-100">
-              <Table hover variant={isDark ? 'dark' : 'light'} className="align-middle mb-0 user-roster-table">
+              <Table hover className="align-middle mb-0 user-roster-table">
                 <thead>
-                  <tr className={isDark ? 'bg-dark bg-opacity-60 text-secondary fs-8 text-uppercase' : 'bg-light text-secondary fs-8 text-uppercase'}>
+                  <tr className="user-roster-thead-row">
                     <th className="ps-4 py-3">Employee Name</th>
                     <th className="py-3">Role & Access</th>
                     <th className="py-3">Contact Email</th>
@@ -765,7 +765,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                     const isActive = u.status === 'ACTIVE'
 
                     return (
-                      <tr key={u.id} className={!isActive ? 'opacity-50' : ''}>
+                      <tr key={u.id} className={!isActive ? 'row-inactive' : ''}>
                         {/* Name & Avatar */}
                         <td className="ps-4 py-3">
                           <div className="d-flex align-items-center gap-3">
@@ -773,8 +773,8 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                               {getUserInitials(u.full_name)}
                             </div>
                             <div>
-                              <div className={`fw-bold fs-7 ${isDark ? 'text-white' : 'text-dark'}`}>{u.full_name}</div>
-                              <div className="fs-8 text-secondary font-monospace">@{u.username}</div>
+                              <div className="user-full-name">{u.full_name}</div>
+                              <div className="user-username font-monospace">@{u.username}</div>
                             </div>
                           </div>
                         </td>

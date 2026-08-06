@@ -1,6 +1,7 @@
 /* ╔══════════════════════════════════════════════════════════════════╗
    ║  VIRAL PRINT MEDIA — UserManagement.css                         ║
-   ║  ★ GOD-TIER PRO USER & ROLE MANAGEMENT UI — v2 ★               ║
+   ║  ★ GOD-TIER PRO USER & ROLE MANAGEMENT UI — v3 ★               ║
+   ║  PERFECT LIGHT & DARK MODE CONTRAST & CRYSTAL-CLEAR STYLING     ║
    ╚══════════════════════════════════════════════════════════════════╝ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -31,13 +32,8 @@
 }
 
 @keyframes um-pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
-  50%       { box-shadow: 0 0 0 4px rgba(52, 211, 153, 0); }
-}
-
-@keyframes um-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  50%       { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
 }
 
 .spin-icon {
@@ -45,8 +41,42 @@
 }
 
 /* ════════════════════════════════════════════════════════════════
-   2. PAGE HEADER & GENERAL UTILITIES
+   2. GENERAL PAGE STYLING & HEADINGS (LIGHT / DARK)
    ════════════════════════════════════════════════════════════════ */
+
+.um-page-container {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Light Theme Headings */
+.theme-light .vpm-page-heading {
+  color: #0f172a;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 2px;
+}
+
+.theme-light .vpm-page-subheading {
+  color: #475569;
+  font-size: 0.83rem;
+  font-weight: 500;
+}
+
+/* Dark Theme Headings */
+.theme-dark .vpm-page-heading {
+  color: #f8fafc;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 2px;
+}
+
+.theme-dark .vpm-page-subheading {
+  color: #94a3b8;
+  font-size: 0.83rem;
+  font-weight: 500;
+}
 
 .vpm-page-header-icon {
   width: 52px;
@@ -321,8 +351,11 @@
   color: #ef4444;
 }
 
-/* PRO LEVEL FILTER SELECT DROPDOWNS (MATCHING REFERENCE IMAGE) */
-.vpm-filter-select {
+/* PRO LEVEL FILTER SELECT DROPDOWNS (FIXED NO-REPEAT ARROW) */
+.vpm-filter-select,
+.form-select.vpm-filter-select {
+  --bs-form-select-bg-img: none !important;
+  --bs-form-select-bg-icon: none !important;
   font-size: 0.85rem !important;
   font-weight: 600 !important;
   padding: 0.55rem 2.2rem 0.55rem 0.95rem !important;
@@ -334,7 +367,7 @@
   -moz-appearance: none !important;
   background-repeat: no-repeat !important;
   background-position: right 0.75rem center !important;
-  background-size: 0.9rem !important;
+  background-size: 14px 14px !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
   background-color: #ffffff !important;
   border: 1.5px solid #cbd5e1 !important;
@@ -342,18 +375,24 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230284c7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
 }
 
-.vpm-filter-select:hover {
+.vpm-filter-select:hover,
+.form-select.vpm-filter-select:hover {
   border-color: #0284c7 !important;
   box-shadow: 0 4px 14px rgba(2, 132, 199, 0.15) !important;
 }
 
-.vpm-filter-select:focus {
+.vpm-filter-select:focus,
+.form-select.vpm-filter-select:focus {
   border-color: #0284c7 !important;
   box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25) !important;
   outline: none !important;
 }
 
-.filter-toolbar-dark .vpm-filter-select {
+.filter-toolbar-dark .vpm-filter-select,
+.theme-dark .vpm-filter-select,
+.theme-dark .form-select.vpm-filter-select {
+  --bs-form-select-bg-img: none !important;
+  --bs-form-select-bg-icon: none !important;
   background-color: #0d0d10 !important;
   border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
   color: #ffffff !important;
@@ -366,7 +405,9 @@
   -moz-appearance: none !important;
 }
 
-.filter-toolbar-dark .vpm-filter-select:hover {
+.filter-toolbar-dark .vpm-filter-select:hover,
+.theme-dark .vpm-filter-select:hover,
+.theme-dark .form-select.vpm-filter-select:hover {
   border-color: #38bdf8 !important;
   box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2) !important;
 }
@@ -459,87 +500,131 @@
 }
 
 /* ════════════════════════════════════════════════════════════════
-   5. USER ROSTER TABLE & CARDS
+   5. USER ROSTER TABLE (LIGHT & DARK PERFECTED)
    ════════════════════════════════════════════════════════════════ */
 
 .user-roster-card {
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.user-roster-card-light {
+  background: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+}
+
+.user-roster-card-dark {
+  background: #0b0f19 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6) !important;
 }
 
 .user-roster-table {
-  font-size: 0.875rem;
-  font-family: 'Inter', sans-serif;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.865rem;
 }
 
-/* TABLE HEADER — PREMIUM GRADIENT */
-.user-roster-table thead tr {
-  background: linear-gradient(135deg, #0a0a12 0%, #0f0f1a 100%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+/* --- LIGHT THEME TABLE STYLING --- */
+.user-roster-card-light .user-roster-thead-row {
+  background: #f1f5f9 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
 }
 
-.user-roster-table thead th {
-  font-size: 0.7rem !important;
+.user-roster-card-light .user-roster-table th {
+  color: #475569 !important;
+  font-size: 0.72rem !important;
   font-weight: 800 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.1em !important;
-  color: #475569 !important;
-  border: none !important;
-  padding: 1.05rem 1rem !important;
-  white-space: nowrap;
-  background: transparent !important;
-  position: relative;
-}
-
-.user-roster-table thead th::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.12), transparent);
-}
-
-.user-roster-table thead th:first-child { padding-left: 1.5rem !important; }
-.user-roster-table thead th:last-child  { padding-right: 1.5rem !important; }
-
-.user-roster-table td {
-  border: none !important;
-  vertical-align: middle !important;
+  letter-spacing: 0.07em !important;
+  background: #f1f5f9 !important;
   padding: 1rem 1rem !important;
+  border: none !important;
 }
 
-.user-roster-table td:first-child { padding-left: 1.5rem !important; }
-.user-roster-table td:last-child  { padding-right: 1.5rem !important; }
-
-.user-roster-table tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  animation: um-row-in 0.3s ease both;
+.user-roster-card-light .user-roster-table tbody tr {
+  background: #ffffff !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  transition: background 0.18s ease;
 }
 
-.user-roster-table tbody tr:last-child { border-bottom: none !important; }
-
-.user-roster-table tbody tr:hover {
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.05), rgba(99, 102, 241, 0.04)) !important;
-  transform: translateX(2px);
+.user-roster-card-light .user-roster-table tbody tr:hover {
+  background: #f8fafc !important;
 }
 
-.user-roster-table tbody tr:hover .user-avatar-ring {
-  transform: scale(1.08);
+.user-roster-card-light .user-full-name {
+  color: #0f172a !important;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
-/* Stagger row animations */
-.user-roster-table tbody tr:nth-child(1)  { animation-delay: 0.03s; }
-.user-roster-table tbody tr:nth-child(2)  { animation-delay: 0.06s; }
-.user-roster-table tbody tr:nth-child(3)  { animation-delay: 0.09s; }
-.user-roster-table tbody tr:nth-child(4)  { animation-delay: 0.12s; }
-.user-roster-table tbody tr:nth-child(5)  { animation-delay: 0.15s; }
-.user-roster-table tbody tr:nth-child(6)  { animation-delay: 0.18s; }
-.user-roster-table tbody tr:nth-child(7)  { animation-delay: 0.21s; }
-.user-roster-table tbody tr:nth-child(8)  { animation-delay: 0.24s; }
+.user-roster-card-light .user-username {
+  color: #64748b !important;
+  font-size: 0.76rem;
+}
 
+.user-roster-card-light .user-contact-pill {
+  color: #334155 !important;
+}
+
+.user-roster-card-light .user-contact-icon {
+  color: #0284c7 !important;
+}
+
+/* --- DARK THEME TABLE STYLING --- */
+.user-roster-card-dark .user-roster-thead-row {
+  background: linear-gradient(135deg, #0e1326 0%, #121830 100%) !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.user-roster-card-dark .user-roster-table th {
+  color: #38bdf8 !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.07em !important;
+  background: transparent !important;
+  padding: 1rem 1rem !important;
+  border: none !important;
+}
+
+.user-roster-card-dark .user-roster-table tbody tr {
+  background: rgba(13, 18, 34, 0.8) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  transition: background 0.18s ease;
+}
+
+.user-roster-card-dark .user-roster-table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(14, 165, 233, 0.12), rgba(99, 102, 241, 0.08)) !important;
+}
+
+.user-roster-card-dark .user-full-name {
+  color: #f8fafc !important;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.user-roster-card-dark .user-username {
+  color: #94a3b8 !important;
+  font-size: 0.76rem;
+}
+
+.user-roster-card-dark .user-contact-pill {
+  color: #cbd5e1 !important;
+}
+
+.user-roster-card-dark .user-contact-icon {
+  color: #38bdf8 !important;
+}
+
+/* INACTIVE ROW (NEVER GREY BLOB) */
+.user-roster-table tbody tr.row-inactive {
+  opacity: 0.75;
+}
+
+/* AVATARS */
 .user-avatar-ring {
   width: 42px;
   height: 42px;
@@ -548,123 +633,129 @@
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 0.82rem;
-  letter-spacing: 0.02em;
+  font-size: 0.85rem;
   flex-shrink: 0;
-  transition: transform 0.22s ease;
-  position: relative;
 }
 
 .avatar-role-admin {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(124, 58, 237, 0.3));
+  background: rgba(168, 85, 247, 0.16);
   color: #c084fc;
   border: 1.5px solid rgba(168, 85, 247, 0.4);
-  box-shadow: 0 0 18px rgba(168, 85, 247, 0.22), 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .avatar-role-manager {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.3));
+  background: rgba(59, 130, 246, 0.16);
   color: #60a5fa;
   border: 1.5px solid rgba(59, 130, 246, 0.4);
-  box-shadow: 0 0 18px rgba(59, 130, 246, 0.22), 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .avatar-role-designer {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(14, 165, 233, 0.3));
+  background: rgba(6, 182, 212, 0.16);
   color: #38bdf8;
   border: 1.5px solid rgba(6, 182, 212, 0.4);
-  box-shadow: 0 0 18px rgba(6, 182, 212, 0.22), 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .avatar-role-operator {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.3));
+  background: rgba(245, 158, 11, 0.16);
   color: #fbbf24;
   border: 1.5px solid rgba(245, 158, 11, 0.4);
-  box-shadow: 0 0 18px rgba(245, 158, 11, 0.22), 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .avatar-role-sales_billing {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.3));
+  background: rgba(16, 185, 129, 0.16);
   color: #34d399;
   border: 1.5px solid rgba(16, 185, 129, 0.4);
-  box-shadow: 0 0 18px rgba(16, 185, 129, 0.22), 0 2px 8px rgba(0,0,0,0.3);
 }
 
+/* ROLE BADGES */
 .role-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.38rem;
-  padding: 0.3rem 0.75rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 20px;
-  font-size: 0.72rem;
+  font-size: 0.73rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
   white-space: nowrap;
-  font-family: 'Inter', sans-serif;
-  position: relative;
-  overflow: hidden;
 }
 
-.role-badge::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 40%;
-  background: rgba(255,255,255,0.07);
-  border-radius: 20px 20px 0 0;
+/* Light Theme Role Badges */
+.theme-light .role-admin {
+  background: rgba(147, 51, 234, 0.1);
+  color: #7e22ce;
+  border: 1px solid rgba(147, 51, 234, 0.25);
 }
 
-.role-admin {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.14), rgba(124, 58, 237, 0.1));
+.theme-light .role-manager {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+}
+
+.theme-light .role-designer {
+  background: rgba(2, 132, 199, 0.1);
+  color: #0369a1;
+  border: 1px solid rgba(2, 132, 199, 0.25);
+}
+
+.theme-light .role-operator {
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+.theme-light .role-sales {
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+/* Dark Theme Role Badges */
+.theme-dark .role-admin {
+  background: rgba(168, 85, 247, 0.18);
   color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.14), 0 2px 6px rgba(0,0,0,0.2);
+  border: 1px solid rgba(168, 85, 247, 0.38);
 }
 
-.role-manager {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.14), rgba(37, 99, 235, 0.1));
+.theme-dark .role-manager {
+  background: rgba(59, 130, 246, 0.18);
   color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.14), 0 2px 6px rgba(0,0,0,0.2);
+  border: 1px solid rgba(59, 130, 246, 0.38);
 }
 
-.role-designer {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.14), rgba(14, 165, 233, 0.1));
+.theme-dark .role-designer {
+  background: rgba(6, 182, 212, 0.18);
   color: #38bdf8;
-  border: 1px solid rgba(6, 182, 212, 0.3);
-  box-shadow: 0 0 12px rgba(6, 182, 212, 0.14), 0 2px 6px rgba(0,0,0,0.2);
+  border: 1px solid rgba(6, 182, 212, 0.38);
 }
 
-.role-operator {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(217, 119, 6, 0.1));
+.theme-dark .role-operator {
+  background: rgba(245, 158, 11, 0.18);
   color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.14), 0 2px 6px rgba(0,0,0,0.2);
+  border: 1px solid rgba(245, 158, 11, 0.38);
 }
 
-.role-sales {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(5, 150, 105, 0.1));
+.theme-dark .role-sales {
+  background: rgba(16, 185, 129, 0.18);
   color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.14), 0 2px 6px rgba(0,0,0,0.2);
+  border: 1px solid rgba(16, 185, 129, 0.38);
 }
 
+/* CONTACT PILLS */
 .user-contact-pill {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  color: #64748b;
+  gap: 0.45rem;
+  font-size: 0.81rem;
 }
 
 .user-contact-icon {
-  color: #94a3b8;
   display: flex;
   align-items: center;
 }
 
 .user-contact-text {
-  max-width: 180px;
+  max-width: 190px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -674,54 +765,45 @@
   font-family: monospace;
 }
 
+/* STATUS TOGGLE BADGE */
 .badge-status-toggle {
   background: transparent;
   border: 1px solid transparent;
-  padding: 0.3rem 0.78rem 0.3rem 0.58rem;
+  padding: 0.32rem 0.8rem 0.32rem 0.6rem;
   border-radius: 20px;
-  font-size: 0.73rem;
+  font-size: 0.74rem;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   cursor: pointer;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.02em;
-  position: relative;
-  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
-.badge-status-toggle::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 40%;
-  background: rgba(255,255,255,0.05);
+/* Status Active */
+.theme-light .status-active {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
 }
 
-.status-active {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(5, 150, 105, 0.1));
+.theme-dark .status-active {
+  background: rgba(16, 185, 129, 0.18);
   color: #34d399;
-  border-color: rgba(16, 185, 129, 0.32);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.14), 0 2px 6px rgba(0,0,0,0.2);
+  border-color: rgba(16, 185, 129, 0.38);
 }
 
-.status-active:hover {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(5, 150, 105, 0.16));
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.22);
-  transform: scale(1.04);
-}
-
-.status-inactive {
-  background: rgba(100, 116, 139, 0.1);
+/* Status Inactive */
+.theme-light .status-inactive {
+  background: #f1f5f9;
   color: #64748b;
-  border-color: rgba(100, 116, 139, 0.2);
+  border-color: #cbd5e1;
 }
 
-.status-inactive:hover {
-  background: rgba(100, 116, 139, 0.18);
-  transform: scale(1.04);
+.theme-dark .status-inactive {
+  background: rgba(148, 163, 184, 0.16);
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.28);
 }
 
 .status-dot-mini {
@@ -732,16 +814,16 @@
 }
 
 .status-active .status-dot-mini {
-  background: #34d399;
+  background: #10b981;
   animation: um-pulse-dot 1.8s ease-in-out infinite;
 }
 
 .status-inactive .status-dot-mini {
-  background: #475569;
+  background: #64748b;
 }
 
 /* ════════════════════════════════════════════════════════════
-   ACTION BUTTONS — PREMIUM ICON SYSTEM
+   6. ACTION BUTTONS (EDIT / DELETE)
    ════════════════════════════════════════════════════════════ */
 
 .um-actions-cell {
@@ -756,18 +838,17 @@
   gap: 0.5rem;
 }
 
-/* Base icon button */
 .um-icon-btn {
   position: relative;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 35px;
+  height: 35px;
+  border-radius: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.22s ease;
   flex-shrink: 0;
   outline: none;
 }
@@ -779,30 +860,17 @@
   left: 50%;
   transform: translateX(-50%) translateY(4px);
   background: #0f172a;
-  color: #e2e8f0;
+  color: #f8fafc;
   font-size: 0.7rem;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.03em;
   padding: 0.3rem 0.6rem;
   border-radius: 7px;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.18s ease;
   z-index: 100;
-}
-
-.um-btn-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 4px solid transparent;
-  border-top-color: #0f172a;
 }
 
 .um-icon-btn:hover .um-btn-tooltip {
@@ -810,110 +878,79 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* EDIT BUTTON */
-.um-btn-edit {
-  background: rgba(14, 165, 233, 0.1);
-  border-color: rgba(14, 165, 233, 0.25);
+/* Edit Button */
+.theme-light .um-btn-edit {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0284c7;
+}
+
+.theme-light .um-btn-edit:hover {
+  background: #e0f2fe;
+  border-color: #0284c7;
+  color: #0369a1;
+  transform: translateY(-2px);
+}
+
+.theme-dark .um-btn-edit {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: rgba(14, 165, 233, 0.3);
   color: #38bdf8;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.um-btn-edit:hover {
-  background: rgba(14, 165, 233, 0.2);
-  border-color: rgba(14, 165, 233, 0.5);
+.theme-dark .um-btn-edit:hover {
+  background: rgba(14, 165, 233, 0.28);
+  border-color: rgba(14, 165, 233, 0.55);
   color: #7dd3fc;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15), 0 4px 16px rgba(14, 165, 233, 0.25);
   transform: translateY(-2px);
 }
 
-.um-btn-edit:active {
-  transform: translateY(0) scale(0.95);
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+/* Delete Button */
+.theme-light .um-btn-delete {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
-/* DELETE BUTTON */
-.um-btn-delete {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.22);
+.theme-light .um-btn-delete:hover {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #b91c1c;
+  transform: translateY(-2px);
+}
+
+.theme-dark .um-btn-delete {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
   color: #f87171;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.um-btn-delete:hover {
-  background: rgba(239, 68, 68, 0.18);
-  border-color: rgba(239, 68, 68, 0.5);
+.theme-dark .um-btn-delete:hover {
+  background: rgba(239, 68, 68, 0.28);
+  border-color: rgba(239, 68, 68, 0.55);
   color: #fca5a5;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15), 0 4px 16px rgba(239, 68, 68, 0.22);
   transform: translateY(-2px);
-}
-
-.um-btn-delete:active {
-  transform: translateY(0) scale(0.95);
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.18);
 }
 
 /* ════════════════════════════════════════════════════════════════
-   6. MODAL CONTAINER STYLING
+   7. MODAL STYLING (LIGHT & DARK)
    ════════════════════════════════════════════════════════════════ */
 
 .dark-modal .modal-content {
-  background: linear-gradient(145deg, #08080e, #05050b) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(56, 189, 248, 0.04) !important;
+  background: #0d1222 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85) !important;
   border-radius: 22px !important;
-  overflow: hidden;
-  font-family: 'Inter', sans-serif;
+  color: #f8fafc !important;
 }
 
 .light-modal .modal-content {
   background: #ffffff !important;
-  border: 1px solid #e8edf3 !important;
-  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.18) !important;
+  border: 1.5px solid #e2e8f0 !important;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.16) !important;
   border-radius: 22px !important;
-  overflow: hidden;
-  font-family: 'Inter', sans-serif;
+  color: #0f172a !important;
 }
-
-.text-primary, .vpm-section-title {
-  color: #0284c7 !important;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
-
-.dark-modal .text-primary, .dark-modal .vpm-section-title {
-  color: #38bdf8 !important;
-}
-
-.form-control, .input-group-text, .form-select {
-  border-radius: 12px !important;
-  transition: all 0.2s ease;
-}
-
-.form-control:focus, .form-select:focus {
-  border-color: #0284c7 !important;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2) !important;
-}
-
-.input-group > .form-control {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-
-.input-group > .input-group-text {
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-
-.input-group > .btn {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-  border-top-right-radius: 12px !important;
-  border-bottom-right-radius: 12px !important;
-}
-
-/* ════════════════════════════════════════════════════════════════
-   7. PERFECTLY ALIGNED ROLE SELECTION CARDS
-   ════════════════════════════════════════════════════════════════ */
 
 .role-select-card {
   display: flex;
@@ -922,145 +959,29 @@
   padding: 0.9rem 1.15rem;
   border-radius: 16px;
   cursor: pointer;
-  position: relative;
-  box-sizing: border-box !important;
+  transition: all 0.22s ease;
   user-select: none;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  width: 100%;
-  overflow: hidden;
 }
 
-.role-select-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 40%;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 16px 16px 0 0;
-  pointer-events: none;
-}
-
-/* Light Theme Cards */
 .role-card-light {
   background: #f8fafc;
-  border: 2px solid #e8edf3 !important;
+  border: 2px solid #e2e8f0 !important;
   color: #0f172a;
 }
 
-.role-card-light:hover {
-  background: #ffffff;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
-  transform: translateY(-2px);
-}
-
 .role-card-light.is-selected {
-  background: linear-gradient(135deg, #f0f9ff, #eff6ff) !important;
+  background: #f0f9ff !important;
   border-color: #0ea5e9 !important;
-  box-shadow: 0 0 0 1px #0ea5e9, 0 6px 22px rgba(14, 165, 233, 0.16) !important;
 }
 
-/* Dark Theme Cards */
 .role-card-dark {
-  background: linear-gradient(145deg, #0d0d15, #080810);
-  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
-  color: #e2e8f0;
-}
-
-.role-card-dark:hover {
-  background: linear-gradient(145deg, #10101a, #0c0c14);
-  border-color: rgba(56, 189, 248, 0.3) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.55), 0 0 18px rgba(56, 189, 248, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc;
 }
 
 .role-card-dark.is-selected {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(99, 102, 241, 0.07) 100%) !important;
-  border: 2px solid #0ea5e9 !important;
-  box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.4), 0 8px 30px rgba(14, 165, 233, 0.22) !important;
-}
-
-/* Role Icon Box */
-.role-icon-box {
-  width: 44px;
-  height: 44px;
-  border-radius: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border: 1px solid transparent;
-  transition: all 0.22s ease;
-}
-
-.is-selected .role-icon-box {
-  transform: scale(1.06);
-}
-
-.box-purple {
-  background: rgba(168, 85, 247, 0.14);
-  color: #c084fc;
-  border-color: rgba(168, 85, 247, 0.3);
-  box-shadow: 0 0 16px rgba(168, 85, 247, 0.22);
-}
-
-.box-blue {
-  background: rgba(59, 130, 246, 0.14);
-  color: #60a5fa;
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 0 16px rgba(59, 130, 246, 0.22);
-}
-
-.box-cyan {
-  background: rgba(14, 165, 233, 0.14);
-  color: #38bdf8;
-  border-color: rgba(14, 165, 233, 0.3);
-  box-shadow: 0 0 16px rgba(14, 165, 233, 0.22);
-}
-
-.box-amber {
-  background: rgba(245, 158, 11, 0.14);
-  color: #fbbf24;
-  border-color: rgba(245, 158, 11, 0.3);
-  box-shadow: 0 0 16px rgba(245, 158, 11, 0.22);
-}
-
-.box-green {
-  background: rgba(16, 185, 129, 0.14);
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.22);
-}
-
-/* Checkmark badge */
-.role-check-mark {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #0ea5e9, #2563eb);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 2px 12px rgba(14, 165, 233, 0.45);
-  animation: um-badge-pop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-}
-
-.role-card-dark .role-check-mark {
-  background: linear-gradient(135deg, #0ea5e9, #6366f1) !important;
-  box-shadow: 0 0 18px rgba(14, 165, 233, 0.55) !important;
-}
-
-/* Form Switch */
-.form-switch .form-check-input:checked {
-  background-color: #0ea5e9 !important;
+  background: rgba(14, 165, 233, 0.15) !important;
   border-color: #0ea5e9 !important;
-  box-shadow: 0 0 10px rgba(14, 165, 233, 0.35) !important;
 }
 
-.dark-modal .form-switch .form-check-input:checked {
-  background-color: #38bdf8 !important;
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.45) !important;
-}

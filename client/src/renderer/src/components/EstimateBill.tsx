@@ -556,7 +556,7 @@ Main HSN: 9983 (Printing / Advertising)`
                   />
                 </div>
                 {gstStatusMsg && (
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#10B981', marginTop: 3 }}>
+                  <div className="eb-gst-status-msg">
                     {gstStatusMsg}
                   </div>
                 )}
@@ -579,27 +579,20 @@ Main HSN: 9983 (Printing / Advertising)`
 
                 {/* Autocomplete Suggestions Dropdown */}
                 {showCustDropdown && customerSuggestions.length > 0 && (
-                  <div style={{
-                    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                    background: '#fff', border: '1.5px solid #736efe', borderRadius: 8,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)', maxHeight: 180, overflowY: 'auto'
-                  }}>
+                  <div className="eb-cust-dropdown">
                     {customerSuggestions.map(c => (
                       <div
                         key={c.id}
                         onClick={() => selectCustomer(c)}
-                        style={{
-                          padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #E2E8F0',
-                          fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                        }}
+                        className="eb-cust-dropdown-item"
                         onMouseDown={e => e.preventDefault()}
                       >
                         <div>
-                          <strong style={{ color: '#1E293B' }}>{c.name}</strong>
-                          {c.mobile && <span style={{ color: '#64748B', fontSize: '0.72rem', marginLeft: 8 }}>📞 {c.mobile}</span>}
+                          <strong className="eb-cust-name">{c.name}</strong>
+                          {c.mobile && <span className="eb-cust-mobile">📞 {c.mobile}</span>}
                         </div>
                         {c.gst_no && (
-                          <span style={{ fontSize: '0.7rem', color: '#736efe', background: 'rgba(115,110,254,0.1)', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>
+                          <span className="eb-cust-gst-badge">
                             {c.gst_no}
                           </span>
                         )}
@@ -646,43 +639,36 @@ Main HSN: 9983 (Printing / Advertising)`
         {/* Particulars / Goods Description Summary Box with POP-UP Trigger */}
         <div className="eb-card">
           <div className="eb-card-header" style={{ justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Layers size={14} /> Particulars / Goods Description ({items.length} Items)
+            <span className="eb-header-title">
+              <Layers size={14} /> Particulars / Goods Description ({items.length} {items.length === 1 ? 'Item' : 'Items'})
             </span>
             <button
               onClick={() => setIsItemModalOpen(true)}
-              style={{
-                background: 'linear-gradient(135deg, #736efe, #00D2FF)', border: 'none', color: '#fff',
-                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4,
-                padding: '5px 12px', borderRadius: 7, boxShadow: '0 2px 8px rgba(115,110,254,0.3)'
-              }}
+              className="eb-header-btn"
+              title="Open Item Manager Pop-Up"
             >
-              <PackagePlus size={14} /> Open Item Manager Pop-Up
+              <PackagePlus size={13} /> Item Pop-Up
             </button>
           </div>
           <div className="eb-card-body" style={{ padding: 12 }}>
 
             {/* Added Items Preview Pill List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+            <div className="eb-item-pills-list">
               {items.map((it, idx) => {
                 const { total } = calcRow(it)
                 return (
                   <div
                     key={it.id}
                     onClick={() => setIsItemModalOpen(true)}
-                    style={{
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      padding: '8px 12px', borderRadius: 8, background: 'rgba(115,110,254,0.04)',
-                      border: '1px solid #E2E8F0', cursor: 'pointer', fontSize: '0.8rem'
-                    }}
+                    className="eb-item-pill"
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontWeight: 800, color: '#736efe', fontSize: '0.75rem' }}>#{idx + 1}</span>
-                      <strong style={{ color: '#1E293B' }}>{it.description || 'Custom Item'}</strong>
-                      <span style={{ color: '#64748B', fontSize: '0.72rem' }}>({it.qty} {it.unit} @ ₹{it.rate || '0'})</span>
+                      <span className="eb-pill-index">#{idx + 1}</span>
+                      <strong className="eb-pill-name">{it.description || 'Custom Item'}</strong>
+                      <span className="eb-pill-meta">({it.qty} {it.unit} @ ₹{it.rate || '0'})</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <strong style={{ color: '#1E293B' }}>₹{fmt(total)}</strong>
+                      <strong className="eb-pill-total">₹{fmt(total)}</strong>
                       <Edit3 size={12} style={{ color: '#736efe' }} />
                     </div>
                   </div>
@@ -778,7 +764,7 @@ Main HSN: 9983 (Printing / Advertising)`
             <button className="eb-zoom-btn" onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} title="Zoom Out">
               <ZoomOut size={13} />
             </button>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, minWidth: 40, textAlign: 'center' }}>
+            <span className="eb-zoom-pct">
               {Math.round(zoom * 100)}%
             </span>
             <button className="eb-zoom-btn" onClick={() => setZoom(z => Math.min(1.3, z + 0.1))} title="Zoom In">
