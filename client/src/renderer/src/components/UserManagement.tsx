@@ -532,7 +532,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
   }
 
   return (
-    <div className="w-100 pt-1 pb-5 mb-4">
+    <div className={`um-page-container ${isDark ? 'theme-dark' : 'theme-light'} w-100 pt-1 pb-5 mb-4`}>
       {/* Toast Alert */}
       {successMsg && (
         <Alert variant="success" onClose={() => setSuccessMsg(null)} dismissible className="shadow-lg border-success mb-3 rounded-3">
@@ -734,7 +734,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       </div>
 
       {/* User Roster Table */}
-      <Card className={`user-roster-card ${isDark ? 'text-light' : 'text-dark'} border-0 w-100`}>
+      <Card className={`user-roster-card ${isDark ? 'user-roster-card-dark' : 'user-roster-card-light'} border-0 w-100`}>
         <Card.Body className="p-0 w-100">
           {loading ? (
             <div className="text-center py-5">
@@ -749,9 +749,9 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
             </div>
           ) : (
             <div className="table-responsive w-100">
-              <Table hover variant={isDark ? 'dark' : 'light'} className="align-middle mb-0 user-roster-table">
+              <Table hover className="align-middle mb-0 user-roster-table">
                 <thead>
-                  <tr className={isDark ? 'bg-dark bg-opacity-60 text-secondary fs-8 text-uppercase' : 'bg-light text-secondary fs-8 text-uppercase'}>
+                  <tr className="user-roster-thead-row">
                     <th className="ps-4 py-3">Employee Name</th>
                     <th className="py-3">Role & Access</th>
                     <th className="py-3">Contact Email</th>
@@ -765,7 +765,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                     const isActive = u.status === 'ACTIVE'
 
                     return (
-                      <tr key={u.id} className={!isActive ? 'opacity-50' : ''}>
+                      <tr key={u.id} className={!isActive ? 'row-inactive' : ''}>
                         {/* Name & Avatar */}
                         <td className="ps-4 py-3">
                           <div className="d-flex align-items-center gap-3">
@@ -773,8 +773,8 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                               {getUserInitials(u.full_name)}
                             </div>
                             <div>
-                              <div className={`fw-bold fs-7 ${isDark ? 'text-white' : 'text-dark'}`}>{u.full_name}</div>
-                              <div className="fs-8 text-secondary font-monospace">@{u.username}</div>
+                              <div className="user-full-name">{u.full_name}</div>
+                              <div className="user-username font-monospace">@{u.username}</div>
                             </div>
                           </div>
                         </td>
@@ -820,24 +820,26 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
 
                         {/* Actions */}
                         {isAdmin && (
-                          <td className="pe-4 text-end py-3">
-                            <div className="d-flex align-items-center justify-content-end gap-1.5">
+                          <td className="um-actions-cell py-3">
+                            <div className="um-action-group">
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditModal(u)}
-                                className="btn-user-action action-edit"
-                                title="Edit User & Permissions"
+                                className="um-icon-btn um-btn-edit"
+                                  aria-label="Edit User"
                               >
-                                <Edit2 size={14} />
+                                <Edit2 size={14} strokeWidth={2.2} />
+                                <span className="um-btn-tooltip">Edit User</span>
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() => handleDeleteUser(u.id, u.full_name)}
-                                className="btn-user-action action-delete"
-                                title="Delete Account"
+                                className="um-icon-btn um-btn-delete"
+                                aria-label="Delete Account"
                               >
-                                <Trash2 size={14} />
+                                <Trash2 size={14} strokeWidth={2.2} />
+                                <span className="um-btn-tooltip">Delete</span>
                               </button>
                             </div>
                           </td>
@@ -880,9 +882,9 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                   {/* Full Name */}
                   <Col md={6} xs={12}>
                     <Form.Group>
-                      <Form.Label className={`fw-semibold fs-7 mb-1 ${isDark ? 'text-secondary' : 'text-muted'}`}>Full Name *</Form.Label>
-                      <InputGroup size="sm">
-                        <InputGroup.Text className={isDark ? 'bg-secondary bg-opacity-20 border-secondary text-secondary' : 'bg-light border-light-subtle text-muted'}>
+                      <Form.Label className="vpm-input-label">Full Name *</Form.Label>
+                      <InputGroup className="vpm-input-group">
+                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
                           <User size={15} />
                         </InputGroup.Text>
                         <Form.Control
@@ -891,7 +893,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                           placeholder="e.g. Rahul Sharma"
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
-                          className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary py-2' : 'bg-light text-dark border-light-subtle py-2'}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
                         />
                       </InputGroup>
                     </Form.Group>
@@ -900,9 +902,9 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                   {/* Username */}
                   <Col md={6} xs={12}>
                     <Form.Group>
-                      <Form.Label className={`fw-semibold fs-7 mb-1 ${isDark ? 'text-secondary' : 'text-muted'}`}>Username (@handle) *</Form.Label>
-                      <InputGroup size="sm">
-                        <InputGroup.Text className={isDark ? 'bg-secondary bg-opacity-20 border-secondary text-secondary' : 'bg-light border-light-subtle text-muted'}>
+                      <Form.Label className="vpm-input-label">Username (@handle) *</Form.Label>
+                      <InputGroup className="vpm-input-group">
+                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
                           @
                         </InputGroup.Text>
                         <Form.Control
@@ -911,7 +913,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                           placeholder="e.g. rahul_print"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary py-2' : 'bg-light text-dark border-light-subtle py-2'}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
                         />
                       </InputGroup>
                     </Form.Group>
@@ -920,9 +922,9 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                   {/* Email Address */}
                   <Col md={6} xs={12}>
                     <Form.Group>
-                      <Form.Label className={`fw-semibold fs-7 mb-1 ${isDark ? 'text-secondary' : 'text-muted'}`}>Email Address</Form.Label>
-                      <InputGroup size="sm">
-                        <InputGroup.Text className={isDark ? 'bg-secondary bg-opacity-20 border-secondary text-secondary' : 'bg-light border-light-subtle text-muted'}>
+                      <Form.Label className="vpm-input-label">Email Address</Form.Label>
+                      <InputGroup className="vpm-input-group">
+                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
                           <Mail size={15} />
                         </InputGroup.Text>
                         <Form.Control
@@ -930,7 +932,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                           placeholder="rahul@viralprint.com"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary py-2' : 'bg-light text-dark border-light-subtle py-2'}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
                         />
                       </InputGroup>
                     </Form.Group>
@@ -939,9 +941,9 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                   {/* Mobile Phone */}
                   <Col md={6} xs={12}>
                     <Form.Group>
-                      <Form.Label className={`fw-semibold fs-7 mb-1 ${isDark ? 'text-secondary' : 'text-muted'}`}>Mobile Phone</Form.Label>
-                      <InputGroup size="sm">
-                        <InputGroup.Text className={isDark ? 'bg-secondary bg-opacity-20 border-secondary text-secondary' : 'bg-light border-light-subtle text-muted'}>
+                      <Form.Label className="vpm-input-label">Mobile Phone</Form.Label>
+                      <InputGroup className="vpm-input-group">
+                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
                           <Phone size={15} />
                         </InputGroup.Text>
                         <Form.Control
@@ -949,7 +951,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                           placeholder="+91 98765 43210"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary py-2' : 'bg-light text-dark border-light-subtle py-2'}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
                         />
                       </InputGroup>
                     </Form.Group>
@@ -968,14 +970,13 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                     { id: 'MANAGER', title: 'Shop Manager', desc: 'Manage orders, tasks & staff', icon: Briefcase, color: 'blue' },
                     { id: 'DESIGNER', title: 'Graphic Designer', desc: 'Layout proofing & CMYK files', icon: Sparkles, color: 'cyan' },
                     { id: 'OPERATOR', title: 'Print Operator', desc: 'Digital press & machine queue', icon: User, color: 'amber' },
-                    { id: 'SALES_BILLING', title: 'Sales & Billing', desc: 'POS Invoicing, customer billing & sales orders', icon: CheckCircle2, color: 'green' }
-                  ].map((rOption, idx) => {
+                    { id: 'SALES_BILLING', title: 'Sales & Billing', desc: 'POS Invoicing & customer orders', icon: CheckCircle2, color: 'green' }
+                  ].map((rOption) => {
                     const isSelected = selectedRole === rOption.id
                     const IconComp = rOption.icon
-                    const isFullWidth = idx === 4
 
                     return (
-                      <Col key={rOption.id} md={isFullWidth ? 12 : 6} xs={12} className="d-flex">
+                      <Col key={rOption.id} md={6} xs={12} className="d-flex">
                         <div
                           className={`role-select-card ${isSelected ? 'is-selected' : ''} ${isDark ? 'role-card-dark' : 'role-card-light'}`}
                           onClick={() => setSelectedRole(rOption.id as RoleType)}
@@ -1008,11 +1009,11 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                   {/* Password */}
                   <Col md={6} xs={12}>
                     <Form.Group>
-                      <Form.Label className={`fw-semibold fs-7 mb-1 ${isDark ? 'text-secondary' : 'text-muted'}`}>
+                      <Form.Label className="vpm-input-label">
                         {editingUser ? 'New Password' : 'Account Password *'}
                       </Form.Label>
-                      <InputGroup size="sm">
-                        <InputGroup.Text className={isDark ? 'bg-secondary bg-opacity-20 border-secondary text-secondary' : 'bg-light border-light-subtle text-muted'}>
+                      <InputGroup className="vpm-input-group">
+                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
                           <Lock size={15} />
                         </InputGroup.Text>
                         <Form.Control
@@ -1021,12 +1022,12 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                           placeholder={editingUser ? 'Leave blank to keep existing' : 'Enter secure password'}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary py-2' : 'bg-light text-dark border-light-subtle py-2'}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
                         />
                         <Button
                           variant={isDark ? 'outline-secondary' : 'outline-dark'}
                           onClick={() => setShowPassword(!showPassword)}
-                          className="px-2.5"
+                          className="px-2.5 border-0 bg-transparent text-secondary"
                         >
                           {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                         </Button>
@@ -1038,11 +1039,11 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                   {/* Confirm Password */}
                   <Col md={6} xs={12}>
                     <Form.Group>
-                      <Form.Label className={`fw-semibold fs-7 mb-1 ${isDark ? 'text-secondary' : 'text-muted'}`}>
+                      <Form.Label className="vpm-input-label">
                         Confirm Password
                       </Form.Label>
-                      <InputGroup size="sm">
-                        <InputGroup.Text className={isDark ? 'bg-secondary bg-opacity-20 border-secondary text-secondary' : 'bg-light border-light-subtle text-muted'}>
+                      <InputGroup className="vpm-input-group">
+                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
                           <KeyRound size={15} />
                         </InputGroup.Text>
                         <Form.Control
@@ -1051,7 +1052,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                           placeholder="Confirm password"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          className={isDark ? 'bg-secondary bg-opacity-25 text-light border-secondary py-2' : 'bg-light text-dark border-light-subtle py-2'}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
                         />
                       </InputGroup>
                     </Form.Group>

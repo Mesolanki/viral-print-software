@@ -9,8 +9,15 @@ html, body, #root { height: 100%; width: 100%; }
 
 body {
   font-family: var(--font-sans);
+  font-size: var(--font-size-base, 0.875rem);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'ss01' 1;
+  font-optical-sizing: auto;
   overflow: hidden;
 }
 
@@ -46,11 +53,11 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DARK THEME — Deep navy with electric cyan ambient
+   DARK THEME — Pure Obsidian Pitch Black with Neon Ambient Aura
    ══════════════════════════════════════════════════════════════ */
 .vpm-app-shell.theme-dark {
-  background-color: var(--dark-bg);
-  color: var(--dark-text);
+  background-color: #000000;
+  color: #FFFFFF;
 }
 
 /* Animated ambient glow — dark */
@@ -59,9 +66,9 @@ body {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 70% 55% at -5% -5%,  rgba(115,110,254,0.12) 0, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 105% 5%,  rgba(0,210,255,0.08) 0, transparent 55%),
-    radial-gradient(ellipse 40% 35% at 50% 105%, rgba(247,148,29,0.04) 0, transparent 55%);
+    radial-gradient(ellipse 70% 55% at -5% -5%,  rgba(115,110,254,0.10) 0, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 105% 5%,  rgba(0,240,255,0.08) 0, transparent 55%),
+    radial-gradient(ellipse 40% 35% at 50% 105%, rgba(247,148,29,0.03) 0, transparent 55%);
   pointer-events: none;
   z-index: 0;
   animation: vpmAmbientShift 20s ease-in-out infinite alternate;
@@ -117,3 +124,45 @@ body {
 .letter-spacing-1 { letter-spacing: 1px; }
 .text-rose-500   { color: #F43F5E; }
 .text-cyan-500   { color: #06B6D4; }
+
+/* ── Professional Typography Globals ─────────────────────────── */
+
+/* Headings use Outfit (display font) for premium feel */
+h1, h2, h3, h4, h5, h6,
+.vpm-page-heading,
+.modal-title {
+  font-family: var(--font-display, 'Outfit', 'Inter', sans-serif) !important;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+/* Body text — Inter for crisp readability */
+p, span, label, td, th, li, a, button, input, select, textarea {
+  font-family: var(--font-sans);
+}
+
+/* Monospace — JetBrains Mono */
+code, pre, kbd, samp,
+.font-monospace,
+.font-mono,
+.user-contact-phone,
+.um-user-handle {
+  font-family: var(--font-mono) !important;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Number display — tabular nums for aligned data */
+.vpm-stat-value,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Uppercase labels — tracking */
+.vpm-stat-label,
+.text-uppercase {
+  letter-spacing: 0.07em;
+}
+

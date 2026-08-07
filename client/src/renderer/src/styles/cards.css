@@ -28,28 +28,7 @@
   transform: translateY(-6px) scale(1.01);
 }
 
-/* Top shimmer sweep on hover */
-.vpm-stat-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -150%;
-  width: 65%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,0.22),
-    transparent
-  );
-  transform: skewX(-18deg);
-  pointer-events: none;
-  z-index: 5;
-}
 
-.vpm-stat-card:hover::after {
-  left: 150%;
-  transition: left 0.90s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
 /* Header row */
 .vpm-stat-top {
@@ -206,26 +185,27 @@
 
 /* ── Dark Standard ────────────────────────────────────────────── */
 .vpm-stat-card-dark:not(.vpm-stat-cyan) {
-  background: linear-gradient(145deg, rgba(15,25,46,0.98), rgba(12,20,40,0.95)) !important;
-  border-color: rgba(255,255,255,0.07) !important;
+  background: linear-gradient(145deg, #0f0f12 0%, #08080a 100%) !important;
+  border-color: rgba(255,255,255,0.09) !important;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.30),
-    inset 0 1px 0 rgba(255,255,255,0.04) !important;
-  color: #E2E8F0 !important;
+    0 8px 30px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255,255,255,0.05) !important;
+  color: #FFFFFF !important;
 }
 
 .vpm-stat-card-dark:not(.vpm-stat-cyan):hover {
-  border-color: rgba(255,255,255,0.14) !important;
+  border-color: rgba(255,255,255,0.18) !important;
   box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.50),
-    inset 0 1px 0 rgba(255,255,255,0.06) !important;
+    0 20px 60px rgba(0, 0, 0, 0.95),
+    0 0 25px rgba(0, 240, 255, 0.12),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
 }
 
-.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-label { color: #64748B !important; }
-.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-desc  { color: #475569 !important; }
-.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-divider { background: rgba(255,255,255,0.07) !important; }
+.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-label { color: #A1A1AA !important; }
+.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-desc  { color: #71717A !important; }
+.vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-divider { background: rgba(255,255,255,0.09) !important; }
 .vpm-stat-card-dark:not(.vpm-stat-cyan) .vpm-stat-icon-ring {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.06);
   border-radius: 9px;
 }
 
