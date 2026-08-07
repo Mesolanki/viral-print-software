@@ -1,0 +1,906 @@
+// ============================================================
+// Viral Print Media - Data & API Service
+// ============================================================
+
+export interface Customer {
+  id: number
+  name: string
+  mobile: string
+  email: string
+  gst_no: string
+  billing_address: string
+  shipping_address: string
+  outstanding_balance: number
+  created_at: string
+}
+
+export interface Supplier {
+  id: number
+  name: string
+  mobile: string
+  email: string
+  gst_no: string
+  address: string
+  created_at: string
+}
+
+export interface Product {
+  id: number
+  name: string
+  category: string
+  unit: string
+  price: number
+  gst_rate: number
+  hsn_code: string
+  description: string
+}
+
+export interface InvoiceItem {
+  id?: number
+  product_id?: number
+  description: string
+  hsn: string
+  tax_percent: number
+  qty: number
+  rate: number
+  amount: number
+}
+
+export interface Invoice {
+  id: number
+  invoice_number: string
+  type: 'TAX_INVOICE' | 'QUOTATION' | 'ESTIMATE'
+  date: string
+  time?: string
+  customer_name: string
+  customer_mobile: string
+  customer_gstin: string
+  customer_address: string
+  eway_bill_no?: string
+  vehicle_no?: string
+  transporter_name?: string
+  distance_km?: number
+  supply_type?: string
+  document_type?: string
+  valid_for?: string
+  credit_period?: string
+  sub_total: number
+  cgst: number
+  sgst: number
+  round_off: number
+  grand_total: number
+  paid_amount: number
+  balance_amount: number
+  status: 'PAID' | 'UNPAID' | 'PARTIALLY_PAID'
+  payment_mode?: 'CASH' | 'BANK' | 'UPI' | 'CARD'
+  items: InvoiceItem[]
+  terms?: string
+  created_at: string
+}
+
+/**
+ * Calculates current Indian Financial Year (April 1 to March 31).
+ * E.g. for date 2026-08-07 -> '26-27'
+ */
+export function getIndianFinancialYear(dateInput?: Date | string): string {
+  const d = dateInput ? new Date(dateInput) : new Date()
+  const year = d.getFullYear()
+  const month = d.getMonth() + 1 // 1=Jan, 4=Apr
+
+  let startYear = year
+  let endYear = year + 1
+
+  if (month < 4) {
+    startYear = year - 1
+    endYear = year
+  }
+
+  return `${String(startYear).slice(-2)}-${String(endYear).slice(-2)}`
+}
+
+/**
+ * Generates official sequential Invoice / Quote / Estimate Number.
+ * Tax Invoice: VPM/26-27/0001
+ * Quotation: VPM/QT/26-27/0001
+ * Estimate: EST/26-27/0001
+ */
+export function getNextInvoiceNumber(type: 'TAX_INVOICE' | 'QUOTATION' | 'ESTIMATE', dateInput?: Date | string): string {
+  const fy = getIndianFinancialYear(dateInput)
+  const invoices = DataService.getInvoices()
+
+  const prefix = type === 'TAX_INVOICE' ? `VPM/${fy}/` : type === 'QUOTATION' ? `VPM/QT/${fy}/` : `EST/${fy}/`
+  const sameFyInvoices = invoices.filter(i => i.type === type && i.invoice_number.startsWith(prefix))
+
+  let nextSeq = 1
+  if (sameFyInvoices.length > 0) {
+    const seqs = sameFyInvoices.map(i => {
+      const parts = i.invoice_number.split('/')
+      const numPart = parts[parts.length - 1]
+      return parseInt(numPart, 10) || 0
+    })
+    nextSeq = Math.max(...seqs) + 1
+  }
+
+  return `${prefix}${String(nextSeq).padStart(4, '0')}`
+}
+
+export interface PurchaseItem {
+  id?: number
+  product_name: string
+  qty: number
+  rate: number
+  amount: number
+}
+
+export interface Purchase {
+  id: number
+  purchase_number: string
+  supplier_name: string
+  supplier_mobile: string
+  date: string
+  total_amount: number
+  paid_amount: number
+  balance_amount: number
+  status: 'PAID' | 'UNPAID' | 'PARTIALLY_PAID'
+  items: PurchaseItem[]
+  notes: string
+  created_at: string
+}
+
+export interface PaymentRecord {
+  id: number
+  invoice_id: number
+  invoice_number: string
+  invoice_type: 'TAX_INVOICE' | 'QUOTATION' | 'ESTIMATE'
+  customer_name: string
+  date: string
+  amount: number
+  payment_type: 'CASH' | 'BANK' | 'UPI' | 'CARD'
+  notes: string
+  created_at: string
+}
+
+export interface TaskItem {
+  id: number
+  title: string
+  description: string
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  assigned_to: string
+  start_date: string
+  due_date: string
+  created_at: string
+}
+
+export interface SystemUser {
+  id: number
+  full_name: string
+  username: string
+  role: 'Admin' | 'Operator' | 'Viewer'
+  status: 'ACTIVE' | 'INACTIVE'
+  last_login: string
+}
+
+export interface ActivityLogItem {
+  id: number
+  username: string
+  action: string
+  module: string
+  detail: string
+  timestamp: string
+}
+
+const STORAGE_KEYS = {
+  CUSTOMERS: 'vpm_customers',
+  SUPPLIERS: 'vpm_suppliers',
+  PRODUCTS: 'vpm_products',
+  INVOICES: 'vpm_invoices',
+  PURCHASES: 'vpm_purchases',
+  PAYMENTS: 'vpm_payments',
+  TASKS: 'vpm_tasks',
+  USERS: 'vpm_users',
+  LOGS: 'vpm_activity_logs'
+}
+
+// Initial Sample Data (Real print shop context for Viral Print Media)
+const INITIAL_CUSTOMERS: Customer[] = [
+  {
+    id: 1,
+    name: 'Apex Infotech Solutions',
+    mobile: '98250 12345',
+    email: 'contact@apexinfotech.com',
+    gst_no: '24AAAAA0000A1Z5',
+    billing_address: '102 Business Center, SG Highway, Ahmedabad 380054',
+    shipping_address: '102 Business Center, SG Highway, Ahmedabad 380054',
+    outstanding_balance: 14500,
+    created_at: '2026-07-15'
+  },
+  {
+    id: 2,
+    name: 'Radhe Krishna Enterprise',
+    mobile: '97123 45678',
+    email: 'info@radhekrishna.co.in',
+    gst_no: '24BBBBB1111B2Z6',
+    billing_address: 'G-12 Commerce House, Ashram Road, Ahmedabad 380009',
+    shipping_address: 'Warehouse Site 4, Changodar, Ahmedabad 382213',
+    outstanding_balance: 6200,
+    created_at: '2026-07-20'
+  },
+  {
+    id: 3,
+    name: 'Satyam Advertising Agency',
+    mobile: '94260 99887',
+    email: 'satyamads.ahd@gmail.com',
+    gst_no: '24CCCCC2222C3Z7',
+    billing_address: '405 Spectrum Tower, CG Road, Ahmedabad 380006',
+    shipping_address: '405 Spectrum Tower, CG Road, Ahmedabad 380006',
+    outstanding_balance: 0,
+    created_at: '2026-07-25'
+  }
+]
+
+const INITIAL_SUPPLIERS: Supplier[] = [
+  {
+    id: 1,
+    name: 'Gujarat Paper Mart',
+    mobile: '98980 11223',
+    email: 'sales@gujarattpaper.com',
+    gst_no: '24DDDDD3333D4Z8',
+    address: 'Plot 45, GIDC Naroda, Ahmedabad',
+    created_at: '2026-07-01'
+  },
+  {
+    id: 2,
+    name: 'Sun Flex & Banner Vinyl Media',
+    mobile: '99090 33445',
+    email: 'sunflex.media@gmail.com',
+    gst_no: '24EEEEE4444E5Z9',
+    address: 'Shop 12, Industrial Estate, Odhav, Ahmedabad',
+    created_at: '2026-07-05'
+  }
+]
+
+const INITIAL_PRODUCTS: Product[] = [
+  {
+    id: 1,
+    name: 'Star Flex Banner (13 oz Frontlit)',
+    category: 'Flex Printing',
+    unit: 'sqft',
+    price: 18,
+    gst_rate: 18,
+    hsn_code: '4911',
+    description: 'High resolution digital flex banner printing'
+  },
+  {
+    id: 2,
+    name: 'Vinyl Sticker Printing with Gloss Lamination',
+    category: 'Vinyl & Stickers',
+    unit: 'sqft',
+    price: 45,
+    gst_rate: 18,
+    hsn_code: '3919',
+    description: 'Self-adhesive waterproof vinyl with lamination'
+  },
+  {
+    id: 3,
+    name: 'Visiting Cards (350 GSM Velvet Matte)',
+    category: 'Stationery',
+    unit: 'box',
+    price: 350,
+    gst_rate: 12,
+    hsn_code: '4909',
+    description: 'Premium double sided visiting cards (Box of 100)'
+  },
+  {
+    id: 4,
+    name: 'Acrylic LED Glow Sign Board',
+    category: 'Signages',
+    unit: 'sqft',
+    price: 650,
+    gst_rate: 18,
+    hsn_code: '9405',
+    description: '3D Acrylic cutout letters with Samsung LED modules'
+  },
+  {
+    id: 5,
+    name: 'Brochure Printing (A4 Multi-page)',
+    category: 'Offset Printing',
+    unit: 'pcs',
+    price: 15,
+    gst_rate: 12,
+    hsn_code: '4911',
+    description: '170 GSM Art paper full color catalog printing'
+  }
+]
+
+const INITIAL_INVOICES: Invoice[] = [
+  {
+    id: 1,
+    invoice_number: 'VPM/26-27/0101',
+    type: 'TAX_INVOICE',
+    date: '2026-08-01',
+    customer_name: 'Apex Infotech Solutions',
+    customer_mobile: '98250 12345',
+    customer_gstin: '24AAAAA0000A1Z5',
+    customer_address: '102 Business Center, SG Highway, Ahmedabad 380054',
+    eway_bill_no: '241098765432',
+    sub_total: 20000,
+    cgst: 1800,
+    sgst: 1800,
+    round_off: 0,
+    grand_total: 23600,
+    paid_amount: 10000,
+    balance_amount: 13600,
+    status: 'PARTIALLY_PAID',
+    payment_mode: 'BANK',
+    items: [
+      {
+        description: 'Star Flex Banner (13 oz Frontlit)',
+        hsn: '4911',
+        tax_percent: 18,
+        qty: 500,
+        rate: 18,
+        amount: 9000
+      },
+      {
+        description: 'Acrylic LED Glow Sign Board',
+        hsn: '9405',
+        tax_percent: 18,
+        qty: 16,
+        rate: 687.5,
+        amount: 11000
+      }
+    ],
+    terms: 'Goods once sold will not be accepted. Subject to Ahmedabad Jurisdiction.',
+    created_at: '2026-08-01'
+  },
+  {
+    id: 2,
+    invoice_number: 'VPM/QT/26-27/0045',
+    type: 'QUOTATION',
+    date: '2026-08-05',
+    customer_name: 'Radhe Krishna Enterprise',
+    customer_mobile: '97123 45678',
+    customer_gstin: '24BBBBB1111B2Z6',
+    customer_address: 'G-12 Commerce House, Ashram Road, Ahmedabad 380009',
+    valid_for: '30 Days',
+    credit_period: '15 Days',
+    sub_total: 15000,
+    cgst: 1350,
+    sgst: 1350,
+    round_off: 0,
+    grand_total: 17700,
+    paid_amount: 0,
+    balance_amount: 17700,
+    status: 'UNPAID',
+    items: [
+      {
+        description: 'Vinyl Sticker Printing with Gloss Lamination',
+        hsn: '3919',
+        tax_percent: 18,
+        qty: 200,
+        rate: 45,
+        amount: 9000
+      },
+      {
+        description: 'Visiting Cards (350 GSM Velvet Matte)',
+        hsn: '4909',
+        tax_percent: 12,
+        qty: 20,
+        rate: 300,
+        amount: 6000
+      }
+    ],
+    terms: '50% Advance with Purchase Order. Delivery within 4 working days.',
+    created_at: '2026-08-05'
+  },
+  {
+    id: 3,
+    invoice_number: 'EST-2026-089',
+    type: 'ESTIMATE',
+    date: '2026-08-06',
+    customer_name: 'Satyam Advertising Agency',
+    customer_mobile: '94260 99887',
+    customer_gstin: '',
+    customer_address: '405 Spectrum Tower, CG Road, Ahmedabad 380006',
+    sub_total: 8500,
+    cgst: 0,
+    sgst: 0,
+    round_off: 0,
+    grand_total: 8500,
+    paid_amount: 8500,
+    balance_amount: 0,
+    status: 'PAID',
+    payment_mode: 'UPI',
+    items: [
+      {
+        description: 'Flex Banners for Local Promotion Event',
+        hsn: '',
+        tax_percent: 0,
+        qty: 350,
+        rate: 20,
+        amount: 7000
+      },
+      {
+        description: 'Standee Frames with Print',
+        hsn: '',
+        tax_percent: 0,
+        qty: 1,
+        rate: 1500,
+        amount: 1500
+      }
+    ],
+    created_at: '2026-08-06'
+  }
+]
+
+const INITIAL_PURCHASES: Purchase[] = [
+  {
+    id: 1,
+    purchase_number: 'PUR-2627-012',
+    supplier_name: 'Gujarat Paper Mart',
+    supplier_mobile: '98980 11223',
+    date: '2026-07-28',
+    total_amount: 45000,
+    paid_amount: 30000,
+    balance_amount: 15000,
+    status: 'PARTIALLY_PAID',
+    items: [
+      { product_name: '170 GSM Art Paper Rolls', qty: 10, rate: 3500, amount: 35000 },
+      { product_name: '350 GSM Board Paper Packets', qty: 20, rate: 500, amount: 10000 }
+    ],
+    notes: 'Raw paper material stock purchase',
+    created_at: '2026-07-28'
+  }
+]
+
+const INITIAL_PAYMENTS: PaymentRecord[] = [
+  {
+    id: 1,
+    invoice_id: 1,
+    invoice_number: 'VPM/26-27/0101',
+    invoice_type: 'TAX_INVOICE',
+    customer_name: 'Apex Infotech Solutions',
+    date: '2026-08-02',
+    amount: 10000,
+    payment_type: 'BANK',
+    notes: 'Advance transfer via IMPS Bank transfer',
+    created_at: '2026-08-02'
+  },
+  {
+    id: 2,
+    invoice_id: 3,
+    invoice_number: 'EST-2026-089',
+    invoice_type: 'ESTIMATE',
+    customer_name: 'Satyam Advertising Agency',
+    date: '2026-08-06',
+    amount: 8500,
+    payment_type: 'UPI',
+    notes: 'Full payment via PhonePe UPI',
+    created_at: '2026-08-06'
+  }
+]
+
+const INITIAL_TASKS: TaskItem[] = [
+  {
+    id: 1,
+    title: 'Print & Mount Glow Sign Board for Apex Infotech',
+    description: 'Ensure Samsung LED wiring and 3D acrylic cutouts are aligned.',
+    priority: 'HIGH',
+    status: 'IN_PROGRESS',
+    assigned_to: 'Ramesh Sharma (Operator)',
+    start_date: '2026-08-06',
+    due_date: '2026-08-08',
+    created_at: '2026-08-06'
+  },
+  {
+    id: 2,
+    title: 'Dispatch 500 sqft Flex Banners',
+    description: 'Deliver to SG Highway client site by 4 PM.',
+    priority: 'URGENT',
+    status: 'PENDING',
+    assigned_to: 'Vikram Patel',
+    start_date: '2026-08-07',
+    due_date: '2026-08-07',
+    created_at: '2026-08-07'
+  },
+  {
+    id: 3,
+    title: 'Prepare Monthly GST CA File for July 2026',
+    description: 'Compile all B2B Tax Invoices and purchase bills.',
+    priority: 'MEDIUM',
+    status: 'COMPLETED',
+    assigned_to: 'Admin User',
+    start_date: '2026-08-01',
+    due_date: '2026-08-05',
+    created_at: '2026-08-01'
+  }
+]
+
+const INITIAL_USERS: SystemUser[] = [
+  {
+    id: 1,
+    full_name: 'Viral Administrator',
+    username: 'admin',
+    role: 'Admin',
+    status: 'ACTIVE',
+    last_login: '2026-08-07 16:30'
+  },
+  {
+    id: 2,
+    full_name: 'Ramesh Sharma',
+    username: 'ramesh',
+    role: 'Operator',
+    status: 'ACTIVE',
+    last_login: '2026-08-07 10:15'
+  },
+  {
+    id: 3,
+    full_name: 'Accounts Manager',
+    username: 'accounts',
+    role: 'Operator',
+    status: 'ACTIVE',
+    last_login: '2026-08-06 18:00'
+  }
+]
+
+const INITIAL_LOGS: ActivityLogItem[] = [
+  {
+    id: 1,
+    username: 'admin',
+    action: 'Invoice Created',
+    module: 'Invoice Management',
+    detail: 'Created Tax Invoice VPM/26-27/0101 for Apex Infotech Solutions',
+    timestamp: '2026-08-01 11:20:00'
+  },
+  {
+    id: 2,
+    username: 'ramesh',
+    action: 'Task Updated',
+    module: 'Task Management',
+    detail: 'Updated status to IN_PROGRESS for Glow Sign Board task',
+    timestamp: '2026-08-06 14:10:00'
+  }
+]
+
+// Generic Storage Helper Functions
+function getStoredItem<T>(key: string, initialDefault: T): T {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) {
+      localStorage.setItem(key, JSON.stringify(initialDefault))
+      return initialDefault
+    }
+    return JSON.parse(raw) as T
+  } catch (err) {
+    console.warn(`[DataService] Error reading key ${key}:`, err)
+    return initialDefault
+  }
+}
+
+function setStoredItem<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch (err) {
+    console.error(`[DataService] Error writing key ${key}:`, err)
+  }
+}
+
+export const DataService = {
+  // Customers
+  getCustomers: (): Customer[] => getStoredItem<Customer[]>(STORAGE_KEYS.CUSTOMERS, INITIAL_CUSTOMERS),
+  lookupGst: (gstNo: string) => {
+    const clean = gstNo.trim().toUpperCase()
+    const customers = DataService.getCustomers()
+    const existing = customers.find(c => c.gst_no && c.gst_no.trim().toUpperCase().includes(clean))
+    
+    const stateCode = clean.substring(0, 2)
+    const GST_STATE_MAP: Record<string, string> = {
+      '01': 'Jammu & Kashmir', '02': 'Himachal Pradesh', '03': 'Punjab', '04': 'Chandigarh',
+      '05': 'Uttarakhand', '06': 'Haryana', '07': 'Delhi', '08': 'Rajasthan',
+      '09': 'Uttar Pradesh', '10': 'Bihar', '11': 'Sikkim', '12': 'Arunachal Pradesh',
+      '13': 'Nagaland', '14': 'Manipur', '15': 'Mizoram', '16': 'Tripura',
+      '17': 'Meghalaya', '18': 'Assam', '19': 'West Bengal', '20': 'Jharkhand',
+      '21': 'Odisha', '22': 'Chhattisgarh', '23': 'Madhya Pradesh', '24': 'Gujarat',
+      '25': 'Daman & Diu', '26': 'Dadra & Nagar Haveli', '27': 'Maharashtra', '28': 'Andhra Pradesh',
+      '29': 'Karnataka', '30': 'Goa', '31': 'Lakshadweep', '32': 'Kerala',
+      '33': 'Tamil Nadu', '34': 'Puducherry', '35': 'Andaman & Nicobar', '36': 'Telangana',
+      '37': 'Andhra Pradesh', '38': 'Ladakh'
+    }
+    const stateName = GST_STATE_MAP[stateCode] || 'Gujarat'
+    const pan = clean.length >= 12 ? clean.substring(2, 12) : ''
+
+    return {
+      existingCustomer: existing || null,
+      parsed: {
+        gstin: clean,
+        stateCode,
+        stateName,
+        pan,
+        companyName: existing ? existing.name : `${clean.substring(2, 6)} Enterprises`,
+        ownerName: `Prop. (${pan.substring(0, 5)})`,
+        mobile: existing ? existing.mobile : '',
+        address: existing ? existing.billing_address : `Commercial Estate, ${stateName}`
+      }
+    }
+  },
+  saveCustomer: (customer: Partial<Customer>): Customer => {
+    const list = DataService.getCustomers()
+    if (customer.id) {
+      const idx = list.findIndex(c => c.id === customer.id)
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...customer }
+        setStoredItem(STORAGE_KEYS.CUSTOMERS, list)
+        return list[idx]
+      }
+    }
+    const newCustomer: Customer = {
+      id: list.length > 0 ? Math.max(...list.map(c => c.id)) + 1 : 1,
+      name: customer.name || '',
+      mobile: customer.mobile || '',
+      email: customer.email || '',
+      gst_no: customer.gst_no || '',
+      billing_address: customer.billing_address || '',
+      shipping_address: customer.shipping_address || customer.billing_address || '',
+      outstanding_balance: customer.outstanding_balance || 0,
+      created_at: new Date().toISOString().split('T')[0]
+    }
+    list.unshift(newCustomer)
+    setStoredItem(STORAGE_KEYS.CUSTOMERS, list)
+    DataService.addActivityLog('admin', 'Customer Added', 'Customer Management', `Added customer: ${newCustomer.name}`)
+    return newCustomer
+  },
+  deleteCustomer: (id: number): void => {
+    const list = DataService.getCustomers().filter(c => c.id !== id)
+    setStoredItem(STORAGE_KEYS.CUSTOMERS, list)
+  },
+
+  // Suppliers
+  getSuppliers: (): Supplier[] => getStoredItem<Supplier[]>(STORAGE_KEYS.SUPPLIERS, INITIAL_SUPPLIERS),
+  saveSupplier: (supplier: Partial<Supplier>): Supplier => {
+    const list = DataService.getSuppliers()
+    if (supplier.id) {
+      const idx = list.findIndex(s => s.id === supplier.id)
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...supplier }
+        setStoredItem(STORAGE_KEYS.SUPPLIERS, list)
+        return list[idx]
+      }
+    }
+    const newSupplier: Supplier = {
+      id: list.length > 0 ? Math.max(...list.map(s => s.id)) + 1 : 1,
+      name: supplier.name || '',
+      mobile: supplier.mobile || '',
+      email: supplier.email || '',
+      gst_no: supplier.gst_no || '',
+      address: supplier.address || '',
+      created_at: new Date().toISOString().split('T')[0]
+    }
+    list.unshift(newSupplier)
+    setStoredItem(STORAGE_KEYS.SUPPLIERS, list)
+    return newSupplier
+  },
+  deleteSupplier: (id: number): void => {
+    const list = DataService.getSuppliers().filter(s => s.id !== id)
+    setStoredItem(STORAGE_KEYS.SUPPLIERS, list)
+  },
+
+  // Products
+  getProducts: (): Product[] => getStoredItem<Product[]>(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS),
+  saveProduct: (product: Partial<Product>): Product => {
+    const list = DataService.getProducts()
+    if (product.id) {
+      const idx = list.findIndex(p => p.id === product.id)
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...product }
+        setStoredItem(STORAGE_KEYS.PRODUCTS, list)
+        return list[idx]
+      }
+    }
+    const newProduct: Product = {
+      id: list.length > 0 ? Math.max(...list.map(p => p.id)) + 1 : 1,
+      name: product.name || '',
+      category: product.category || 'General',
+      unit: product.unit || 'pcs',
+      price: Number(product.price) || 0,
+      gst_rate: Number(product.gst_rate) || 18,
+      hsn_code: product.hsn_code || '4911',
+      description: product.description || ''
+    }
+    list.unshift(newProduct)
+    setStoredItem(STORAGE_KEYS.PRODUCTS, list)
+    return newProduct
+  },
+  deleteProduct: (id: number): void => {
+    const list = DataService.getProducts().filter(p => p.id !== id)
+    setStoredItem(STORAGE_KEYS.PRODUCTS, list)
+  },
+
+  // Invoices
+  getInvoices: (): Invoice[] => getStoredItem<Invoice[]>(STORAGE_KEYS.INVOICES, INITIAL_INVOICES),
+  saveInvoice: (invoice: Partial<Invoice>): Invoice => {
+    const list = DataService.getInvoices()
+    if (invoice.id) {
+      const idx = list.findIndex(i => i.id === invoice.id)
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...invoice } as Invoice
+        setStoredItem(STORAGE_KEYS.INVOICES, list)
+        return list[idx]
+      }
+    }
+    const targetType = invoice.type || 'TAX_INVOICE'
+    const targetDate = invoice.date || new Date().toISOString().split('T')[0]
+    const generatedNum = getNextInvoiceNumber(targetType, targetDate)
+    const newInvoice: Invoice = {
+      id: list.length > 0 ? Math.max(...list.map(i => i.id)) + 1 : 1,
+      invoice_number: invoice.invoice_number || generatedNum,
+      type: targetType,
+      date: targetDate,
+      customer_name: invoice.customer_name || 'Walk-in Customer',
+      customer_mobile: invoice.customer_mobile || '',
+      customer_gstin: invoice.customer_gstin || '',
+      customer_address: invoice.customer_address || '',
+      eway_bill_no: invoice.eway_bill_no || '',
+      valid_for: invoice.valid_for || '30 Days',
+      credit_period: invoice.credit_period || '7 Days',
+      sub_total: invoice.sub_total || 0,
+      cgst: invoice.cgst || 0,
+      sgst: invoice.sgst || 0,
+      round_off: invoice.round_off || 0,
+      grand_total: invoice.grand_total || 0,
+      paid_amount: invoice.paid_amount || 0,
+      balance_amount: (invoice.grand_total || 0) - (invoice.paid_amount || 0),
+      status: (invoice.paid_amount || 0) >= (invoice.grand_total || 0) ? 'PAID' : (invoice.paid_amount || 0) > 0 ? 'PARTIALLY_PAID' : 'UNPAID',
+      payment_mode: invoice.payment_mode || 'CASH',
+      items: invoice.items || [],
+      terms: invoice.terms || 'Goods once sold will not be accepted. Subject to Ahmedabad Jurisdiction.',
+      created_at: new Date().toISOString().split('T')[0]
+    }
+    list.unshift(newInvoice)
+    setStoredItem(STORAGE_KEYS.INVOICES, list)
+    DataService.addActivityLog('admin', 'Invoice Created', 'Invoice Management', `Created ${newInvoice.type} ${newInvoice.invoice_number}`)
+    return newInvoice
+  },
+  deleteInvoice: (id: number): void => {
+    const list = DataService.getInvoices().filter(i => i.id !== id)
+    setStoredItem(STORAGE_KEYS.INVOICES, list)
+  },
+
+  // Purchases
+  getPurchases: (): Purchase[] => getStoredItem<Purchase[]>(STORAGE_KEYS.PURCHASES, INITIAL_PURCHASES),
+  savePurchase: (purchase: Partial<Purchase>): Purchase => {
+    const list = DataService.getPurchases()
+    if (purchase.id) {
+      const idx = list.findIndex(p => p.id === purchase.id)
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...purchase } as Purchase
+        setStoredItem(STORAGE_KEYS.PURCHASES, list)
+        return list[idx]
+      }
+    }
+    const newPurchase: Purchase = {
+      id: list.length > 0 ? Math.max(...list.map(p => p.id)) + 1 : 1,
+      purchase_number: purchase.purchase_number || `PUR-2627-${String(list.length + 15).padStart(3, '0')}`,
+      supplier_name: purchase.supplier_name || 'Vendor',
+      supplier_mobile: purchase.supplier_mobile || '',
+      date: purchase.date || new Date().toISOString().split('T')[0],
+      total_amount: purchase.total_amount || 0,
+      paid_amount: purchase.paid_amount || 0,
+      balance_amount: (purchase.total_amount || 0) - (purchase.paid_amount || 0),
+      status: (purchase.paid_amount || 0) >= (purchase.total_amount || 0) ? 'PAID' : (purchase.paid_amount || 0) > 0 ? 'PARTIALLY_PAID' : 'UNPAID',
+      items: purchase.items || [],
+      notes: purchase.notes || '',
+      created_at: new Date().toISOString().split('T')[0]
+    }
+    list.unshift(newPurchase)
+    setStoredItem(STORAGE_KEYS.PURCHASES, list)
+    return newPurchase
+  },
+
+  // Payments
+  getPayments: (): PaymentRecord[] => getStoredItem<PaymentRecord[]>(STORAGE_KEYS.PAYMENTS, INITIAL_PAYMENTS),
+  recordPayment: (payment: Partial<PaymentRecord>): PaymentRecord => {
+    const list = DataService.getPayments()
+    const newPayment: PaymentRecord = {
+      id: list.length > 0 ? Math.max(...list.map(p => p.id)) + 1 : 1,
+      invoice_id: payment.invoice_id || 0,
+      invoice_number: payment.invoice_number || '',
+      invoice_type: payment.invoice_type || 'TAX_INVOICE',
+      customer_name: payment.customer_name || '',
+      date: payment.date || new Date().toISOString().split('T')[0],
+      amount: Number(payment.amount) || 0,
+      payment_type: payment.payment_type || 'CASH',
+      notes: payment.notes || '',
+      created_at: new Date().toISOString().split('T')[0]
+    }
+    list.unshift(newPayment)
+    setStoredItem(STORAGE_KEYS.PAYMENTS, list)
+
+    // Update corresponding invoice payment status
+    if (payment.invoice_id) {
+      const invoices = DataService.getInvoices()
+      const inv = invoices.find(i => i.id === payment.invoice_id)
+      if (inv) {
+        inv.paid_amount += newPayment.amount
+        inv.balance_amount = Math.max(0, inv.grand_total - inv.paid_amount)
+        inv.status = inv.balance_amount === 0 ? 'PAID' : 'PARTIALLY_PAID'
+        setStoredItem(STORAGE_KEYS.INVOICES, invoices)
+      }
+    }
+    DataService.addActivityLog('admin', 'Payment Recorded', 'Payment Module', `Recorded payment ₹${newPayment.amount} for ${newPayment.invoice_number}`)
+    return newPayment
+  },
+
+  // Tasks
+  getTasks: (): TaskItem[] => getStoredItem<TaskItem[]>(STORAGE_KEYS.TASKS, INITIAL_TASKS),
+  saveTask: (task: Partial<TaskItem>): TaskItem => {
+    const list = DataService.getTasks()
+    if (task.id) {
+      const idx = list.findIndex(t => t.id === task.id)
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...task } as TaskItem
+        setStoredItem(STORAGE_KEYS.TASKS, list)
+        return list[idx]
+      }
+    }
+    const newTask: TaskItem = {
+      id: list.length > 0 ? Math.max(...list.map(t => t.id)) + 1 : 1,
+      title: task.title || '',
+      description: task.description || '',
+      priority: task.priority || 'MEDIUM',
+      status: task.status || 'PENDING',
+      assigned_to: task.assigned_to || 'Unassigned',
+      start_date: task.start_date || new Date().toISOString().split('T')[0],
+      due_date: task.due_date || new Date().toISOString().split('T')[0],
+      created_at: new Date().toISOString().split('T')[0]
+    }
+    list.unshift(newTask)
+    setStoredItem(STORAGE_KEYS.TASKS, list)
+    return newTask
+  },
+  deleteTask: (id: number): void => {
+    const list = DataService.getTasks().filter(t => t.id !== id)
+    setStoredItem(STORAGE_KEYS.TASKS, list)
+  },
+
+  // Users
+  getUsers: (): SystemUser[] => getStoredItem<SystemUser[]>(STORAGE_KEYS.USERS, INITIAL_USERS),
+  saveUser: (user: Partial<SystemUser>): SystemUser => {
+    const list = DataService.getUsers()
+    if (user.id) {
+      const idx = list.findIndex(u => u.id === user.id)
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...user } as SystemUser
+        setStoredItem(STORAGE_KEYS.USERS, list)
+        return list[idx]
+      }
+    }
+    const newUser: SystemUser = {
+      id: list.length > 0 ? Math.max(...list.map(u => u.id)) + 1 : 1,
+      full_name: user.full_name || '',
+      username: user.username || '',
+      role: user.role || 'Operator',
+      status: user.status || 'ACTIVE',
+      last_login: 'Never'
+    }
+    list.unshift(newUser)
+    setStoredItem(STORAGE_KEYS.USERS, list)
+    return newUser
+  },
+
+  // Logs
+  getActivityLogs: (): ActivityLogItem[] => getStoredItem<ActivityLogItem[]>(STORAGE_KEYS.LOGS, INITIAL_LOGS),
+  addActivityLog: (username: string, action: string, module: string, detail: string): void => {
+    const list = DataService.getActivityLogs()
+    const newLog: ActivityLogItem = {
+      id: list.length > 0 ? Math.max(...list.map(l => l.id)) + 1 : 1,
+      username,
+      action,
+      module,
+      detail,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
+    }
+    list.unshift(newLog)
+    setStoredItem(STORAGE_KEYS.LOGS, list)
+  }
+}

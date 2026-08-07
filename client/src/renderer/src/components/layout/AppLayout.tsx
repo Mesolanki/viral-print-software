@@ -3,7 +3,19 @@ import Sidebar from './Sidebar'
 import Header from './Header'
 import './AppLayout.css'
 
-export type ActiveTabType = 'invoice' | 'quotation' | 'estimate' | 'products' | 'tasks' | 'users' | 'dashboard'
+export type ActiveTabType =
+  | 'dashboard'
+  | 'invoice'
+  | 'quotation'
+  | 'estimate'
+  | 'eway_bill'
+  | 'payments'
+  | 'customers'
+  | 'purchases'
+  | 'products'
+  | 'gst_reports'
+  | 'tasks'
+  | 'users'
 
 interface AppLayoutProps {
   theme: 'dark' | 'light'

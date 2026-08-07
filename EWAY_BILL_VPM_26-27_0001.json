@@ -1,0 +1,69 @@
+{
+  "version": "1.0.0421",
+  "billDtls": [
+    {
+      "userGstin": "24BAAPM9783K1Z7",
+      "supplyType": "O",
+      "subSupplyType": "1",
+      "docType": "INV",
+      "docNo": "VPM/26-27/0001",
+      "docDate": "07/08/2026",
+      "fromGstin": "24BAAPM9783K1Z7",
+      "fromTrdName": "Viral Print Media",
+      "fromAddr1": "GF-10, 13, 14 Satyamev Arcade",
+      "fromAddr2": "Chandkheda",
+      "fromPlace": "Ahmedabad",
+      "fromPincode": 382424,
+      "actFromStateCode": 24,
+      "fromStateCode": 24,
+      "toGstin": "24AAAAA0000A1Z5",
+      "toTrdName": "Apex Infotech Solutions",
+      "toAddr1": "102 Business Center",
+      "toAddr2": "SG Highway",
+      "toPlace": "Ahmedabad",
+      "toPincode": 380054,
+      "actToStateCode": 24,
+      "toStateCode": 24,
+      "totalValue": 20000.0,
+      "cgstValue": 1800.0,
+      "sgstValue": 1800.0,
+      "igstValue": 0.0,
+      "cessValue": 0.0,
+      "totInvValue": 23600.0,
+      "transMode": "1",
+      "transDistance": "25",
+      "transporterId": "",
+      "transporterName": "Gujarat Logistics Ltd",
+      "transDocNo": "",
+      "transDocDate": "",
+      "vehicleNo": "GJ01AB1234",
+      "vehicleType": "R",
+      "itemList": [
+        {
+          "productName": "Star Flex Banner (13 oz Frontlit)",
+          "productDesc": "High resolution digital flex banner printing",
+          "hsnCode": 4911,
+          "quantity": 500,
+          "qtyUnit": "SQF",
+          "taxableAmount": 9000.0,
+          "cgstRate": 9.0,
+          "sgstRate": 9.0,
+          "igstRate": 0.0,
+          "cessRate": 0.0
+        },
+        {
+          "productName": "Acrylic LED Glow Sign Board",
+          "productDesc": "3D Acrylic cutout letters with Samsung LED modules",
+          "hsnCode": 9405,
+          "quantity": 16,
+          "qtyUnit": "SQF",
+          "taxableAmount": 11000.0,
+          "cgstRate": 9.0,
+          "sgstRate": 9.0,
+          "igstRate": 0.0,
+          "cessRate": 0.0
+        }
+      ]
+    }
+  ]
+}

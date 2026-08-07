@@ -22,9 +22,13 @@ import {
   UserCheck,
   Edit3,
   Layers,
+  Truck,
+  ShieldCheck,
+  FileDown,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { customersApi, productsApi, type CustomerData } from '../api/apiClient'
+import { getNextInvoiceNumber, DataService } from '../services/dataService'
 import './EstimateBill.css'
 
 // ── GST State Dictionary ──────────────────────────────────────
@@ -181,20 +185,30 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
     setBillType(formatType)
   }, [formatType])
 
-  const genNumber = (type: BillFormatType) => {
-    const prefix = type === 'TAX_INVOICE' ? 'VPM-INV' : type === 'QUOTATION' ? 'VPM-QTN' : 'VPM-EST'
-    return `${prefix}-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100)}`
-  }
-
-  const [billNo, setBillNo]         = useState(() => genNumber(formatType))
-  const [ewayBillNo, setEwayBillNo] = useState('')
   const [billDate, setBillDate]     = useState(() => new Date().toISOString().split('T')[0])
+  const [billTime]                  = useState(() => new Date().toLocaleTimeString('en-US', { hour12: true }))
+  const [billNo, setBillNo]         = useState(() => getNextInvoiceNumber(formatType))
+  const [ewayBillNo, setEwayBillNo] = useState('')
+  const [vehicleNo, setVehicleNo]   = useState('')
+  const [transporterName, setTransporterName] = useState('')
+  const [distanceKm, setDistanceKm] = useState('')
   const [validFor, setValidFor]     = useState('15 Days')
   const [creditPeriod, setCreditPeriod] = useState('30 Days')
 
+  // E-Way Bill Modal States
+  const [isEwayModalOpen, setIsEwayModalOpen] = useState(false)
+  const [ewayFromPincode, setEwayFromPincode] = useState('382424')
+  const [ewayToPincode, setEwayToPincode]     = useState('380054')
+  const [ewayTransMode]                       = useState('1')
+  const [ewayJsonCopied, setEwayJsonCopied]   = useState(false)
+
+  const genNumber = useCallback((type: BillFormatType, dateStr?: string) => {
+    return getNextInvoiceNumber(type, dateStr || billDate)
+  }, [billDate])
+
   useEffect(() => {
-    setBillNo(genNumber(formatType))
-  }, [formatType])
+    setBillNo(getNextInvoiceNumber(formatType, billDate))
+  }, [formatType, billDate])
 
   // Customer
   const [custName, setCustName]       = useState('')
@@ -258,8 +272,19 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
       setCustStateInfo(null)
     }
 
-    // Lookup customer & trade details in database or GST API by GSTIN
     if (cleanGst.length >= 5) {
+      // 1. Check local offline database first
+      const localResult = DataService.lookupGst(cleanGst)
+      if (localResult.existingCustomer) {
+        const c = localResult.existingCustomer
+        setCustName(c.name || '')
+        if (c.mobile) setCustMobile(c.mobile)
+        if (c.billing_address) setCustAddress(c.billing_address)
+        setGstStatusMsg(`✅ Customer Found: ${c.name}`)
+        return
+      }
+
+      // 2. Try online API lookup
       try {
         const res = await customersApi.lookupGst(cleanGst)
         if (res.data?.data) {
@@ -278,7 +303,17 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
             setGstStatusMsg(`⚡ Auto-Fetched GST Details: ${parsed.companyName}`)
           }
         }
-      } catch {}
+      } catch {
+        // Fallback to parsed local GST structure
+        if (cleanGst.length === 15 && localResult.parsed) {
+          const p = localResult.parsed
+          if (p.companyName && !custName) setCustName(p.companyName)
+          if (p.ownerName && !custOwner) setCustOwner(p.ownerName)
+          if (p.mobile && !custMobile) setCustMobile(p.mobile)
+          if (p.address && !custAddress) setCustAddress(p.address)
+          setGstStatusMsg(`⚡ GST State & PAN Verified: ${p.stateName}`)
+        }
+      }
     }
   }
 
@@ -370,6 +405,102 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
   const advanceNum = parseFloat(advanceAmt) || 0
   const remainNum  = Math.max(0, roundedGrand - advanceNum)
 
+  const isInterState = custStateInfo ? custStateInfo.stateCode !== '24' : false
+
+  const generateGovtEwayJsonPayload = useCallback(() => {
+    const cleanGstFrom = company.gstNo.replace(/[^A-Z0-9]/gi, '')
+    const cleanGstTo   = custGst ? custGst.replace(/[^A-Z0-9]/gi, '') : 'URP'
+
+    const stateCodeFrom = parseInt(company.stateCode, 10) || 24
+    const stateCodeTo   = custStateInfo ? parseInt(custStateInfo.stateCode, 10) : 24
+
+    const formattedDate = billDate ? billDate.split('-').reverse().join('/') : new Date().toLocaleDateString('en-IN')
+
+    const itemsPayload = items.map(item => {
+      const qty  = parseFloat(item.qty) || 0
+      const rate = parseFloat(item.rate) || 0
+      const base = qty * rate
+      return {
+        productName: item.description || 'Printing Services',
+        productDesc: item.description || 'Print Items',
+        hsnCode: parseInt((item.hsn || '9983').replace(/[^0-9]/g, ''), 10) || 9983,
+        quantity: qty,
+        qtyUnit: item.unit ? item.unit.toUpperCase() : 'SQF',
+        taxableAmount: base,
+        cgstRate: isInterState ? 0 : 9,
+        sgstRate: isInterState ? 0 : 9,
+        igstRate: isInterState ? 18 : 0,
+        cessRate: 0
+      }
+    })
+
+    return {
+      version: "1.0.0421",
+      billDtls: [
+        {
+          userGstin: cleanGstFrom,
+          supplyType: "O",
+          subSupplyType: "1",
+          docType: "INV",
+          docNo: billNo,
+          docDate: formattedDate,
+          fromGstin: cleanGstFrom,
+          fromTrdName: company.name,
+          fromAddr1: company.address,
+          fromAddr2: "Chandkheda",
+          fromPlace: "Ahmedabad",
+          fromPincode: parseInt(ewayFromPincode, 10) || 382424,
+          actFromStateCode: stateCodeFrom,
+          fromStateCode: stateCodeFrom,
+          toGstin: cleanGstTo,
+          toTrdName: custName || "Walk-in Customer",
+          toAddr1: custAddress || "Ahmedabad",
+          toAddr2: "",
+          toPlace: "Ahmedabad",
+          toPincode: parseInt(ewayToPincode, 10) || 380054,
+          actToStateCode: stateCodeTo,
+          toStateCode: stateCodeTo,
+          totalValue: subtotal,
+          cgstValue: isInterState ? 0 : cgst,
+          sgstValue: isInterState ? 0 : sgst,
+          igstValue: isInterState ? (cgst + sgst) : 0,
+          cessValue: 0,
+          totInvValue: roundedGrand,
+          transMode: ewayTransMode,
+          transDistance: distanceKm || "25",
+          transporterId: "",
+          transporterName: transporterName || "",
+          transDocNo: "",
+          transDocDate: "",
+          vehicleNo: vehicleNo ? vehicleNo.replace(/[^A-Z0-9]/gi, '') : "",
+          vehicleType: "R",
+          itemList: itemsPayload
+        }
+      ]
+    }
+  }, [company, custGst, custStateInfo, billDate, items, billNo, ewayFromPincode, ewayToPincode, custName, custAddress, subtotal, isInterState, cgst, sgst, roundedGrand, ewayTransMode, distanceKm, transporterName, vehicleNo])
+
+  const downloadGovtEwayJson = () => {
+    const payload = generateGovtEwayJsonPayload()
+    const jsonStr = JSON.stringify(payload, null, 2)
+    const blob = new Blob([jsonStr], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `EWAY_BILL_${billNo.replace(/[^A-Z0-9]/gi, '_')}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const copyGovtEwayJson = () => {
+    const payload = generateGovtEwayJsonPayload()
+    navigator.clipboard.writeText(JSON.stringify(payload, null, 2))
+    setEwayJsonCopied(true)
+    setTimeout(() => setEwayJsonCopied(false), 2500)
+  }
+
   // ── Item helpers ──
   const updateItem = useCallback((id: number, field: keyof BillItem, val: string) => {
     setItems(prev => prev.map(it => it.id === id ? { ...it, [field]: val } : it))
@@ -449,14 +580,25 @@ Main HSN: 9983 (Printing / Advertising)`
           </button>
 
           {billType === 'TAX_INVOICE' && (
-            <button
-              className="eb-btn-secondary"
-              onClick={openOfficialEwayPortal}
-              style={{ fontSize: '0.78rem', fontWeight: 700, padding: '7px 12px', background: 'rgba(16,185,129,0.08)', color: '#10B981', borderColor: 'rgba(16,185,129,0.2)' }}
-              title="Open Official GST E-Way Bill Portal (ewaybillgst.gov.in)"
-            >
-              <ExternalLink size={14} /> ewaybillgst.gov.in
-            </button>
+            <>
+              <button
+                className="eb-btn-secondary"
+                onClick={() => setIsEwayModalOpen(true)}
+                style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 14px', background: 'linear-gradient(135deg, #10B981, #059669)', color: '#ffffff', border: 'none', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 3px 10px rgba(16,185,129,0.3)' }}
+                title="Generate & Download Official Govt GST E-Way Bill JSON Payload"
+              >
+                <Truck size={14} /> 🚀 Generate Govt E-Way Bill
+              </button>
+
+              <button
+                className="eb-btn-secondary"
+                onClick={openOfficialEwayPortal}
+                style={{ fontSize: '0.78rem', fontWeight: 700, padding: '7px 12px', background: 'rgba(16,185,129,0.08)', color: '#10B981', borderColor: 'rgba(16,185,129,0.2)' }}
+                title="Open Official GST E-Way Bill Portal (ewaybillgst.gov.in)"
+              >
+                <ExternalLink size={14} /> ewaybillgst.gov.in
+              </button>
+            </>
           )}
         </div>
 
@@ -478,24 +620,57 @@ Main HSN: 9983 (Printing / Advertising)`
             </div>
 
             {billType === 'TAX_INVOICE' && (
-              <div className="eb-form-row">
-                <div className="eb-field">
-                  <label style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>E-Way Bill No. (Optional)</span>
-                    <button
-                      onClick={copyEwayDetails}
-                      style={{ background: 'none', border: 'none', color: copiedEway ? '#10B981' : '#736efe', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 3 }}
-                    >
-                      <Copy size={11} /> {copiedEway ? 'Copied Details!' : 'Copy GST Details'}
-                    </button>
-                  </label>
-                  <input
-                    placeholder="Enter E-Way bill number"
-                    value={ewayBillNo}
-                    onChange={e => setEwayBillNo(e.target.value)}
-                  />
+              <>
+                <div className="eb-form-row">
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>E-Way Bill No. (12-Digit)</span>
+                      <button
+                        onClick={copyEwayDetails}
+                        style={{ background: 'none', border: 'none', color: copiedEway ? '#10B981' : '#736efe', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 3 }}
+                      >
+                        <Copy size={11} /> {copiedEway ? 'Copied GST Data!' : 'Copy E-Way Data'}
+                      </button>
+                    </label>
+                    <input
+                      placeholder="12-digit E-Way Bill No."
+                      value={ewayBillNo}
+                      onChange={e => setEwayBillNo(e.target.value)}
+                      maxLength={12}
+                      style={{ fontWeight: 700, letterSpacing: '0.5px' }}
+                    />
+                  </div>
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>Vehicle No. (Transport)</label>
+                    <input
+                      placeholder="e.g. GJ-01-AB-1234"
+                      value={vehicleNo}
+                      onChange={e => setVehicleNo(e.target.value.toUpperCase())}
+                      style={{ textTransform: 'uppercase', fontWeight: 700 }}
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <div className="eb-form-row">
+                  <div className="eb-field" style={{ flex: 2 }}>
+                    <label>Transporter Name / ID</label>
+                    <input
+                      placeholder="Transporter company name or GSTIN ID"
+                      value={transporterName}
+                      onChange={e => setTransporterName(e.target.value)}
+                    />
+                  </div>
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>Approx Distance (Km)</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 25"
+                      value={distanceKm}
+                      onChange={e => setDistanceKm(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             {billType === 'QUOTATION' && (
@@ -754,10 +929,34 @@ Main HSN: 9983 (Printing / Advertising)`
           </div>
         )}
 
-        {/* Action Buttons (Print & Reset) */}
-        <div className="eb-actions">
+        {/* Action Buttons (Print, WhatsApp Share, Email Share, Reset) */}
+        <div className="eb-actions" style={{ flexWrap: 'wrap', gap: 8 }}>
           <button className="eb-btn-primary" onClick={handlePrint}>
-            <Printer size={16} /> Print {formatTitle}
+            <Printer size={16} /> Print / Save PDF
+          </button>
+          <button
+            className="eb-btn-secondary"
+            onClick={() => {
+              const text = `*VIRAL PRINT MEDIA - ${formatTitle}*\nInvoice No: ${billNo}\nCustomer: ${custName}\nTotal Amount: ₹${roundedGrand}\n\nThank you for doing business with Viral Print Media!`
+              const mob = custMobile.replace(/\D/g, '')
+              window.open(`https://wa.me/${mob}?text=${encodeURIComponent(text)}`, '_blank')
+            }}
+            style={{ background: '#25D366', color: '#fff', border: 'none', fontWeight: 700 }}
+            title="Send Invoice Summary via WhatsApp"
+          >
+            💬 WhatsApp Share
+          </button>
+          <button
+            className="eb-btn-secondary"
+            onClick={() => {
+              const subject = `Invoice ${billNo} from Viral Print Media`
+              const body = `Dear ${custName || 'Customer'},\n\nPlease find the details for ${formatTitle} ${billNo}.\nGrand Total: ₹${roundedGrand}\n\nViral Print Media\nAhmedabad, Gujarat`
+              window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+            }}
+            style={{ background: '#3B82F6', color: '#fff', border: 'none', fontWeight: 700 }}
+            title="Send Invoice Summary via Email"
+          >
+            ✉️ Email Share
           </button>
           <button className="eb-btn-secondary" onClick={resetBill} title="Reset Form">
             <RefreshCw size={15} /> Reset
@@ -841,7 +1040,7 @@ Main HSN: 9983 (Printing / Advertising)`
                           <div className="pdf-meta-cell">
                             {billType === 'TAX_INVOICE' ? 'INVOICE DATE :' : 'ESTIMATE DATE :'}<br />
                             <span style={{ fontSize: 11, color: '#000' }}>
-                              {billDate ? new Date(billDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : ''}
+                              {billDate ? new Date(billDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : ''} ({billTime})
                             </span>
                           </div>
                         </div>
@@ -850,9 +1049,12 @@ Main HSN: 9983 (Printing / Advertising)`
                           <div className="pdf-meta-top-grid" style={{ borderBottom: '1.5px solid #000' }}>
                             <div className="pdf-meta-cell">
                               E-WAY BILL NO.<br />
-                              <span style={{ fontSize: 10, color: '#444' }}>{ewayBillNo || '—'}</span>
+                              <span style={{ fontSize: 10, color: '#000', fontWeight: 700 }}>{ewayBillNo || '—'}</span>
                             </div>
-                            <div className="pdf-meta-cell"></div>
+                            <div className="pdf-meta-cell">
+                              VEHICLE NO.<br />
+                              <span style={{ fontSize: 10, color: '#000', fontWeight: 700 }}>{vehicleNo || '—'}</span>
+                            </div>
                           </div>
                         ) : (
                           <div className="pdf-meta-top-grid" style={{ borderBottom: '1.5px solid #000' }}>
@@ -1397,6 +1599,123 @@ Main HSN: 9983 (Printing / Advertising)`
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════ MODAL 3: OFFICIAL GOVT E-WAY BILL GENERATOR POP-UP ═══════════ */}
+      {isEwayModalOpen && (
+        <div className="vpm-modal-backdrop" onClick={() => setIsEwayModalOpen(false)}>
+          <div className="vpm-modal-card" style={{ maxWidth: 760 }} onClick={e => e.stopPropagation()}>
+            
+            {/* Modal Header */}
+            <div className="vpm-modal-header" style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#fff' }}>
+              <div className="vpm-modal-title" style={{ color: '#38bdf8', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Truck size={20} /> Official Govt GST E-Way Bill Generator (NIC v1.0.0421)
+              </div>
+              <button className="vpm-modal-close-btn" style={{ color: '#94a3b8' }} onClick={() => setIsEwayModalOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="vpm-modal-body" style={{ padding: 20 }}>
+              
+              {/* Threshold Warning / Info Banner */}
+              {roundedGrand < 50000 && (
+                <div style={{ padding: '10px 14px', borderRadius: 8, background: '#fffbebf0', border: '1px solid #fde68a', color: '#92400e', fontSize: '0.8rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <ShieldCheck size={16} /> Note: Under GST Law, E-Way bills are compulsory for goods exceeding ₹50,000. (Current Invoice Total: ₹{fmt(roundedGrand)}). You can still generate & export for transport dispatch.
+                </div>
+              )}
+
+              {/* Summary Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 18 }}>
+                <div style={{ padding: 12, background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                  <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block' }}>Document / Invoice No.</span>
+                  <strong style={{ fontSize: '0.92rem', color: '#1E293B' }}>{billNo}</strong>
+                </div>
+                <div style={{ padding: 12, background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                  <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block' }}>Supplier GSTIN (From)</span>
+                  <strong style={{ fontSize: '0.92rem', color: '#10B981' }}>{company.gstNo}</strong>
+                </div>
+                <div style={{ padding: 12, background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                  <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block' }}>Recipient GSTIN (To)</span>
+                  <strong style={{ fontSize: '0.92rem', color: '#3B82F6' }}>{custGst || 'URP (Unregistered)'}</strong>
+                </div>
+              </div>
+
+              {/* E-Way Transport Inputs Form */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, marginBottom: 18 }}>
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Dispatch Pincode (From)</label>
+                  <input
+                    value={ewayFromPincode}
+                    onChange={e => setEwayFromPincode(e.target.value)}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 600 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Destination Pincode (To)</label>
+                  <input
+                    value={ewayToPincode}
+                    onChange={e => setEwayToPincode(e.target.value)}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 600 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Vehicle Number</label>
+                  <input
+                    placeholder="e.g. GJ01AB1234"
+                    value={vehicleNo}
+                    onChange={e => setVehicleNo(e.target.value.toUpperCase())}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 700 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Approx Distance (in Km)</label>
+                  <input
+                    placeholder="e.g. 25"
+                    value={distanceKm}
+                    onChange={e => setDistanceKm(e.target.value)}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 600 }}
+                  />
+                </div>
+              </div>
+
+              {/* Taxable & Invoice Financial Breakdown */}
+              <div style={{ padding: '12px 16px', background: '#F1F5F9', borderRadius: 8, fontSize: '0.82rem', marginBottom: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span>Total Taxable Value:</span>
+                  <strong>₹{fmt(subtotal)}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span>CGST (9%) + SGST (9%):</span>
+                  <strong>₹{fmt(cgst + sgst)}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem', color: '#0F172A', fontWeight: 800, borderTop: '1px solid #CBD5E1', paddingTop: 6 }}>
+                  <span>Total Invoice Value:</span>
+                  <span style={{ color: '#10B981' }}>₹{fmt(roundedGrand)}</span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                <button
+                  onClick={copyGovtEwayJson}
+                  style={{ padding: '9px 16px', borderRadius: 8, border: '1px solid #CBD5E1', background: '#fff', color: ewayJsonCopied ? '#10B981' : '#334155', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Copy size={15} /> {ewayJsonCopied ? 'Copied NIC JSON!' : 'Copy JSON Payload'}
+                </button>
+
+                <button
+                  onClick={downloadGovtEwayJson}
+                  style={{ padding: '9px 20px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #10B981, #059669)', color: '#fff', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}
+                >
+                  <FileDown size={16} /> Download Official Govt JSON (.json)
+                </button>
+              </div>
+
             </div>
           </div>
         </div>

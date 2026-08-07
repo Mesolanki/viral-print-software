@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { Row, Col, Card, Button, Alert } from 'react-bootstrap'
-import Versions from './components/Versions'
+import { Alert } from 'react-bootstrap'
 import TaskManagement from './components/TaskManagement'
 import UserManagement from './components/UserManagement'
 import ProductManagement from './components/ProductManagement'
 import EstimateBill from './components/EstimateBill'
+import DashboardOverview from './components/DashboardOverview'
+import CustomerManagement from './components/CustomerManagement'
+import PurchaseManagement from './components/PurchaseManagement'
+import PaymentEntryModule from './components/PaymentEntryModule'
+import GstReportModule from './components/GstReportModule'
+import EwayBillModule from './components/EwayBillModule'
 import AppLayout, { type ActiveTabType } from './components/layout/AppLayout'
 import LoginPage from './pages/LoginPage'
-import { LayoutDashboard } from 'lucide-react'
 
 /* ── Dashboard View ─────────────────────────────────────────────── */
 function DashboardView({
@@ -18,19 +22,8 @@ function DashboardView({
   theme: 'dark' | 'light'
   toggleTheme: () => void
 }): React.JSX.Element {
-  const [activeTab, setActiveTab] = useState<ActiveTabType>('invoice')
+  const [activeTab, setActiveTab] = useState<ActiveTabType>('dashboard')
   const [pingStatus, setPingStatus] = useState<string | null>(null)
-  const isDark = theme === 'dark'
-
-  const ipcHandle = (): void => {
-    if (window.electron?.ipcRenderer) {
-      window.electron.ipcRenderer.send('ping')
-      setPingStatus('Ping sent successfully via IPC!')
-    } else {
-      setPingStatus('Running in browser mode — IPC simulation active.')
-    }
-    setTimeout(() => setPingStatus(null), 3000)
-  }
 
   return (
     <AppLayout
@@ -53,189 +46,32 @@ function DashboardView({
       )}
 
       {/* ── Page Content ─────────────────────────────────── */}
-      {activeTab === 'invoice' ? (
+      {activeTab === 'dashboard' ? (
+        <DashboardOverview theme={theme} onNavigate={setActiveTab} />
+      ) : activeTab === 'invoice' ? (
         <EstimateBill key="tax-invoice" theme={theme} formatType="TAX_INVOICE" />
       ) : activeTab === 'quotation' ? (
         <EstimateBill key="quotation" theme={theme} formatType="QUOTATION" />
       ) : activeTab === 'estimate' ? (
         <EstimateBill key="estimate-slip" theme={theme} formatType="ESTIMATE" />
+      ) : activeTab === 'eway_bill' ? (
+        <EwayBillModule theme={theme} />
+      ) : activeTab === 'payments' ? (
+        <PaymentEntryModule theme={theme} />
+      ) : activeTab === 'customers' ? (
+        <CustomerManagement theme={theme} />
+      ) : activeTab === 'purchases' ? (
+        <PurchaseManagement theme={theme} />
+      ) : activeTab === 'products' ? (
+        <ProductManagement theme={theme} />
+      ) : activeTab === 'gst_reports' ? (
+        <GstReportModule theme={theme} />
       ) : activeTab === 'tasks' ? (
         <TaskManagement theme={theme} />
       ) : activeTab === 'users' ? (
         <UserManagement theme={theme} />
-      ) : activeTab === 'products' ? (
-        <ProductManagement theme={theme} />
       ) : (
-        /* ── System Overview / Diagnostics Page ─────────── */
-        <Row className="gy-4">
-          {/* Main Welcome Card */}
-          <Col lg={8}>
-            <Card
-              className={`h-100 ${isDark ? 'bg-transparent border-0' : 'bg-white border-0'}`}
-              style={{
-                borderRadius: '20px',
-                border: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#E2E8F0'}`,
-                boxShadow: isDark
-                  ? '0 4px 20px rgba(0,0,0,0.25)'
-                  : '0 4px 20px rgba(15,23,42,0.06)'
-              }}
-            >
-              <Card.Body className="p-5 d-flex flex-column justify-content-between">
-                <div>
-                  <div
-                    className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3"
-                    style={{
-                      background: isDark
-                        ? 'rgba(0,210,255,0.10)'
-                        : 'rgba(115,110,254,0.06)',
-                      border: `1px solid ${isDark ? 'rgba(0,210,255,0.20)' : 'rgba(115,110,254,0.15)'}`,
-                      color: isDark ? '#00D2FF' : '#736efe',
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.5px',
-                      textTransform: 'uppercase'
-                    }}
-                  >
-                    <LayoutDashboard size={12} />
-                    System Overview
-                  </div>
-
-                  <h1
-                    className="fw-bold mb-3"
-                    style={{
-                      fontSize: '1.9rem',
-                      letterSpacing: '-0.5px',
-                      color: isDark ? '#F1F5F9' : '#0F172A'
-                    }}
-                  >
-                    Welcome to Viral Print Software
-                  </h1>
-
-                  <p
-                    style={{
-                      color: isDark ? '#94A3B8' : '#64748B',
-                      fontSize: '0.95rem',
-                      lineHeight: '1.7'
-                    }}
-                  >
-                    A premium desktop application built with Electron, React, TypeScript, and
-                    Bootstrap. Running offline with local MySQL database.
-                  </p>
-                </div>
-
-                <div className="d-flex gap-3 mt-4 flex-wrap">
-                  <Button
-                    onClick={ipcHandle}
-                    style={{
-                      background: isDark
-                        ? 'linear-gradient(135deg, #00D2FF, #00E5FF)'
-                        : 'linear-gradient(135deg, #736efe, #00D2FF)',
-                      border: 'none',
-                      borderRadius: '10px',
-                      padding: '10px 22px',
-                      fontWeight: 700,
-                      color: isDark ? '#05101F' : '#FFF',
-                      boxShadow: isDark
-                        ? '0 4px 14px rgba(0,210,255,0.30)'
-                        : '0 4px 14px rgba(115,110,254,0.28)'
-                    }}
-                  >
-                    Send IPC Ping
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    style={{ borderRadius: '10px', padding: '10px 22px', fontWeight: 600 }}
-                    onClick={() => setActiveTab('tasks')}
-                  >
-                    Open Task Management →
-                  </Button>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Diagnostics Card */}
-          <Col lg={4}>
-            <Card
-              className={`h-100 ${isDark ? 'bg-transparent' : 'bg-white'}`}
-              style={{
-                borderRadius: '20px',
-                border: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#E2E8F0'}`,
-                boxShadow: isDark
-                  ? '0 4px 20px rgba(0,0,0,0.25)'
-                  : '0 4px 20px rgba(15,23,42,0.06)'
-              }}
-            >
-              <Card.Header
-                style={{
-                  background: 'transparent',
-                  borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#E2E8F0'}`,
-                  padding: '16px 24px',
-                  fontWeight: 700,
-                  fontSize: '0.78rem',
-                  letterSpacing: '0.8px',
-                  textTransform: 'uppercase',
-                  color: isDark ? '#64748B' : '#94A3B8'
-                }}
-              >
-                System Diagnostics
-              </Card.Header>
-              <Card.Body className="p-4 d-flex flex-column justify-content-between">
-                <div>
-                  {[
-                    { label: 'Database Engine', value: 'Local MySQL (XAMPP Offline)' },
-                    { label: 'Backend Service', value: 'Express Server (Port 5000)' }
-                  ].map((item) => (
-                    <div key={item.label} className="mb-4">
-                      <p
-                        style={{
-                          fontSize: '0.70rem',
-                          fontWeight: 700,
-                          letterSpacing: '0.8px',
-                          textTransform: 'uppercase',
-                          color: isDark ? '#475569' : '#94A3B8',
-                          marginBottom: '6px'
-                        }}
-                      >
-                        {item.label}
-                      </p>
-                      <div className="d-flex align-items-center gap-2">
-                        <div
-                          style={{
-                            width: '8px',
-                            height: '8px',
-                            borderRadius: '50%',
-                            background: '#10B981',
-                            boxShadow: '0 0 6px rgba(16,185,129,0.7)',
-                            animation: 'vpmPulse 2.5s infinite'
-                          }}
-                        />
-                        <span
-                          style={{
-                            fontWeight: 600,
-                            fontSize: '0.88rem',
-                            color: isDark ? '#E2E8F0' : '#1E293B'
-                          }}
-                        >
-                          {item.value}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div
-                  style={{
-                    borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#E2E8F0'}`,
-                    paddingTop: '16px'
-                  }}
-                >
-                  <Versions theme={theme} />
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+        <DashboardOverview theme={theme} onNavigate={setActiveTab} />
       )}
     </AppLayout>
   )
