@@ -902,5 +902,206 @@ export const DataService = {
     }
     list.unshift(newLog)
     setStoredItem(STORAGE_KEYS.LOGS, list)
+  },
+
+  // ── Backup & Drive Save Functions ──────────────────────────────────
+  exportAllData: () => {
+    const invoices = DataService.getInvoices()
+    const customers = DataService.getCustomers()
+    const suppliers = DataService.getSuppliers()
+    const products = DataService.getProducts()
+    const purchases = DataService.getPurchases()
+    const payments = DataService.getPayments()
+    const tasks = DataService.getTasks()
+    const users = DataService.getUsers()
+    const logs = DataService.getActivityLogs()
+
+    const totalSales = invoices.reduce((sum, i) => sum + (i.grand_total || 0), 0)
+    const totalOutstanding = invoices.reduce((sum, i) => sum + (i.balance_amount || 0), 0)
+
+    return {
+      appName: 'Viral Print Media Management Software',
+      systemVersion: '1.0.0',
+      exportDate: new Date().toISOString(),
+      financialYear: getIndianFinancialYear(),
+      metrics: {
+        totalInvoices: invoices.length,
+        totalSales,
+        totalOutstanding,
+        totalCustomers: customers.length,
+        totalSuppliers: suppliers.length,
+        totalProducts: products.length,
+        totalPurchases: purchases.length,
+        totalPayments: payments.length,
+        totalTasks: tasks.length
+      },
+      data: {
+        invoices,
+        customers,
+        suppliers,
+        products,
+        purchases,
+        payments,
+        tasks,
+        users,
+        activity_logs: logs
+      }
+    }
+  },
+
+  saveBackupToFileDrive: async (customFilename?: string): Promise<{ success: boolean; filename: string; method: 'drive_picker' | 'download' }> => {
+    const backupObj = DataService.exportAllData()
+    const jsonStr = JSON.stringify(backupObj, null, 2)
+    const today = new Date().toISOString().split('T')[0]
+    const filename = customFilename || `VPM_ALL_BILLS_BACKUP_${today}.json`
+
+    // Option A: Use native File System Access API (showSaveFilePicker) if supported
+    if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: filename,
+          types: [
+            {
+              description: 'JSON Backup Files (*.json)',
+              accept: { 'application/json': ['.json'] }
+            }
+          ]
+        })
+        const writable = await handle.createWritable()
+        await writable.write(jsonStr)
+        await writable.close()
+        DataService.addActivityLog('admin', 'Backup Saved to Drive', 'Backup Module', `Backup saved to drive: ${handle.name}`)
+        return { success: true, filename: handle.name, method: 'drive_picker' }
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          throw new Error('Backup save cancelled.')
+        }
+        console.warn('[DataService] File picker fallback triggered:', err)
+      }
+    }
+
+    // Option B: Fallback browser Blob download
+    const blob = new Blob([jsonStr], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    DataService.addActivityLog('admin', 'Backup Downloaded', 'Backup Module', `Backup downloaded to drive: ${filename}`)
+    return { success: true, filename, method: 'download' }
+  },
+
+  importBackupData: (backupObj: any): { success: boolean; message: string; counts: Record<string, number> } => {
+    if (!backupObj || typeof backupObj !== 'object') {
+      throw new Error('Invalid backup file payload.')
+    }
+
+    const payload = backupObj.data || backupObj
+
+    const counts: Record<string, number> = {}
+
+    if (Array.isArray(payload.invoices)) {
+      setStoredItem(STORAGE_KEYS.INVOICES, payload.invoices)
+      counts.invoices = payload.invoices.length
+    }
+    if (Array.isArray(payload.customers)) {
+      setStoredItem(STORAGE_KEYS.CUSTOMERS, payload.customers)
+      counts.customers = payload.customers.length
+    }
+    if (Array.isArray(payload.suppliers)) {
+      setStoredItem(STORAGE_KEYS.SUPPLIERS, payload.suppliers)
+      counts.suppliers = payload.suppliers.length
+    }
+    if (Array.isArray(payload.products)) {
+      setStoredItem(STORAGE_KEYS.PRODUCTS, payload.products)
+      counts.products = payload.products.length
+    }
+    if (Array.isArray(payload.purchases)) {
+      setStoredItem(STORAGE_KEYS.PURCHASES, payload.purchases)
+      counts.purchases = payload.purchases.length
+    }
+    if (Array.isArray(payload.payments)) {
+      setStoredItem(STORAGE_KEYS.PAYMENTS, payload.payments)
+      counts.payments = payload.payments.length
+    }
+    if (Array.isArray(payload.tasks)) {
+      setStoredItem(STORAGE_KEYS.TASKS, payload.tasks)
+      counts.tasks = payload.tasks.length
+    }
+    if (Array.isArray(payload.users)) {
+      setStoredItem(STORAGE_KEYS.USERS, payload.users)
+      counts.users = payload.users.length
+    }
+    if (Array.isArray(payload.activity_logs)) {
+      setStoredItem(STORAGE_KEYS.LOGS, payload.activity_logs)
+      counts.activity_logs = payload.activity_logs.length
+    }
+
+    DataService.addActivityLog('admin', 'Database Restored', 'Backup Module', 'Restored complete system database from backup file.')
+
+    return {
+      success: true,
+      message: 'Backup successfully restored!',
+      counts
+    }
+  },
+
+  exportBillsCSV: (): void => {
+    const invoices = DataService.getInvoices()
+    const headers = [
+      'Invoice Number',
+      'Bill Type',
+      'Date',
+      'Customer Name',
+      'Customer Mobile',
+      'Customer GSTIN',
+      'Customer Address',
+      'E-Way Bill No',
+      'Sub Total (₹)',
+      'CGST (₹)',
+      'SGST (₹)',
+      'Grand Total (₹)',
+      'Paid Amount (₹)',
+      'Balance Amount (₹)',
+      'Payment Status',
+      'Payment Mode'
+    ]
+
+    const rows = invoices.map(inv => [
+      `"${inv.invoice_number}"`,
+      `"${inv.type}"`,
+      `"${inv.date}"`,
+      `"${inv.customer_name.replace(/"/g, '""')}"`,
+      `"${inv.customer_mobile}"`,
+      `"${inv.customer_gstin}"`,
+      `"${(inv.customer_address || '').replace(/"/g, '""')}"`,
+      `"${inv.eway_bill_no || ''}"`,
+      inv.sub_total || 0,
+      inv.cgst || 0,
+      inv.sgst || 0,
+      inv.grand_total || 0,
+      inv.paid_amount || 0,
+      inv.balance_amount || 0,
+      `"${inv.status}"`,
+      `"${inv.payment_mode || 'CASH'}"`
+    ])
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `VPM_BILL_DATA_EXPORT_${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    DataService.addActivityLog('admin', 'Bills CSV Exported', 'Backup Module', 'Exported all bill data as CSV report.')
   }
 }
+

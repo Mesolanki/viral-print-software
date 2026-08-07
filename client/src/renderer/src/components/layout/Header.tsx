@@ -11,10 +11,12 @@ import {
   Users,
   Receipt,
   FileText,
-  Tag
+  Tag,
+  HardDrive
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { DataService } from '../../services/dataService'
 import type { ActiveTabType } from './AppLayout'
 import './Header.css'
 
@@ -33,6 +35,7 @@ const pageTitles = {
   users: { icon: <Users size={18} />, label: 'Users & Role Management' },
   dashboard: { icon: <LayoutDashboard size={18} />, label: 'System Diagnostics' },
   products: { icon: <Package size={18} />, label: 'Products & Rate Management' },
+  backup: { icon: <HardDrive size={18} />, label: 'Bill Data Drive Backup & Restore' },
 }
 
 const Header: React.FC<HeaderProps> = ({ theme, toggleTheme, activeTab, onToggleSidebar }) => {
@@ -81,6 +84,17 @@ const Header: React.FC<HeaderProps> = ({ theme, toggleTheme, activeTab, onToggle
         </div>
 
         <div className={`vpm-header-divider ${themeClass}`} />
+
+        {/* Quick Backup to Drive Button */}
+        <button
+          className={`vpm-icon-btn ${themeClass}`}
+          onClick={() => DataService.saveBackupToFileDrive()}
+          title="Backup All Bill Data to Drive"
+          style={{ background: 'rgba(16,185,129,0.12)', color: '#10B981', border: '1px solid rgba(16,185,129,0.25)', gap: 5, padding: '5px 10px', width: 'auto', borderRadius: 8, fontWeight: 700, fontSize: '0.78rem' }}
+        >
+          <HardDrive size={16} />
+          <span>Backup Data</span>
+        </button>
 
         {/* Theme Toggle */}
         <button

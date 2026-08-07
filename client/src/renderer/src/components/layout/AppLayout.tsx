@@ -16,6 +16,7 @@ export type ActiveTabType =
   | 'gst_reports'
   | 'tasks'
   | 'users'
+  | 'backup'
 
 interface AppLayoutProps {
   theme: 'dark' | 'light'

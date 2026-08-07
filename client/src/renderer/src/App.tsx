@@ -11,6 +11,7 @@ import PurchaseManagement from './components/PurchaseManagement'
 import PaymentEntryModule from './components/PaymentEntryModule'
 import GstReportModule from './components/GstReportModule'
 import EwayBillModule from './components/EwayBillModule'
+import BackupModule from './components/BackupModule'
 import AppLayout, { type ActiveTabType } from './components/layout/AppLayout'
 import LoginPage from './pages/LoginPage'
 
@@ -70,6 +71,8 @@ function DashboardView({
         <TaskManagement theme={theme} />
       ) : activeTab === 'users' ? (
         <UserManagement theme={theme} />
+      ) : activeTab === 'backup' ? (
+        <BackupModule theme={theme} />
       ) : (
         <DashboardOverview theme={theme} onNavigate={setActiveTab} />
       )}

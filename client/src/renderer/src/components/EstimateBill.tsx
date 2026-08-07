@@ -25,6 +25,7 @@ import {
   Truck,
   ShieldCheck,
   FileDown,
+  HardDrive
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { customersApi, productsApi, type CustomerData } from '../api/apiClient'
@@ -569,8 +570,17 @@ Main HSN: 9983 (Printing / Advertising)`
       {/* ═══════════ LEFT: INPUT FORM ═══════════ */}
       <div className="estimate-form-panel">
 
-        {/* Top Actions: Import Estimate & E-Way Portal Buttons */}
+        {/* Top Actions: Import Estimate & E-Way Portal & Backup Buttons */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            className="eb-btn-secondary"
+            onClick={() => DataService.saveBackupToFileDrive()}
+            style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 13px', background: 'rgba(16,185,129,0.12)', color: '#10B981', borderColor: 'rgba(16,185,129,0.3)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+            title="Backup all bill data to drive"
+          >
+            <HardDrive size={14} /> Backup Bills to Drive
+          </button>
+
           <button
             className="eb-btn-secondary"
             onClick={() => setIsImportModalOpen(true)}

@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { Row, Col, Card, Badge, Button, Table } from 'react-bootstrap'
 import {
   TrendingUp,
-  Clock,
   AlertCircle,
   FileText,
   CheckSquare,
   ShoppingCart,
   Receipt,
-  ArrowUpRight
+  ArrowUpRight,
+  HardDrive
 } from 'lucide-react'
 import { DataService, Invoice, TaskItem, Purchase } from '../services/dataService'
 import type { ActiveTabType } from './layout/AppLayout'
@@ -68,7 +68,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onNavigate
           </h2>
         </div>
 
-        <div className="d-flex gap-2 mt-3 mt-md-0">
+        <div className="d-flex flex-wrap gap-2 mt-3 mt-md-0">
           <Button
             variant="light"
             className="fw-bold px-3 py-2 text-primary border-0 rounded-3 shadow-sm d-flex align-items-center gap-2"
@@ -79,9 +79,9 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onNavigate
           <Button
             variant="outline-light"
             className="fw-bold px-3 py-2 rounded-3 d-flex align-items-center gap-2"
-            onClick={() => onNavigate('payments')}
+            onClick={() => onNavigate('backup')}
           >
-            <Clock size={16} /> Record Payment
+            <HardDrive size={16} /> Backup Data to Drive
           </Button>
         </div>
       </div>

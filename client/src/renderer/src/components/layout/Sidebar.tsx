@@ -11,7 +11,8 @@ import {
   FileSpreadsheet,
   CheckSquare,
   Users,
-  Truck
+  Truck,
+  HardDrive
 } from 'lucide-react'
 import electronLogo from '../../assets/electron.svg'
 import type { ActiveTabType } from './AppLayout'
@@ -188,6 +189,17 @@ const Sidebar: React.FC<SidebarProps> = ({ theme, activeTab, onTabChange, mode }
             <Users size={18} />
           </span>
           {mode === 'open' && <span className="vpm-nav-label">Users & Security</span>}
+        </button>
+
+        <button
+          className={`vpm-nav-item ${activeTab === 'backup' ? 'active' : ''}`}
+          onClick={() => onTabChange('backup')}
+          title="Drive Backup & Restore"
+        >
+          <span className="vpm-nav-icon">
+            <HardDrive size={18} />
+          </span>
+          {mode === 'open' && <span className="vpm-nav-label">Drive Backup & Restore</span>}
         </button>
       </nav>
 

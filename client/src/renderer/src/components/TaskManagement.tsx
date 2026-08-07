@@ -975,7 +975,7 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
                         {/* Action Buttons (Right Aligned) */}
                         <div className="task-actions-group">
                           {/* Quick Status Picker Dropdown */}
-                          <Dropdown align="end" popperConfig={{ strategy: 'fixed' }} renderOnMount>
+                          <Dropdown align="end">
                             <Dropdown.Toggle
                               variant={isDark ? 'outline-secondary' : 'outline-dark'}
                               size="sm"
