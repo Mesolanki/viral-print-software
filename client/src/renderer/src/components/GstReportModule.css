@@ -1,0 +1,324 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — GstReportModule.css ★ GOD-LEVEL PRO EDITION ★
+   Ultra-sleek Glassmorphism, Emerald Auras & Zero Page Overflow
+   ================================================================= */
+
+/* ── Global Container ─────────────────────────────────────────── */
+.vpm-gst-module {
+  animation: vpmFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: calc(100vh - 85px);
+  overflow: hidden;
+}
+
+/* ── Compact Header Banner Card ────────────────────────────────── */
+.vpm-gst-header {
+  border-radius: 16px !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 0.75rem 1.25rem !important;
+}
+
+.theme-light .vpm-gst-header {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 253, 244, 0.9) 100%) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+.theme-dark .vpm-gst-header {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(10, 30, 22, 0.9) 100%) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+.vpm-gst-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #10B981 0%, #00D2FF 50%, #736efe 100%);
+}
+
+.vpm-gst-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+  flex-shrink: 0;
+}
+
+/* Header Buttons */
+.vpm-btn-gst-sec {
+  background: rgba(16, 185, 129, 0.08);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.80rem;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-dark .vpm-btn-gst-sec {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+.vpm-btn-gst-sec:hover {
+  background: rgba(16, 185, 129, 0.18);
+  transform: translateY(-1px);
+}
+
+.vpm-btn-add-gst {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  font-weight: 800;
+  font-size: 0.80rem;
+  padding: 7px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vpm-btn-add-gst::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.75s ease;
+}
+
+.vpm-btn-add-gst:hover::after {
+  left: 180%;
+}
+
+.vpm-btn-add-gst:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(16, 185, 129, 0.48);
+  color: #ffffff;
+}
+
+/* ── Pro Filter Bar ────────────────────────────────────────────── */
+.vpm-gst-filter-bar {
+  border-radius: 14px !important;
+  padding: 8px 14px !important;
+  border: 1px solid !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.theme-light .vpm-gst-filter-bar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+}
+
+.theme-dark .vpm-gst-filter-bar {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.vpm-gst-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 9px;
+  font-size: 0.80rem;
+  font-weight: 600;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: #ffffff;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.theme-dark .vpm-gst-input {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.vpm-gst-input:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+}
+
+/* ── Pro Compact Summary Tax Stat Cards ───────────────────────── */
+.vpm-gst-stat-card {
+  border-radius: 14px !important;
+  border: 1px solid transparent !important;
+  padding: 0.65rem 1rem !important;
+  transition: transform 0.25s ease !important;
+}
+
+.vpm-gst-stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.theme-light .vpm-gst-stat-card {
+  background: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+}
+
+.theme-dark .vpm-gst-stat-card {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+.vpm-gst-stat-val {
+  font-size: 1.35rem !important;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  font-family: var(--font-mono);
+}
+
+/* ── Table Container (Zero Page Scroll) ───────────────────────── */
+.vpm-gst-table-card {
+  border-radius: 16px !important;
+  border: 1px solid !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-light .vpm-gst-table-card {
+  background: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05) !important;
+}
+
+.theme-dark .vpm-gst-table-card {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.vpm-gst-table-card .table-responsive {
+  max-height: calc(100vh - 310px);
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.vpm-gst-table-card .table-responsive::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.vpm-gst-table-card .table-responsive::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #10B981 0%, #00D2FF 100%);
+  border-radius: 999px;
+}
+
+.vpm-gst-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.vpm-gst-table th {
+  padding: 10px 12px !important;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748B;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  background: rgba(248, 250, 252, 0.95);
+  white-space: nowrap !important;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  text-align: left;
+}
+
+.theme-dark .vpm-gst-table th {
+  color: #94A3B8;
+  background: rgba(30, 41, 59, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.vpm-gst-table td {
+  padding: 9px 12px !important;
+  font-size: 0.80rem;
+  font-weight: 500;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  transition: background 0.2s ease;
+  white-space: nowrap !important;
+  text-align: left;
+}
+
+.theme-dark .vpm-gst-table td {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+  color: #E2E8F0;
+}
+
+.vpm-gst-table th.text-center,
+.vpm-gst-table td.text-center {
+  text-align: center !important;
+}
+
+.vpm-gst-table th.text-end,
+.vpm-gst-table td.text-end {
+  text-align: right !important;
+}
+
+.vpm-gst-table th.text-start,
+.vpm-gst-table td.text-start {
+  text-align: left !important;
+}
+
+.theme-light .vpm-gst-table tbody tr:hover {
+  background: rgba(16, 185, 129, 0.04) !important;
+}
+
+.theme-dark .vpm-gst-table tbody tr:hover {
+  background: rgba(16, 185, 129, 0.06) !important;
+}
+
+/* Footer Summary Row */
+.vpm-gst-table tfoot tr td {
+  background: rgba(240, 253, 244, 0.95) !important;
+  border-top: 2px solid rgba(16, 185, 129, 0.3) !important;
+  font-weight: 800;
+  font-size: 0.83rem;
+  color: #059669;
+}
+
+.theme-dark .vpm-gst-table tfoot tr td {
+  background: rgba(10, 30, 22, 0.95) !important;
+  border-top-color: rgba(52, 211, 153, 0.35) !important;
+  color: #34D399;
+}

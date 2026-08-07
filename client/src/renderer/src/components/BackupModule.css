@@ -1,0 +1,502 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — BackupModule.css ★ GOD-LEVEL PRO EDITION ★
+   Ultra-sleek Glassmorphism, Backup Dropzone & Zero Page Overflow
+   ================================================================= */
+
+/* ── Global Container ─────────────────────────────────────────── */
+.vpm-backup-module {
+  animation: vpmFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding-bottom: 2rem;
+}
+
+/* ── Compact Hero Banner ───────────────────────────────────────── */
+.vpm-backup-hero {
+  border-radius: 16px !important;
+  border: 1px solid rgba(99, 102, 241, 0.25) !important;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 0.85rem 1.25rem !important;
+}
+
+.theme-light .vpm-backup-hero {
+  background: linear-gradient(135deg, #4F46E5 0%, #6366F1 50%, #4338CA 100%) !important;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+}
+
+.theme-dark .vpm-backup-hero {
+  background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #312E81 100%) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(99, 102, 241, 0.35) !important;
+  color: #ffffff !important;
+}
+
+.vpm-backup-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #38BDF8 0%, #34D399 50%, #FBBF24 100%);
+}
+
+.vpm-backup-icon-box {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+/* Crisp High-Contrast Hero Typography */
+.vpm-backup-hero h4,
+.vpm-backup-hero .text-gradient-title {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: none !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.2px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+.vpm-backup-hero p {
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-weight: 500 !important;
+}
+
+.vpm-backup-hero .vpm-gst-badge {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px !important;
+  backdrop-filter: blur(4px);
+}
+
+.vpm-backup-hero .small.opacity-75 {
+  color: rgba(255, 255, 255, 0.88) !important;
+  opacity: 1 !important;
+}
+
+/* ── Hero Buttons ─────────────────────────────────────────────── */
+.vpm-btn-excel-main {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 8px 18px;
+  border-radius: 11px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap !important;
+}
+
+.vpm-btn-excel-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(16, 185, 129, 0.48);
+  color: #ffffff;
+}
+
+.vpm-btn-drive-main {
+  background: #ffffff;
+  color: #4338CA;
+  border: none;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 8px 18px;
+  border-radius: 11px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap !important;
+}
+
+.vpm-btn-drive-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(255, 255, 255, 0.3);
+  color: #3730A3;
+}
+
+/* ── Protection Status Banner ─────────────────────────────────── */
+.vpm-backup-status-banner {
+  border-radius: 14px !important;
+  padding: 8px 16px !important;
+  border: 1px solid !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.theme-light .vpm-backup-status-banner {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+}
+
+.theme-dark .vpm-backup-status-banner {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ── Operations Grid ─────────────────────────────────────────── */
+.vpm-backup-card {
+  border-radius: 16px !important;
+  border: 1px solid !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-light .vpm-backup-card {
+  background: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05) !important;
+}
+
+.theme-dark .vpm-backup-card {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.vpm-backup-option-row {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: rgba(248, 250, 252, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.theme-dark .vpm-backup-option-row {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.vpm-backup-option-row:hover {
+  transform: translateX(3px);
+  border-color: #6366F1;
+}
+
+/* Restore Dropzone */
+.vpm-restore-dropzone {
+  border: 2px dashed rgba(234, 179, 8, 0.4) !important;
+  border-radius: 14px;
+  padding: 1.25rem;
+  text-align: center;
+  background: rgba(254, 252, 232, 0.5);
+  transition: all 0.25s ease;
+}
+
+.theme-dark .vpm-restore-dropzone {
+  background: rgba(42, 36, 15, 0.5);
+  border-color: rgba(234, 179, 8, 0.3) !important;
+}
+
+.vpm-restore-dropzone:hover {
+  border-color: #EAB308 !important;
+  background: rgba(254, 252, 232, 0.8);
+  transform: translateY(-2px);
+}
+
+/* ── Table Container (Zero Page Scroll) ───────────────────────── */
+.vpm-backup-table-card {
+  border-radius: 16px !important;
+  border: 1px solid !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-light .vpm-backup-table-card {
+  background: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05) !important;
+}
+
+.theme-dark .vpm-backup-table-card {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.vpm-backup-table-card .table-responsive {
+  min-height: 380px !important;
+  max-height: 550px !important;
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  scroll-behavior: smooth;
+}
+
+.vpm-backup-table-card .table-responsive::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.vpm-backup-table-card .table-responsive::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 999px;
+}
+
+.theme-dark .vpm-backup-table-card .table-responsive::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.vpm-backup-table-card .table-responsive::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6366F1 0%, #00D2FF 100%);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.vpm-backup-table-card .table-responsive::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #4F46E5 0%, #0284C7 100%);
+}
+
+.vpm-backup-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.vpm-table-header-pro {
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  background: rgba(248, 250, 252, 0.9);
+  gap: 10px;
+  overflow: hidden;
+}
+
+.theme-dark .vpm-table-header-pro {
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.vpm-table-title-pro {
+  font-size: 0.86rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* ── Mini Search & Filter Controls (Single Row Horizontal) ────── */
+.vpm-table-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-wrap: nowrap;
+  padding-right: 6px;
+}
+
+.vpm-search-box-mini {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto !important;
+}
+
+.vpm-search-icon {
+  position: absolute;
+  left: 9px;
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.vpm-search-input {
+  padding: 4px 24px 4px 28px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  background: #ffffff !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+  width: 150px !important;
+  height: 30px !important;
+  display: inline-block !important;
+}
+
+.theme-dark .vpm-search-input {
+  background: rgba(30, 41, 59, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #F8FAFC !important;
+}
+
+.vpm-search-input:focus {
+  border-color: #6366F1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+  width: 175px !important;
+}
+
+.vpm-search-clear {
+  position: absolute;
+  right: 7px;
+  border: none;
+  background: transparent;
+  color: #94A3B8;
+  padding: 2px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vpm-search-clear:hover {
+  color: #EF4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.vpm-filter-select {
+  padding: 3px 22px 3px 10px !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  background-color: #ffffff !important;
+  color: #334155 !important;
+  outline: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  width: auto !important;
+  max-width: 125px !important;
+  height: 30px !important;
+  display: inline-block !important;
+  flex: 0 0 auto !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%3c94A3B8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  background-size: 9px 9px !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+.theme-dark .vpm-filter-select {
+  background-color: rgba(30, 41, 59, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #E2E8F0 !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%3cE2E8F0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+}
+
+.vpm-filter-select:hover,
+.vpm-filter-select:focus {
+  border-color: #6366F1;
+}
+
+/* Sticky Header */
+.vpm-backup-table th {
+  padding: 11px 14px !important;
+  font-size: 0.70rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748B;
+  border-bottom: 2px solid rgba(226, 232, 240, 0.9);
+  background: #F8FAFC !important;
+  white-space: nowrap !important;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  text-align: left;
+}
+
+.theme-dark .vpm-backup-table th {
+  color: #94A3B8;
+  background: #1E293B !important;
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.vpm-backup-table td {
+  padding: 10px 14px !important;
+  font-size: 0.81rem;
+  font-weight: 500;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  transition: background 0.2s ease;
+  white-space: nowrap !important;
+  text-align: left;
+}
+
+.theme-dark .vpm-backup-table td {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+  color: #E2E8F0;
+}
+
+.vpm-backup-table th.text-center,
+.vpm-backup-table td.text-center {
+  text-align: center !important;
+}
+
+.vpm-backup-table th.text-end,
+.vpm-backup-table td.text-end {
+  text-align: right !important;
+}
+
+.vpm-backup-table th.text-start,
+.vpm-backup-table td.text-start {
+  text-align: left !important;
+}
+
+.theme-light .vpm-backup-table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.06) !important;
+}
+
+.theme-dark .vpm-backup-table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.12) !important;
+}
+
+/* Summary Footer */
+.vpm-table-footer-pro {
+  padding: 8px 16px;
+  background: rgba(248, 250, 252, 0.9);
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+  font-size: 0.74rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.theme-dark .vpm-table-footer-pro {
+  background: rgba(15, 23, 42, 0.95);
+  border-top-color: rgba(255, 255, 255, 0.08);
+  color: #94A3B8;
+}

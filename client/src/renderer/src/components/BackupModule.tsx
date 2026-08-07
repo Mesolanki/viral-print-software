@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { Card, Button, Row, Col, Alert, Badge, Table, Form } from 'react-bootstrap'
+import React, { useState, useEffect, useMemo } from 'react'
+import { Row, Col, Alert, Form } from 'react-bootstrap'
 import {
   HardDrive,
   Download,
@@ -12,9 +12,12 @@ import {
   ShieldCheck,
   RefreshCw,
   FileText,
-  FolderOpen
+  FolderOpen,
+  Search,
+  X
 } from 'lucide-react'
 import { DataService, Invoice } from '../services/dataService'
+import './BackupModule.css'
 
 interface BackupModuleProps {
   theme: 'dark' | 'light'
@@ -30,6 +33,12 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
     return localStorage.getItem('vpm_last_backup_timestamp') || null
   })
 
+  // ── Search & Filter Controls ─────────────────────────────────────────
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [typeFilter, setTypeFilter] = useState('ALL')
+  const [displayLimit, setDisplayLimit] = useState<number | 'ALL'>('ALL')
+
   const loadStats = () => {
     const data = DataService.exportAllData()
     setBackupStats(data)
@@ -39,6 +48,33 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
   useEffect(() => {
     loadStats()
   }, [])
+
+  // ── Filtered & Visible Invoices ──────────────────────────────────────
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter((inv) => {
+      const q = searchTerm.toLowerCase().trim()
+      const matchesSearch =
+        q === '' ||
+        (inv.invoice_number && inv.invoice_number.toLowerCase().includes(q)) ||
+        (inv.customer_name && inv.customer_name.toLowerCase().includes(q)) ||
+        (inv.date && inv.date.includes(q)) ||
+        (inv.type && inv.type.toLowerCase().includes(q))
+
+      const matchesStatus = statusFilter === 'ALL' || inv.status === statusFilter
+      const matchesType = typeFilter === 'ALL' || inv.type === typeFilter
+
+      return matchesSearch && matchesStatus && matchesType
+    })
+  }, [invoices, searchTerm, statusFilter, typeFilter])
+
+  const visibleInvoices = useMemo(() => {
+    if (displayLimit === 'ALL') return filteredInvoices
+    return filteredInvoices.slice(0, displayLimit)
+  }, [filteredInvoices, displayLimit])
+
+  const filteredTotal = useMemo(() => {
+    return filteredInvoices.reduce((sum, inv) => sum + (inv.grand_total || 0), 0)
+  }, [filteredInvoices])
 
   // ── Handle Full Backup to Drive (JSON) ────────────────────────────
   const handleBackupToDrive = async () => {
@@ -135,55 +171,45 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
   }
 
   return (
-    <div className="vpm-backup-module p-3">
-      {/* ── Top Header Card ────────────────────────────────────────── */}
-      <div
-        className="p-4 mb-4 rounded-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center shadow-sm"
-        style={{
-          background: isDark
-            ? 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)'
-            : 'linear-gradient(135deg, #4338ca 0%, #6366f1 100%)',
-          border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none'
-        }}
-      >
-        <div>
-          <div className="d-flex align-items-center gap-2 mb-1">
-            <span className="badge bg-white text-dark fw-bold px-2 py-1 uppercase" style={{ fontSize: '0.7rem' }}>
-              EXCEL & DRIVE BACKUP SYSTEM
-            </span>
-            <span className="text-white-50 small">Offline Data Protection</span>
+    <div className={`vpm-backup-module ${isDark ? 'theme-dark' : 'theme-light'}`}>
+      {/* ── Top Header Hero Banner ────────────────────────────── */}
+      <div className="vpm-backup-hero d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div className="d-flex align-items-center gap-3">
+          <div className="vpm-backup-icon-box">
+            <HardDrive size={22} />
           </div>
-          <h2 className="fw-bold m-0" style={{ letterSpacing: '-0.5px' }}>
-            Bill Data Excel & Drive Backup System
-          </h2>
-          <p className="text-white-50 small m-0 mt-1">
-            Save complete backups of all Tax Invoices, Quotations, Estimate Bills, Customers, and Financial Ledgers as Excel Worksheets (.xlsx) or JSON directly to your PC or Google Drive.
-          </p>
+          <div>
+            <div className="d-flex align-items-center gap-2 mb-1">
+              <span className="vpm-gst-badge" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                EXCEL & DRIVE BACKUP SYSTEM
+              </span>
+              <span className="small opacity-75 fw-medium">Offline Data Protection</span>
+            </div>
+            <h4 className="fw-extrabold m-0 text-gradient-title">Bill Data Excel & Drive Backup System</h4>
+            <p className="small opacity-75 m-0 fw-medium">
+              Save complete backups of all Tax Invoices, Quotations, Estimate Bills, Customers, and Ledgers to PC or Drive.
+            </p>
+          </div>
         </div>
 
-        <div className="d-flex flex-column flex-sm-row gap-2 mt-3 mt-md-0">
-          <Button
-            variant="success"
-            size="lg"
-            className="fw-bold px-4 py-2.5 rounded-3 shadow d-flex align-items-center justify-content-center gap-2"
+        <div className="d-flex gap-2">
+          <button
+            type="button"
+            className="vpm-btn-excel-main"
             onClick={handleBackupToExcel}
             disabled={isProcessing}
-            style={{ fontWeight: 800 }}
           >
-            {isProcessing ? <RefreshCw className="spin" size={20} /> : <FileSpreadsheet size={20} />}
+            {isProcessing ? <RefreshCw className="spin" size={16} /> : <FileSpreadsheet size={16} />}
             Backup to Excel (.xlsx)
-          </Button>
-
-          <Button
-            variant="light"
-            size="lg"
-            className="fw-bold px-3 py-2.5 text-indigo-700 border-0 rounded-3 shadow d-flex align-items-center justify-content-center gap-2"
+          </button>
+          <button
+            type="button"
+            className="vpm-btn-drive-main"
             onClick={handleBackupToDrive}
             disabled={isProcessing}
-            style={{ color: '#4338ca', fontWeight: 800 }}
           >
-            <HardDrive size={20} /> Backup JSON to Drive
-          </Button>
+            <HardDrive size={16} /> Backup JSON to Drive
+          </button>
         </div>
       </div>
 
@@ -193,277 +219,378 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
           variant={statusAlert.type}
           onClose={() => setStatusAlert(null)}
           dismissible
-          className="shadow-sm rounded-3 mb-4"
+          className="shadow-sm rounded-3 m-0 py-2 px-3 small"
         >
           {statusAlert.message}
         </Alert>
       )}
 
-      {/* ── Last Backup Info Banner ────────────────────────────────── */}
-      <div
-        className={`p-3 mb-4 rounded-3 d-flex align-items-center justify-content-between ${
-          isDark ? 'bg-slate-900 border border-slate-800 text-white' : 'bg-white border text-dark'
-        }`}
-      >
+      {/* ── Last Backup Protection Banner ────────────────────────── */}
+      <div className="vpm-backup-status-banner">
         <div className="d-flex align-items-center gap-3">
           <div
-            className="p-2.5 rounded-3 d-flex align-items-center justify-content-center"
+            className="p-2 rounded-3 d-flex align-items-center justify-content-center"
             style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10B981' }}
           >
-            <ShieldCheck size={24} />
+            <ShieldCheck size={20} />
           </div>
           <div>
-            <span className="fw-bold d-block mb-0">Local Drive Backup Protection Active</span>
-            <span className="text-muted small">
-              {lastBackupTime ? `Last backup saved on: ${lastBackupTime}` : 'No backups saved yet. Click "Backup All Bills to Drive" to create your first backup.'}
+            <span className="fw-bold d-block small m-0">Local Drive Backup Protection Active</span>
+            <span className="text-muted" style={{ fontSize: '0.74rem' }}>
+              {lastBackupTime
+                ? `Last backup saved on: ${lastBackupTime}`
+                : 'No backups saved yet. Click "Backup All Bills to Drive" to create your first backup.'}
             </span>
           </div>
         </div>
 
-        <Badge bg={lastBackupTime ? 'success' : 'warning'} className="px-3 py-2 fs-6">
-          {lastBackupTime ? 'SYSTEM BACKED UP' : 'BACKUP PENDING'}
-        </Badge>
+        {lastBackupTime ? (
+          <span className="vpm-status-pill vpm-status-pill-paid">
+            <span className="vpm-status-dot" /> SYSTEM BACKED UP
+          </span>
+        ) : (
+          <span className="vpm-status-pill vpm-status-pill-partial">
+            <span className="vpm-status-dot" /> BACKUP PENDING
+          </span>
+        )}
       </div>
 
-      {/* ── Metrics Cards Grid ──────────────────────────────────────── */}
-      <Row className="g-3 mb-4">
+      {/* ── Compact Metrics Cards ──────────────────────────────────── */}
+      <Row className="g-2">
         <Col xs={12} sm={6} md={3}>
-          <Card className={`border-0 shadow-sm rounded-4 h-100 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-            <Card.Body className="p-3">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-muted small fw-semibold text-uppercase">Total Invoices & Bills</span>
-                <Receipt className="text-primary" size={20} />
-              </div>
-              <h3 className="fw-bold m-0 text-primary">{backupStats?.metrics?.totalInvoices || invoices.length}</h3>
-              <span className="text-muted small">Tax Invoices, Quotes & Estimates</span>
-            </Card.Body>
-          </Card>
+          <div className="vpm-gst-stat-card">
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <span className="small text-muted fw-bold text-uppercase">Invoices & Bills</span>
+              <Receipt className="text-primary" size={16} />
+            </div>
+            <div className="vpm-gst-stat-val text-primary">
+              {backupStats?.metrics?.totalInvoices || invoices.length}
+            </div>
+          </div>
         </Col>
 
         <Col xs={12} sm={6} md={3}>
-          <Card className={`border-0 shadow-sm rounded-4 h-100 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-            <Card.Body className="p-3">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-muted small fw-semibold text-uppercase">Total Financial Sales</span>
-                <FileText className="text-success" size={20} />
-              </div>
-              <h3 className="fw-bold m-0 text-success">
-                ₹{(backupStats?.metrics?.totalSales || 0).toLocaleString('en-IN')}
-              </h3>
-              <span className="text-muted small">All recorded billing value</span>
-            </Card.Body>
-          </Card>
+          <div className="vpm-gst-stat-card">
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <span className="small text-muted fw-bold text-uppercase">Financial Sales</span>
+              <FileText className="text-success" size={16} />
+            </div>
+            <div className="vpm-gst-stat-val text-success">
+              ₹{(backupStats?.metrics?.totalSales || 0).toLocaleString('en-IN')}
+            </div>
+          </div>
         </Col>
 
         <Col xs={12} sm={6} md={3}>
-          <Card className={`border-0 shadow-sm rounded-4 h-100 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-            <Card.Body className="p-3">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-muted small fw-semibold text-uppercase">Customer Directory</span>
-                <Users className="text-info" size={20} />
-              </div>
-              <h3 className="fw-bold m-0 text-info">{backupStats?.metrics?.totalCustomers || 0}</h3>
-              <span className="text-muted small">GST Accounts & Walk-ins</span>
-            </Card.Body>
-          </Card>
+          <div className="vpm-gst-stat-card">
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <span className="small text-muted fw-bold text-uppercase">Customers</span>
+              <Users className="text-info" size={16} />
+            </div>
+            <div className="vpm-gst-stat-val text-info">
+              {backupStats?.metrics?.totalCustomers || 0}
+            </div>
+          </div>
         </Col>
 
         <Col xs={12} sm={6} md={3}>
-          <Card className={`border-0 shadow-sm rounded-4 h-100 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-            <Card.Body className="p-3">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-muted small fw-semibold text-uppercase">Products & Rates</span>
-                <Package className="text-warning" size={20} />
-              </div>
-              <h3 className="fw-bold m-0 text-warning">{backupStats?.metrics?.totalProducts || 0}</h3>
-              <span className="text-muted small">Flex, Vinyl, Boards & Print items</span>
-            </Card.Body>
-          </Card>
+          <div className="vpm-gst-stat-card">
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <span className="small text-muted fw-bold text-uppercase">Products & Rates</span>
+              <Package className="text-warning" size={16} />
+            </div>
+            <div className="vpm-gst-stat-val text-warning">
+              {backupStats?.metrics?.totalProducts || 0}
+            </div>
+          </div>
         </Col>
       </Row>
 
       {/* ── Main Operations Section: Backup & Restore ──────────────── */}
-      <Row className="g-4 mb-4">
+      <Row className="g-3">
         {/* Left: Backup Actions */}
         <Col lg={6}>
-          <Card className={`border-0 shadow-sm rounded-4 h-100 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-            <Card.Header className="p-3 border-0 bg-transparent d-flex align-items-center gap-2">
-              <HardDrive className="text-primary" size={20} />
-              <h5 className="fw-bold m-0">1-Click Backup Options</h5>
-            </Card.Header>
-            <Card.Body className="p-3 pt-0 d-flex flex-column justify-content-between">
-              <div>
-                <p className="text-muted small mb-3">
-                  Select your preferred backup method below. You can save full database JSON snapshots directly to any folder on your hard drive (e.g. Google Drive sync folder, D:\Backups, external flash drive).
-                </p>
+          <div className="vpm-backup-card p-3">
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <HardDrive className="text-primary" size={18} />
+              <h6 className="fw-extrabold m-0">1-Click Backup Options</h6>
+            </div>
 
-                <div className="d-flex flex-column gap-3 mb-3">
-                  {/* Excel Backup Card */}
-                  <div className={`p-3 rounded-3 border d-flex align-items-center justify-content-between ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-light border-gray-200'}`}>
-                    <div className="d-flex align-items-center gap-3">
-                      <FileSpreadsheet className="text-success" size={26} />
-                      <div>
-                        <h6 className="fw-bold m-0 text-success">Backup All Data to Excel (.xlsx)</h6>
-                        <span className="text-muted small">Creates 6 Worksheets: Invoices, Item Breakdown, Customers, Payments, Rates & Purchases</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="success"
-                      className="fw-bold px-3 py-2 rounded-3 text-nowrap"
-                      onClick={handleBackupToExcel}
-                      disabled={isProcessing}
-                    >
-                      Export Excel
-                    </Button>
-                  </div>
-
-                  {/* JSON Backup Card */}
-                  <div className={`p-3 rounded-3 border d-flex align-items-center justify-content-between ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-light border-gray-200'}`}>
-                    <div className="d-flex align-items-center gap-3">
-                      <Download className="text-primary" size={24} />
-                      <div>
-                        <h6 className="fw-bold m-0">Full Bill System Backup (.json)</h6>
-                        <span className="text-muted small">Includes all Invoices, Quotations, Estimates, E-Way bills, Payments & System data</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="primary"
-                      className="fw-bold px-3 py-2 rounded-3 text-nowrap"
-                      onClick={handleBackupToDrive}
-                      disabled={isProcessing}
-                    >
-                      Save JSON
-                    </Button>
-                  </div>
-
-                  {/* CSV Export Card */}
-                  <div className={`p-3 rounded-3 border d-flex align-items-center justify-content-between ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-light border-gray-200'}`}>
-                    <div className="d-flex align-items-center gap-3">
-                      <FileText className="text-info" size={24} />
-                      <div>
-                        <h6 className="fw-bold m-0">Export Bills Summary CSV (.csv)</h6>
-                        <span className="text-muted small">Export all invoice dates, customer GSTINs, totals, and payment balances</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline-info"
-                      className="fw-bold px-3 py-2 rounded-3 text-nowrap"
-                      onClick={handleExportCSV}
-                    >
-                      Export CSV
-                    </Button>
+            <div className="d-flex flex-column gap-2 mb-2">
+              {/* Excel Backup Card */}
+              <div className="vpm-backup-option-row">
+                <div className="d-flex align-items-center gap-2">
+                  <FileSpreadsheet className="text-success" size={20} />
+                  <div>
+                    <span className="fw-bold d-block text-success small">Backup All Data to Excel (.xlsx)</span>
+                    <span className="text-muted" style={{ fontSize: '0.70rem' }}>6 Worksheets: Invoices, Items, Customers, Payments, Rates</span>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  className="vpm-btn-excel-main"
+                  style={{ padding: '5px 12px', fontSize: '0.76rem' }}
+                  onClick={handleBackupToExcel}
+                  disabled={isProcessing}
+                >
+                  Export Excel
+                </button>
               </div>
 
-              <div className="p-3 rounded-3 bg-primary bg-opacity-10 text-primary small">
-                <strong>💡 Tip for Google Drive / OneDrive users:</strong> When saving your backup file, choose your synchronized Google Drive or OneDrive folder to automatically sync your bill data to the cloud!
+              {/* JSON Backup Card */}
+              <div className="vpm-backup-option-row">
+                <div className="d-flex align-items-center gap-2">
+                  <Download className="text-primary" size={20} />
+                  <div>
+                    <span className="fw-bold d-block small">Full Bill System Backup (.json)</span>
+                    <span className="text-muted" style={{ fontSize: '0.70rem' }}>Includes Invoices, Quotes, Estimates, Payments & System data</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="vpm-btn-pur-action vpm-btn-add-pur"
+                  style={{ padding: '5px 12px', fontSize: '0.76rem' }}
+                  onClick={handleBackupToDrive}
+                  disabled={isProcessing}
+                >
+                  Save JSON
+                </button>
               </div>
-            </Card.Body>
-          </Card>
+
+              {/* CSV Export Card */}
+              <div className="vpm-backup-option-row">
+                <div className="d-flex align-items-center gap-2">
+                  <FileText className="text-info" size={20} />
+                  <div>
+                    <span className="fw-bold d-block small">Export Bills Summary CSV (.csv)</span>
+                    <span className="text-muted" style={{ fontSize: '0.70rem' }}>Export invoice dates, customer GSTINs, totals & balances</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="vpm-btn-gst-sec"
+                  style={{ padding: '5px 12px', fontSize: '0.76rem' }}
+                  onClick={handleExportCSV}
+                >
+                  Export CSV
+                </button>
+              </div>
+            </div>
+
+            <div className="p-2 rounded-3 bg-primary bg-opacity-10 text-primary" style={{ fontSize: '0.72rem' }}>
+              <strong>💡 Tip for Google Drive / OneDrive:</strong> Choose your synced cloud drive folder to auto-sync!
+            </div>
+          </div>
         </Col>
 
         {/* Right: Restore Actions */}
         <Col lg={6}>
-          <Card className={`border-0 shadow-sm rounded-4 h-100 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-            <Card.Header className="p-3 border-0 bg-transparent d-flex align-items-center gap-2">
-              <Upload className="text-warning" size={20} />
-              <h5 className="fw-bold m-0">Restore Database Backup</h5>
-            </Card.Header>
-            <Card.Body className="p-3 pt-0 d-flex flex-column justify-content-between">
-              <div>
-                <p className="text-muted small mb-3">
-                  Upload a previously saved `.json` backup file from your drive to restore all bills, customers, products, and sales logs into the software.
-                </p>
+          <div className="vpm-backup-card p-3">
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <Upload className="text-warning" size={18} />
+              <h6 className="fw-extrabold m-0">Restore Database Backup</h6>
+            </div>
 
-                <div className={`p-4 border-2 border-dashed rounded-4 text-center mb-3 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-light border-secondary'}`}>
-                  <FolderOpen className="text-warning mb-2" size={36} />
-                  <h6 className="fw-bold mb-1">Select Backup File (.json)</h6>
-                  <p className="text-muted small mb-3">Drag and drop or click below to choose a backup file from your drive</p>
-                  <Form.Group controlId="backupFileUpload">
-                    <Form.Control
-                      type="file"
-                      accept=".json"
-                      onChange={handleFileUpload}
-                      style={{ display: 'none' }}
-                    />
-                    <Form.Label
-                      htmlFor="backupFileUpload"
-                      className="btn btn-warning fw-bold px-4 py-2 rounded-3 text-dark cursor-pointer shadow-sm m-0"
-                    >
-                      <Upload size={16} className="me-2" /> Browse Backup File from Drive
-                    </Form.Label>
-                  </Form.Group>
-                </div>
-              </div>
+            <div className="vpm-restore-dropzone mb-2">
+              <FolderOpen className="text-warning mb-1" size={28} />
+              <h6 className="fw-extrabold mb-1 small">Select Backup File (.json)</h6>
+              <p className="text-muted mb-2" style={{ fontSize: '0.72rem' }}>Choose a backup file from your local drive to restore</p>
+              <Form.Group controlId="backupFileUpload">
+                <Form.Control
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileUpload}
+                  style={{ display: 'none' }}
+                />
+                <Form.Label
+                  htmlFor="backupFileUpload"
+                  className="vpm-btn-pur-action vpm-btn-pur-sec m-0 cursor-pointer"
+                  style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#D97706', borderColor: 'rgba(234, 179, 8, 0.3)' }}
+                >
+                  <Upload size={14} className="me-1" /> Browse Backup File from Drive
+                </Form.Label>
+              </Form.Group>
+            </div>
 
-              <Alert variant="warning" className="m-0 small py-2 px-3 rounded-3">
-                <AlertCircle size={14} className="me-1" />
-                <strong>Note:</strong> Restoring a backup file will safely update your local bill dataset. Make sure to back up your current work before restoring an older file.
-              </Alert>
-            </Card.Body>
-          </Card>
+            <Alert variant="warning" className="m-0 py-1.5 px-2.5 rounded-3" style={{ fontSize: '0.72rem' }}>
+              <AlertCircle size={13} className="me-1" />
+              <strong>Note:</strong> Restoring safely updates your local bill dataset. Back up current work first.
+            </Alert>
+          </div>
         </Col>
       </Row>
 
       {/* ── Bill Data Overview Table ───────────────────────────────── */}
-      <Card className={`border-0 shadow-sm rounded-4 overflow-hidden ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-        <Card.Header className="p-3 border-0 bg-transparent d-flex justify-content-between align-items-center">
+      <div className="vpm-backup-table-card">
+        {/* Header & Search/Filter Controls */}
+        <div className="vpm-table-header-pro">
           <div className="d-flex align-items-center gap-2">
-            <Receipt className="text-primary" size={20} />
-            <h5 className="fw-bold m-0">Bill Records Ready for Drive Backup</h5>
+            <Receipt size={18} className="text-primary" />
+            <h5 className="vpm-table-title-pro m-0">Bill Records Ready for Drive Backup</h5>
+            <span className="vpm-gst-badge">
+              {filteredInvoices.length} of {invoices.length} Bills
+            </span>
           </div>
-          <Badge bg="primary" className="px-3 py-1.5">
-            {invoices.length} Bills Saved
-          </Badge>
-        </Card.Header>
-        <Card.Body className="p-0">
-          <div className="table-responsive">
-            <Table hover className={`m-0 align-middle ${isDark ? 'table-dark' : ''}`}>
-              <thead className={isDark ? 'bg-slate-800' : 'bg-light'}>
-                <tr className="small text-uppercase text-muted">
-                  <th>#</th>
-                  <th>Invoice Number</th>
-                  <th>Type</th>
-                  <th>Date</th>
-                  <th>Customer Name</th>
-                  <th className="text-end">Amount (₹)</th>
-                  <th className="text-center">Status</th>
+
+          {/* Controls: Search, Type, Status, Row Limit */}
+          <div className="vpm-table-controls-row">
+            {/* Search Input */}
+            <div className="vpm-search-box-mini">
+              <Search size={14} className="vpm-search-icon" />
+              <input
+                type="text"
+                className="vpm-search-input"
+                placeholder="Search bill#, customer, date..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  className="vpm-search-clear"
+                  onClick={() => setSearchTerm('')}
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            {/* Type Filter */}
+            <select
+              className="vpm-filter-select"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
+              <option value="ALL">All Types</option>
+              <option value="TAX_INVOICE">Tax Invoice</option>
+              <option value="QUOTATION">Quotation</option>
+              <option value="ESTIMATE">Estimate</option>
+            </select>
+
+            {/* Status Filter */}
+            <select
+              className="vpm-filter-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="ALL">All Status</option>
+              <option value="PAID">Paid</option>
+              <option value="PARTIALLY_PAID">Partial</option>
+              <option value="UNPAID">Unpaid</option>
+            </select>
+
+            {/* Limit Selector */}
+            <select
+              className="vpm-filter-select"
+              value={displayLimit}
+              onChange={(e) =>
+                setDisplayLimit(
+                  e.target.value === 'ALL' ? 'ALL' : Number(e.target.value)
+                )
+              }
+            >
+              <option value="ALL">Show All</option>
+              <option value="10">Show 10</option>
+              <option value="25">Show 25</option>
+              <option value="50">Show 50</option>
+              <option value="100">Show 100</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Scrollable Table Viewport */}
+        <div className="table-responsive vpm-pro-scrollable-table">
+          <table className="vpm-backup-table">
+            <thead>
+              <tr>
+                <th className="text-center" style={{ width: '50px' }}>#</th>
+                <th className="text-start">Invoice Number</th>
+                <th className="text-center">Type</th>
+                <th className="text-center">Date</th>
+                <th className="text-start">Customer Name</th>
+                <th className="text-end">Amount (₹)</th>
+                <th className="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleInvoices.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-5 text-muted fw-medium">
+                    <div className="d-flex flex-column align-items-center gap-2">
+                      <Receipt size={32} className="opacity-50" />
+                      <span>No matching bill records found.</span>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {invoices.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-4 text-muted">
-                      No invoices found in database.
+              ) : (
+                visibleInvoices.map((inv, idx) => (
+                  <tr key={inv.id || idx}>
+                    <td className="text-center">
+                      <span className="vpm-date-pill">{idx + 1}</span>
+                    </td>
+                    <td className="text-start">
+                      <span className="vpm-bill-num-pill">{inv.invoice_number}</span>
+                    </td>
+                    <td className="text-center">
+                      <span className="vpm-badge-bill vpm-badge-bill-tax">
+                        {(inv.type || 'TAX_INVOICE').replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      <span className="vpm-date-pill">{inv.date}</span>
+                    </td>
+                    <td className="text-start">
+                      <div className="vpm-cust-name-cell">
+                        <div className="vpm-avatar-mini">
+                          {(inv.customer_name || 'C')
+                            .split(' ')
+                            .map((w) => w[0])
+                            .slice(0, 2)
+                            .join('')
+                            .toUpperCase()}
+                        </div>
+                        <span className="fw-bold">{inv.customer_name || 'Walk-in Customer'}</span>
+                      </div>
+                    </td>
+                    <td className="text-end">
+                      <span className="vpm-amount-total">
+                        ₹{(inv.grand_total || 0).toLocaleString('en-IN')}
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      {inv.status === 'PAID' && (
+                        <span className="vpm-status-pill vpm-status-pill-paid">
+                          <span className="vpm-status-dot" /> Paid
+                        </span>
+                      )}
+                      {inv.status === 'PARTIALLY_PAID' && (
+                        <span className="vpm-status-pill vpm-status-pill-partial">
+                          <span className="vpm-status-dot" /> Partial
+                        </span>
+                      )}
+                      {(inv.status === 'UNPAID' || !inv.status) && (
+                        <span className="vpm-status-pill vpm-status-pill-unpaid">
+                          <span className="vpm-status-dot" /> Unpaid
+                        </span>
+                      )}
                     </td>
                   </tr>
-                ) : (
-                  invoices.slice(0, 10).map((inv, idx) => (
-                    <tr key={inv.id || idx}>
-                      <td>{idx + 1}</td>
-                      <td className="fw-bold">{inv.invoice_number}</td>
-                      <td>
-                        <Badge bg={inv.type === 'TAX_INVOICE' ? 'primary' : inv.type === 'QUOTATION' ? 'info' : 'warning'}>
-                          {inv.type.replace('_', ' ')}
-                        </Badge>
-                      </td>
-                      <td className="small text-muted">{inv.date}</td>
-                      <td>{inv.customer_name}</td>
-                      <td className="text-end fw-bold">₹{inv.grand_total.toLocaleString('en-IN')}</td>
-                      <td className="text-center">
-                        <Badge bg={inv.status === 'PAID' ? 'success' : inv.status === 'PARTIALLY_PAID' ? 'warning' : 'danger'}>
-                          {inv.status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </Table>
-          </div>
-        </Card.Body>
-      </Card>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Table Footer Summary */}
+        <div className="vpm-table-footer-pro">
+          <span>
+            Showing <strong>{visibleInvoices.length}</strong> of <strong>{filteredInvoices.length}</strong> records
+          </span>
+          <span className="ms-auto fw-bold">
+            Filtered Total: <span className="text-success">₹{filteredTotal.toLocaleString('en-IN')}</span>
+          </span>
+        </div>
+      </div>
     </div>
   )
 }

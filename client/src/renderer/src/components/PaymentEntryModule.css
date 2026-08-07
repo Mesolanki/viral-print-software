@@ -1,0 +1,694 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — PaymentEntryModule.css ★ ZERO-SCROLL PRO EDITION ★
+   Ultra-compact Glassmorphism, Neon Auras, Zero Page Overflow
+   ================================================================= */
+
+/* ── Global Container ─────────────────────────────────────────── */
+.vpm-payment-module {
+  animation: vpmFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: calc(100vh - 85px);
+  overflow: hidden;
+}
+
+/* ── Compact Header Banner Card ────────────────────────────────── */
+.vpm-header-banner {
+  border-radius: 16px !important;
+  border: 1px solid rgba(115, 110, 254, 0.18) !important;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 0.65rem 1.25rem !important;
+}
+
+.theme-light .vpm-header-banner {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 244, 255, 0.9) 100%) !important;
+  box-shadow: 0 6px 20px rgba(115, 110, 254, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+.theme-dark .vpm-header-banner {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(10, 16, 30, 0.9) 100%) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(0, 210, 255, 0.2) !important;
+}
+
+.vpm-header-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #736efe 0%, #00D2FF 50%, #10B981 100%);
+}
+
+.vpm-header-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.3);
+  flex-shrink: 0;
+}
+
+/* ── Pro Compact Summary Stat Cards ────────────────────────────── */
+.vpm-stat-card-pro {
+  border-radius: 16px !important;
+  border: 1px solid transparent !important;
+  position: relative;
+  overflow: hidden;
+  padding: 0.75rem 1.25rem !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+.vpm-stat-card-pro:hover {
+  transform: translateY(-2px);
+}
+
+/* GST Stat Card */
+.theme-light .vpm-stat-card-pro.gst-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%) !important;
+  border-color: rgba(115, 110, 254, 0.22) !important;
+  box-shadow: 0 6px 20px rgba(115, 110, 254, 0.08), inset 0 1px 0 #ffffff !important;
+}
+
+.theme-dark .vpm-stat-card-pro.gst-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(17, 24, 48, 0.9) 100%) !important;
+  border-color: rgba(0, 210, 255, 0.25) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(0, 210, 255, 0.15) !important;
+}
+
+.vpm-stat-val-gst {
+  font-size: 1.6rem !important;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #00D2FF 0%, #736efe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+
+/* Non-GST Stat Card */
+.theme-light .vpm-stat-card-pro.nongst-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fff9f2 100%) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.06), inset 0 1px 0 #ffffff !important;
+}
+
+.theme-dark .vpm-stat-card-pro.nongst-card {
+  background: linear-gradient(135deg, rgba(24, 18, 10, 0.95) 0%, rgba(18, 14, 8, 0.9) 100%) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(245, 158, 11, 0.15) !important;
+}
+
+.vpm-stat-val-nongst {
+  font-size: 1.6rem !important;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+
+.vpm-stat-badge-gst {
+  background: linear-gradient(135deg, rgba(0, 210, 255, 0.15) 0%, rgba(115, 110, 254, 0.15) 100%);
+  color: #736efe !important;
+  border: 1px solid rgba(115, 110, 254, 0.3);
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.70rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.theme-dark .vpm-stat-badge-gst {
+  color: #00D2FF !important;
+  border-color: rgba(0, 210, 255, 0.4);
+}
+
+.vpm-stat-badge-nongst {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
+  color: #D97706 !important;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.70rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.theme-dark .vpm-stat-badge-nongst {
+  color: #FBBF24 !important;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+/* ── Filter Toolbar Bar ────────────────────────────────────────── */
+.vpm-filter-bar-pro {
+  border-radius: 14px !important;
+  padding: 8px 14px !important;
+  border: 1px solid !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.theme-light .vpm-filter-bar-pro {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+}
+
+.theme-dark .vpm-filter-bar-pro {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Segmented Control Pill Container */
+.vpm-segmented-container {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(241, 245, 249, 0.9);
+  padding: 3px;
+  border-radius: 12px;
+  gap: 3px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.theme-dark .vpm-segmented-container {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.vpm-tab-btn-pro {
+  border: none;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748B;
+}
+
+.theme-dark .vpm-tab-btn-pro {
+  color: #94A3B8;
+}
+
+.vpm-tab-btn-pro.active {
+  background: #ffffff;
+  color: #736efe;
+  box-shadow: 0 2px 8px rgba(115, 110, 254, 0.15);
+  font-weight: 800;
+}
+
+.theme-dark .vpm-tab-btn-pro.active {
+  background: linear-gradient(135deg, rgba(0, 210, 255, 0.2) 0%, rgba(115, 110, 254, 0.2) 100%);
+  color: #00D2FF;
+  border: 1px solid rgba(0, 210, 255, 0.35);
+}
+
+.vpm-tab-count-badge {
+  background: rgba(115, 110, 254, 0.12);
+  color: #736efe;
+  font-size: 0.68rem;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-weight: 800;
+}
+
+.vpm-tab-btn-pro.active .vpm-tab-count-badge {
+  background: #736efe;
+  color: #ffffff;
+}
+
+.theme-dark .vpm-tab-btn-pro.active .vpm-tab-count-badge {
+  background: #00D2FF;
+  color: #050F1F;
+}
+
+/* ── Pro Search Box ────────────────────────────────────────────── */
+.vpm-search-wrap-pro {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.vpm-search-icon-pro {
+  position: absolute;
+  left: 12px;
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.vpm-search-input-pro {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px 0 36px;
+  border-radius: 10px;
+  font-size: 0.80rem;
+  font-weight: 500;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: #ffffff;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.theme-dark .vpm-search-input-pro {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.vpm-search-input-pro:focus {
+  border-color: #736efe;
+  box-shadow: 0 0 0 3px rgba(115, 110, 254, 0.12);
+}
+
+.theme-dark .vpm-search-input-pro:focus {
+  border-color: #00D2FF;
+  box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.12);
+}
+
+/* ── Pro Table Card Container ──────────────────────────────────── */
+.vpm-table-card-pro {
+  border-radius: 16px !important;
+  border: 1px solid !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-light .vpm-table-card-pro {
+  background: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05) !important;
+}
+
+.theme-dark .vpm-table-card-pro {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.vpm-table-header-pro {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, rgba(115, 110, 254, 0.04) 0%, transparent 100%);
+  flex-shrink: 0;
+}
+
+.theme-dark .vpm-table-header-pro {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(90deg, rgba(0, 210, 255, 0.06) 0%, transparent 100%);
+}
+
+.vpm-table-title-pro {
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Scrollable Table Body Container (Zero Page Overflow) ──────── */
+.vpm-table-card-pro .table-responsive {
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.vpm-table-card-pro .table-responsive::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.vpm-table-card-pro .table-responsive::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vpm-table-card-pro .table-responsive::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #736efe 0%, #00D2FF 100%);
+  border-radius: 999px;
+}
+
+/* ── Pro Table Styling ─────────────────────────────────────────── */
+.vpm-table-pro {
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.vpm-table-pro th {
+  padding: 10px 14px !important;
+  font-size: 0.70rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748B;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  background: rgba(248, 250, 252, 0.95);
+  white-space: nowrap !important;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  text-align: left;
+}
+
+.theme-dark .vpm-table-pro th {
+  color: #94A3B8;
+  background: rgba(30, 41, 59, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.vpm-table-pro td {
+  padding: 10px 14px !important;
+  font-size: 0.81rem;
+  font-weight: 500;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  transition: background 0.2s ease;
+  white-space: nowrap !important;
+  text-align: left;
+}
+
+.vpm-table-pro th.text-center,
+.vpm-table-pro td.text-center {
+  text-align: center !important;
+}
+
+.vpm-table-pro th.text-end,
+.vpm-table-pro td.text-end {
+  text-align: right !important;
+}
+
+.vpm-table-pro th.text-start,
+.vpm-table-pro td.text-start {
+  text-align: left !important;
+}
+
+
+.theme-dark .vpm-table-pro td {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+  color: #E2E8F0;
+}
+
+.theme-light .vpm-table-pro tbody tr:hover {
+  background: rgba(115, 110, 254, 0.04) !important;
+}
+
+.theme-dark .vpm-table-pro tbody tr:hover {
+  background: rgba(0, 210, 255, 0.05) !important;
+}
+
+/* ── Custom Compact Table Cell Elements ────────────────────────── */
+.vpm-bill-num-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(115, 110, 254, 0.08);
+  color: #736efe;
+  border: 1px solid rgba(115, 110, 254, 0.2);
+  white-space: nowrap !important;
+  letter-spacing: -0.2px;
+}
+
+.theme-dark .vpm-bill-num-pill {
+  background: rgba(0, 210, 255, 0.12);
+  color: #00D2FF;
+  border-color: rgba(0, 210, 255, 0.3);
+}
+
+.vpm-customer-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap !important;
+}
+
+.vpm-avatar-mini {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #736efe 0%, #00D2FF 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.vpm-date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #64748B;
+  white-space: nowrap !important;
+  font-family: var(--font-mono);
+}
+
+.theme-dark .vpm-date-pill {
+  color: #94A3B8;
+}
+
+.vpm-amount-total {
+  font-weight: 800;
+  font-size: 0.83rem;
+  white-space: nowrap !important;
+  font-family: var(--font-mono);
+}
+
+.vpm-amount-paid {
+  color: #059669;
+  font-weight: 700;
+  font-size: 0.83rem;
+  white-space: nowrap !important;
+  font-family: var(--font-mono);
+}
+
+.theme-dark .vpm-amount-paid {
+  color: #34D399;
+}
+
+.vpm-amount-balance {
+  color: #DC2626;
+  font-weight: 900;
+  font-size: 0.84rem;
+  white-space: nowrap !important;
+  font-family: var(--font-mono);
+  background: rgba(239, 68, 68, 0.08);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  display: inline-block;
+}
+
+.theme-dark .vpm-amount-balance {
+  color: #F87171;
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+/* ── Bill Type Badges ──────────────────────────────────────────── */
+.vpm-badge-bill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap !important;
+}
+
+.vpm-badge-bill-tax {
+  background: linear-gradient(135deg, rgba(115, 110, 254, 0.15) 0%, rgba(0, 210, 255, 0.15) 100%);
+  color: #736efe;
+  border: 1px solid rgba(115, 110, 254, 0.3);
+}
+
+.theme-dark .vpm-badge-bill-tax {
+  color: #00D2FF;
+  border-color: rgba(0, 210, 255, 0.4);
+}
+
+.vpm-badge-bill-quote {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.theme-dark .vpm-badge-bill-quote {
+  color: #FBBF24;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.vpm-badge-bill-estimate {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+  color: #6366F1;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.theme-dark .vpm-badge-bill-estimate {
+  color: #A78BFA;
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+/* ── Status Indicators ────────────────────────────────────────── */
+.vpm-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.vpm-status-pill-paid {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+.theme-dark .vpm-status-pill-paid {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34D399;
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+.vpm-status-pill-partial {
+  background: rgba(245, 158, 11, 0.12);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.28);
+}
+
+.theme-dark .vpm-status-pill-partial {
+  background: rgba(245, 158, 11, 0.18);
+  color: #FBBF24;
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.vpm-status-pill-unpaid {
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+}
+
+.theme-dark .vpm-status-pill-unpaid {
+  background: rgba(239, 68, 68, 0.18);
+  color: #F87171;
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.vpm-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.vpm-status-pill-paid .vpm-status-dot { background: #10B981; }
+.vpm-status-pill-partial .vpm-status-dot { background: #F59E0B; }
+.vpm-status-pill-unpaid .vpm-status-dot { background: #EF4444; }
+
+/* ── Pro Record Payment Action CTA Button ─────────────────────── */
+.vpm-btn-record-pay {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s ease;
+  white-space: nowrap !important;
+}
+
+.vpm-btn-record-pay:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
+}
+
+.vpm-btn-record-pay:active {
+  transform: scale(0.96);
+}
+
+/* ── Pro Modal Styling ─────────────────────────────────────────── */
+.vpm-modal-dialog .modal-content {
+  border-radius: 20px !important;
+  border: 1px solid rgba(115, 110, 254, 0.2) !important;
+  overflow: hidden;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35) !important;
+}
+
+.theme-dark .vpm-modal-dialog .modal-content {
+  background: #0F172A !important;
+  border-color: rgba(0, 210, 255, 0.25) !important;
+}
+
+.vpm-modal-header-pro {
+  background: linear-gradient(135deg, rgba(115, 110, 254, 0.08) 0%, rgba(0, 210, 255, 0.06) 100%);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 16px 20px;
+}
+
+.theme-dark .vpm-modal-header-pro {
+  background: linear-gradient(135deg, rgba(0, 210, 255, 0.1) 0%, rgba(115, 110, 254, 0.08) 100%);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.vpm-invoice-preview-box {
+  background: linear-gradient(135deg, rgba(241, 245, 249, 0.9) 0%, rgba(226, 232, 240, 0.7) 100%);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.theme-dark .vpm-invoice-preview-box {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+}
