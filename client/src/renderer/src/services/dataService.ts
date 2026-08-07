@@ -1,6 +1,8 @@
 // ============================================================
 // Viral Print Media - Data & API Service
 // ============================================================
+import * as XLSX from 'xlsx'
+
 
 export interface Customer {
   id: number
@@ -992,6 +994,169 @@ export const DataService = {
     URL.revokeObjectURL(url)
 
     DataService.addActivityLog('admin', 'Backup Downloaded', 'Backup Module', `Backup downloaded to drive: ${filename}`)
+    return { success: true, filename, method: 'download' }
+  },
+
+  exportAllDataToExcel: async (customFilename?: string): Promise<{ success: boolean; filename: string; method: 'drive_picker' | 'download' }> => {
+    const invoices = DataService.getInvoices()
+    const customers = DataService.getCustomers()
+    const suppliers = DataService.getSuppliers()
+    const products = DataService.getProducts()
+    const purchases = DataService.getPurchases()
+    const payments = DataService.getPayments()
+
+    const wb = XLSX.utils.book_new()
+
+    // Sheet 1: Invoices & Bills Overview
+    const invoiceRows = invoices.map(inv => ({
+      'Invoice Number': inv.invoice_number,
+      'Type': inv.type,
+      'Date': inv.date,
+      'Customer Name': inv.customer_name,
+      'Customer Mobile': inv.customer_mobile || '',
+      'Customer GSTIN': inv.customer_gstin || '',
+      'Billing Address': inv.customer_address || '',
+      'E-Way Bill No': inv.eway_bill_no || '',
+      'Sub Total (₹)': inv.sub_total || 0,
+      'CGST (₹)': inv.cgst || 0,
+      'SGST (₹)': inv.sgst || 0,
+      'Round Off (₹)': inv.round_off || 0,
+      'Grand Total (₹)': inv.grand_total || 0,
+      'Paid Amount (₹)': inv.paid_amount || 0,
+      'Balance (₹)': inv.balance_amount || 0,
+      'Status': inv.status,
+      'Payment Mode': inv.payment_mode || 'CASH'
+    }))
+    const wsInvoices = XLSX.utils.json_to_sheet(invoiceRows)
+    XLSX.utils.book_append_sheet(wb, wsInvoices, 'Invoices & Bills')
+
+    // Sheet 2: Item Level Breakdown
+    const itemRows: any[] = []
+    invoices.forEach(inv => {
+      (inv.items || []).forEach(it => {
+        const qty = Number(it.qty) || 0
+        const rate = Number(it.rate) || 0
+        const base = qty * rate
+        const taxPct = Number(it.tax_percent) || 0
+        const taxAmt = (base * taxPct) / 100
+        itemRows.push({
+          'Invoice Number': inv.invoice_number,
+          'Bill Type': inv.type,
+          'Date': inv.date,
+          'Customer Name': inv.customer_name,
+          'Item Description': it.description,
+          'HSN Code': it.hsn || '',
+          'Quantity': qty,
+          'Rate (₹)': rate,
+          'Taxable Value (₹)': base,
+          'GST %': taxPct,
+          'GST Amount (₹)': taxAmt,
+          'Total Amount (₹)': base + taxAmt
+        })
+      })
+    })
+    const wsItems = XLSX.utils.json_to_sheet(itemRows)
+    XLSX.utils.book_append_sheet(wb, wsItems, 'Bill Items Breakdown')
+
+    // Sheet 3: Customer Directory & Ledgers
+    const customerRows = customers.map(c => ({
+      'Customer Name': c.name,
+      'Mobile': c.mobile || '',
+      'Email': c.email || '',
+      'GSTIN': c.gst_no || '',
+      'Billing Address': c.billing_address || '',
+      'Outstanding Balance (₹)': c.outstanding_balance || 0,
+      'Created Date': c.created_at || ''
+    }))
+    const wsCustomers = XLSX.utils.json_to_sheet(customerRows)
+    XLSX.utils.book_append_sheet(wb, wsCustomers, 'Customer Directory')
+
+    // Sheet 4: Payment History
+    const paymentRows = payments.map(p => ({
+      'Payment ID': p.id,
+      'Invoice Number': p.invoice_number,
+      'Bill Type': p.invoice_type,
+      'Customer Name': p.customer_name,
+      'Date': p.date,
+      'Amount (₹)': p.amount,
+      'Payment Mode': p.payment_type,
+      'Notes': p.notes || ''
+    }))
+    const wsPayments = XLSX.utils.json_to_sheet(paymentRows)
+    XLSX.utils.book_append_sheet(wb, wsPayments, 'Payment History')
+
+    // Sheet 5: Products & Rates Catalog
+    const productRows = products.map(p => ({
+      'Product Name': p.name,
+      'Category': p.category || '',
+      'Unit': p.unit || 'pcs',
+      'Price (₹)': p.price,
+      'GST Rate (%)': p.gst_rate,
+      'HSN Code': p.hsn_code || '',
+      'Description': p.description || ''
+    }))
+    const wsProducts = XLSX.utils.json_to_sheet(productRows)
+    XLSX.utils.book_append_sheet(wb, wsProducts, 'Products & Rates')
+
+    // Sheet 6: Stock Purchases
+    const purchaseRows = purchases.map(p => ({
+      'Purchase Number': p.purchase_number,
+      'Supplier Name': p.supplier_name,
+      'Supplier Mobile': p.supplier_mobile || '',
+      'Date': p.date,
+      'Total Amount (₹)': p.total_amount || 0,
+      'Paid Amount (₹)': p.paid_amount || 0,
+      'Balance (₹)': p.balance_amount || 0,
+      'Status': p.status,
+      'Notes': p.notes || ''
+    }))
+    const wsPurchases = XLSX.utils.json_to_sheet(purchaseRows)
+    XLSX.utils.book_append_sheet(wb, wsPurchases, 'Stock Purchases')
+
+    // Sheet 7: Suppliers & Vendors Directory
+    const supplierRows = suppliers.map(s => ({
+      'Supplier Name': s.name,
+      'Mobile': s.mobile || '',
+      'Email': s.email || '',
+      'GSTIN': s.gst_no || '',
+      'Address': s.address || '',
+      'Created Date': s.created_at || ''
+    }))
+    const wsSuppliers = XLSX.utils.json_to_sheet(supplierRows)
+    XLSX.utils.book_append_sheet(wb, wsSuppliers, 'Suppliers & Vendors')
+
+    const today = new Date().toISOString().split('T')[0]
+    const filename = customFilename || `VPM_ALL_BILLS_EXCEL_BACKUP_${today}.xlsx`
+
+    // Option A: Save via showSaveFilePicker if available
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+    if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: filename,
+          types: [
+            {
+              description: 'Excel Spreadsheet (*.xlsx)',
+              accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
+            }
+          ]
+        })
+        const writable = await handle.createWritable()
+        await writable.write(excelBuffer)
+        await writable.close()
+        DataService.addActivityLog('admin', 'Excel Backup Saved to Drive', 'Backup Module', `Excel backup saved to drive: ${handle.name}`)
+        return { success: true, filename: handle.name, method: 'drive_picker' }
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          throw new Error('Excel save cancelled.')
+        }
+        console.warn('[DataService] Excel file picker fallback triggered:', err)
+      }
+    }
+
+    // Option B: Fallback download via XLSX.writeFile
+    XLSX.writeFile(wb, filename)
+    DataService.addActivityLog('admin', 'Excel Backup Downloaded', 'Backup Module', `Excel backup downloaded: ${filename}`)
     return { success: true, filename, method: 'download' }
   },
 

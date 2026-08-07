@@ -12,7 +12,8 @@ import {
   Receipt,
   FileText,
   Tag,
-  HardDrive
+  HardDrive,
+  FileSpreadsheet
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
@@ -85,15 +86,26 @@ const Header: React.FC<HeaderProps> = ({ theme, toggleTheme, activeTab, onToggle
 
         <div className={`vpm-header-divider ${themeClass}`} />
 
+        {/* Quick Backup to Excel Button */}
+        <button
+          className={`vpm-icon-btn ${themeClass}`}
+          onClick={() => DataService.exportAllDataToExcel()}
+          title="Backup All Bill Data to Excel (.xlsx)"
+          style={{ background: 'rgba(16,185,129,0.15)', color: '#10B981', border: '1px solid rgba(16,185,129,0.3)', gap: 5, padding: '5px 11px', width: 'auto', borderRadius: 8, fontWeight: 800, fontSize: '0.78rem' }}
+        >
+          <FileSpreadsheet size={16} />
+          <span>Excel Backup</span>
+        </button>
+
         {/* Quick Backup to Drive Button */}
         <button
           className={`vpm-icon-btn ${themeClass}`}
           onClick={() => DataService.saveBackupToFileDrive()}
-          title="Backup All Bill Data to Drive"
-          style={{ background: 'rgba(16,185,129,0.12)', color: '#10B981', border: '1px solid rgba(16,185,129,0.25)', gap: 5, padding: '5px 10px', width: 'auto', borderRadius: 8, fontWeight: 700, fontSize: '0.78rem' }}
+          title="Backup All Bill Data as JSON to Drive"
+          style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.25)', gap: 5, padding: '5px 10px', width: 'auto', borderRadius: 8, fontWeight: 700, fontSize: '0.78rem' }}
         >
           <HardDrive size={16} />
-          <span>Backup Data</span>
+          <span>JSON Backup</span>
         </button>
 
         {/* Theme Toggle */}

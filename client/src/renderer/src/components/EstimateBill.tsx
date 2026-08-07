@@ -25,7 +25,8 @@ import {
   Truck,
   ShieldCheck,
   FileDown,
-  HardDrive
+  HardDrive,
+  FileSpreadsheet
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { customersApi, productsApi, type CustomerData } from '../api/apiClient'
@@ -574,11 +575,20 @@ Main HSN: 9983 (Printing / Advertising)`
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button
             className="eb-btn-secondary"
-            onClick={() => DataService.saveBackupToFileDrive()}
-            style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 13px', background: 'rgba(16,185,129,0.12)', color: '#10B981', borderColor: 'rgba(16,185,129,0.3)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
-            title="Backup all bill data to drive"
+            onClick={() => DataService.exportAllDataToExcel()}
+            style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 13px', background: 'rgba(16,185,129,0.15)', color: '#10B981', borderColor: 'rgba(16,185,129,0.3)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+            title="Backup all bill data to Excel (.xlsx)"
           >
-            <HardDrive size={14} /> Backup Bills to Drive
+            <FileSpreadsheet size={14} /> Backup to Excel (.xlsx)
+          </button>
+
+          <button
+            className="eb-btn-secondary"
+            onClick={() => DataService.saveBackupToFileDrive()}
+            style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 13px', background: 'rgba(99,102,241,0.1)', color: '#6366f1', borderColor: 'rgba(99,102,241,0.25)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+            title="Backup all bill data as JSON file to drive"
+          >
+            <HardDrive size={14} /> Backup JSON
           </button>
 
           <button

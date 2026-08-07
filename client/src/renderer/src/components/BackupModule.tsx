@@ -40,7 +40,7 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
     loadStats()
   }, [])
 
-  // ── Handle Full Backup to Drive ────────────────────────────────────
+  // ── Handle Full Backup to Drive (JSON) ────────────────────────────
   const handleBackupToDrive = async () => {
     setIsProcessing(true)
     setStatusAlert(null)
@@ -55,13 +55,41 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
 
       setStatusAlert({
         type: 'success',
-        message: `✅ Backup successfully saved to your drive as "${result.filename}"!`
+        message: `✅ Full JSON Backup successfully saved to your drive as "${result.filename}"!`
       })
     } catch (err: any) {
       if (err.message && err.message.includes('cancelled')) {
         setStatusAlert({ type: 'info', message: 'Backup save operation was cancelled.' })
       } else {
         setStatusAlert({ type: 'danger', message: `❌ Backup failed: ${err.message || 'Unknown error'}` })
+      }
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // ── Handle Multi-Sheet Excel Workbook Backup (.xlsx) ───────────────
+  const handleBackupToExcel = async () => {
+    setIsProcessing(true)
+    setStatusAlert(null)
+    try {
+      const result = await DataService.exportAllDataToExcel()
+      const nowStr = new Date().toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      })
+      localStorage.setItem('vpm_last_backup_timestamp', nowStr)
+      setLastBackupTime(nowStr)
+
+      setStatusAlert({
+        type: 'success',
+        message: `📊 Excel Multi-Sheet Backup Workbook (.xlsx) saved to drive as "${result.filename}"!`
+      })
+    } catch (err: any) {
+      if (err.message && err.message.includes('cancelled')) {
+        setStatusAlert({ type: 'info', message: 'Excel export cancelled.' })
+      } else {
+        setStatusAlert({ type: 'danger', message: `❌ Excel export failed: ${err.message || 'Unknown error'}` })
       }
     } finally {
       setIsProcessing(false)
@@ -121,38 +149,40 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
         <div>
           <div className="d-flex align-items-center gap-2 mb-1">
             <span className="badge bg-white text-dark fw-bold px-2 py-1 uppercase" style={{ fontSize: '0.7rem' }}>
-              DRIVE BACKUP & RESTORE
+              EXCEL & DRIVE BACKUP SYSTEM
             </span>
             <span className="text-white-50 small">Offline Data Protection</span>
           </div>
           <h2 className="fw-bold m-0" style={{ letterSpacing: '-0.5px' }}>
-            Bill Data Drive Backup System
+            Bill Data Excel & Drive Backup System
           </h2>
           <p className="text-white-50 small m-0 mt-1">
-            Save complete backups of all Tax Invoices, Quotations, Estimate Bills, Customers, and Financial Ledgers directly to your PC, USB, or Google Drive folder.
+            Save complete backups of all Tax Invoices, Quotations, Estimate Bills, Customers, and Financial Ledgers as Excel Worksheets (.xlsx) or JSON directly to your PC or Google Drive.
           </p>
         </div>
 
         <div className="d-flex flex-column flex-sm-row gap-2 mt-3 mt-md-0">
           <Button
+            variant="success"
+            size="lg"
+            className="fw-bold px-4 py-2.5 rounded-3 shadow d-flex align-items-center justify-content-center gap-2"
+            onClick={handleBackupToExcel}
+            disabled={isProcessing}
+            style={{ fontWeight: 800 }}
+          >
+            {isProcessing ? <RefreshCw className="spin" size={20} /> : <FileSpreadsheet size={20} />}
+            Backup to Excel (.xlsx)
+          </Button>
+
+          <Button
             variant="light"
             size="lg"
-            className="fw-bold px-4 py-2.5 text-indigo-700 border-0 rounded-3 shadow d-flex align-items-center justify-content-center gap-2"
+            className="fw-bold px-3 py-2.5 text-indigo-700 border-0 rounded-3 shadow d-flex align-items-center justify-content-center gap-2"
             onClick={handleBackupToDrive}
             disabled={isProcessing}
             style={{ color: '#4338ca', fontWeight: 800 }}
           >
-            {isProcessing ? <RefreshCw className="spin" size={20} /> : <HardDrive size={20} />}
-            Backup All Bills to Drive
-          </Button>
-
-          <Button
-            variant="outline-light"
-            size="lg"
-            className="fw-bold px-3 py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2"
-            onClick={handleExportCSV}
-          >
-            <FileSpreadsheet size={18} /> Export Excel / CSV
+            <HardDrive size={20} /> Backup JSON to Drive
           </Button>
         </div>
       </div>
@@ -268,35 +298,56 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
                 </p>
 
                 <div className="d-flex flex-column gap-3 mb-3">
+                  {/* Excel Backup Card */}
+                  <div className={`p-3 rounded-3 border d-flex align-items-center justify-content-between ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-light border-gray-200'}`}>
+                    <div className="d-flex align-items-center gap-3">
+                      <FileSpreadsheet className="text-success" size={26} />
+                      <div>
+                        <h6 className="fw-bold m-0 text-success">Backup All Data to Excel (.xlsx)</h6>
+                        <span className="text-muted small">Creates 6 Worksheets: Invoices, Item Breakdown, Customers, Payments, Rates & Purchases</span>
+                      </div>
+                    </div>
+                    <Button
+                      variant="success"
+                      className="fw-bold px-3 py-2 rounded-3 text-nowrap"
+                      onClick={handleBackupToExcel}
+                      disabled={isProcessing}
+                    >
+                      Export Excel
+                    </Button>
+                  </div>
+
+                  {/* JSON Backup Card */}
                   <div className={`p-3 rounded-3 border d-flex align-items-center justify-content-between ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-light border-gray-200'}`}>
                     <div className="d-flex align-items-center gap-3">
                       <Download className="text-primary" size={24} />
                       <div>
-                        <h6 className="fw-bold m-0">Full Bill Database Backup (.json)</h6>
-                        <span className="text-muted small">Includes all Invoices, Quotations, Estimates, E-Way bills, Payments & Customers</span>
+                        <h6 className="fw-bold m-0">Full Bill System Backup (.json)</h6>
+                        <span className="text-muted small">Includes all Invoices, Quotations, Estimates, E-Way bills, Payments & System data</span>
                       </div>
                     </div>
                     <Button
                       variant="primary"
-                      className="fw-bold px-3 py-2 rounded-3"
+                      className="fw-bold px-3 py-2 rounded-3 text-nowrap"
                       onClick={handleBackupToDrive}
                       disabled={isProcessing}
                     >
-                      Save to Drive
+                      Save JSON
                     </Button>
                   </div>
 
+                  {/* CSV Export Card */}
                   <div className={`p-3 rounded-3 border d-flex align-items-center justify-content-between ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-light border-gray-200'}`}>
                     <div className="d-flex align-items-center gap-3">
-                      <FileSpreadsheet className="text-success" size={24} />
+                      <FileText className="text-info" size={24} />
                       <div>
-                        <h6 className="fw-bold m-0">Export Bills CSV Spreadsheet (.csv)</h6>
-                        <span className="text-muted small">Export all invoice dates, customer GSTINs, totals, and payment balances for Excel</span>
+                        <h6 className="fw-bold m-0">Export Bills Summary CSV (.csv)</h6>
+                        <span className="text-muted small">Export all invoice dates, customer GSTINs, totals, and payment balances</span>
                       </div>
                     </div>
                     <Button
-                      variant="outline-success"
-                      className="fw-bold px-3 py-2 rounded-3"
+                      variant="outline-info"
+                      className="fw-bold px-3 py-2 rounded-3 text-nowrap"
                       onClick={handleExportCSV}
                     >
                       Export CSV
