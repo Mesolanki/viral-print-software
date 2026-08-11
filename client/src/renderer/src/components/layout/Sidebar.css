@@ -52,6 +52,21 @@
 .theme-light .vpm-sidebar-brand { border-color: rgba(226, 232, 240, 0.8); }
 .theme-dark  .vpm-sidebar-brand { border-color: rgba(255, 255, 255, 0.06); }
 
+.vpm-brand-full-logo {
+  height: 55px;
+  max-width: 195px;
+  object-fit: contain;
+  transition: transform 0.25s ease;
+}
+
+.vpm-brand-full-logo:hover {
+  transform: scale(1.02);
+}
+
+.theme-dark .vpm-brand-full-logo {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.85));
+}
+
 /* Glowing brand logo badge */
 .vpm-sidebar-logo {
   width: 34px;

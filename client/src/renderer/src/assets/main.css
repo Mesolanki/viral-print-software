@@ -18,6 +18,16 @@
 @import '../styles/forms.css';
 @import '../styles/animations.css';
 @import '../styles/user-management.css';
+@import '../components/PaymentEntryModule.css';
+@import '../components/CustomerManagement.css';
+@import '../components/PurchaseManagement.css';
+@import '../components/GstReportModule.css';
+@import '../components/BackupModule.css';
+@import '../components/DashboardOverview.css';
+
+
+
+
 
 /* 4. Legacy base (login page styles etc.) */
 @import './base.css';

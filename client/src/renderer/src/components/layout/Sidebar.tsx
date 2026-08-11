@@ -15,7 +15,7 @@ import {
   History,
   HardDrive
 } from 'lucide-react'
-import electronLogo from '../../assets/electron.svg'
+import viralLogo from '../../assets/logo_viral.png'
 import type { ActiveTabType } from './AppLayout'
 import './Sidebar.css'
 
@@ -35,13 +35,15 @@ const Sidebar: React.FC<SidebarProps> = ({ theme, activeTab, onTabChange, mode }
     <aside className={`vpm-sidebar ${themeClass} ${mode === 'compact' ? 'sidebar-compact' : ''}`}>
       {/* ── Brand ──────────────────────────────────────────── */}
       <div className="vpm-sidebar-brand">
-        <div className="vpm-sidebar-logo">
-          <img src={electronLogo} alt="Viral Print" />
-        </div>
-        {mode === 'open' && (
-          <div className="vpm-sidebar-brand-text">
-            <span className="vpm-brand-name">VIRAL PRINT</span>
-            <span className="vpm-brand-sub">Media Management</span>
+        {mode === 'open' ? (
+          <img
+            src={viralLogo}
+            alt="Viral Print Media Management"
+            className="vpm-brand-full-logo"
+          />
+        ) : (
+          <div className="vpm-sidebar-logo" style={{ background: 'transparent', boxShadow: 'none' }}>
+            <img src={viralLogo} alt="Viral Print" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
           </div>
         )}
       </div>

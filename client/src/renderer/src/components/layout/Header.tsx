@@ -6,7 +6,6 @@ import {
   Menu,
   Moon,
   Package,
-  Sparkles,
   Sun,
   Users,
   Receipt,
@@ -23,6 +22,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { DataService } from '../../services/dataService'
+import viralLogo from '../../assets/logo_viral.png'
 import type { ActiveTabType } from './AppLayout'
 import './Header.css'
 
@@ -90,9 +90,8 @@ const Header: React.FC<HeaderProps> = ({ theme, toggleTheme, activeTab, onToggle
       {/* ── Right: Controls ────────────────────────────────── */}
       <div className="vpm-header-right">
         {/* App Brand Badge */}
-        <div className={`vpm-app-badge ${themeClass}`}>
-          <Sparkles size={12} />
-          <span>Viral Print Software</span>
+        <div className={`vpm-app-badge ${themeClass}`} style={{ padding: '3px 10px' }}>
+          <img src={viralLogo} alt="Viral Print" style={{ height: '22px', objectFit: 'contain' }} />
         </div>
 
         <div className={`vpm-header-divider ${themeClass}`} />

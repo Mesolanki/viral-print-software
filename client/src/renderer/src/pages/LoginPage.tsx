@@ -14,36 +14,7 @@ import { useAuth } from '../context/AuthContext'
 import type { AxiosError } from 'axios'
 import './LoginPage.css'
 
-// ── SVG Logo Component ───────────────────────────────────────
-function VPMLogo(): React.JSX.Element {
-  return (
-    <div className="lp-logo-mark">
-      <svg viewBox="0 0 120 120" className="lp-logo-svg" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="vpm-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#736efe" />
-            <stop offset="50%" stopColor="#38bdf8" />
-            <stop offset="100%" stopColor="#00D2FF" />
-          </linearGradient>
-          <filter id="vpm-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        <circle cx="60" cy="60" r="52" fill="none" stroke="url(#vpm-grad-1)" strokeWidth="2" opacity="0.4" />
-        <path d="M60 58 Q52 22 60 15 Q65 38 60 58Z" fill="#ED1C24" filter="url(#vpm-glow)" />
-        <path d="M62 57 Q73 22 83 29 Q71 47 62 57Z" fill="#F7941D" filter="url(#vpm-glow)" />
-        <path d="M64 60 Q87 38 91 53 Q76 62 64 60Z" fill="#8DC63F" filter="url(#vpm-glow)" />
-        <path d="M62 62 Q87 69 83 83 Q68 73 62 62Z" fill="#FFF200" filter="url(#vpm-glow)" />
-        <path d="M38 72 Q46 48 62 42 Q67 59 69 65 Q52 68 38 72Z" fill="url(#vpm-grad-1)" />
-        <path d="M30 80 Q60 67 86 69 Q88 79 30 80Z" fill="#00D2FF" opacity="0.5" />
-      </svg>
-    </div>
-  )
-}
+import viralLogo from '../assets/logo_viral.png'
 
 // ── Stat Badge ────────────────────────────────────────────────
 function Stat({ value, label }: { value: string; label: string }): React.JSX.Element {
@@ -155,11 +126,7 @@ export default function LoginPage(): React.JSX.Element {
 
           {/* Brand Logo & Name */}
           <div className="lp-brand">
-            <VPMLogo />
-            <div className="lp-brand__text">
-              <h1 className="lp-brand__name">Viral<em>Print</em></h1>
-              <p className="lp-brand__sub">MEDIA SOFTWARE</p>
-            </div>
+            <img src={viralLogo} alt="Viral Print Media Management" style={{ height: '62px', objectFit: 'contain', filter: 'drop-shadow(0 4px 16px rgba(0, 210, 255, 0.35))' }} />
           </div>
 
           {/* Headline & Body */}

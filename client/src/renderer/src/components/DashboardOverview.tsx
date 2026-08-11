@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Row, Col, Card, Badge, Button, Table } from 'react-bootstrap'
+import { Row, Col, Button } from 'react-bootstrap'
 import {
   TrendingUp,
   AlertCircle,
@@ -8,8 +8,16 @@ import {
   ShoppingCart,
   Receipt,
   ArrowUpRight,
-  HardDrive
+  HardDrive,
+  PlusCircle,
+  Truck,
+  Users,
+  PieChart,
+  ArrowRight,
+  Zap,
+  Calendar
 } from 'lucide-react'
+import viralLogo from '../assets/logo_viral.png'
 import { DataService, Invoice, TaskItem, Purchase } from '../services/dataService'
 import type { ActiveTabType } from './layout/AppLayout'
 
@@ -18,10 +26,13 @@ interface DashboardOverviewProps {
   onNavigate: (tab: ActiveTabType) => void
 }
 
+type FilterType = 'ALL' | 'TAX_INVOICE' | 'QUOTATION' | 'ESTIMATE'
+
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onNavigate }) => {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [purchases, setPurchases] = useState<Purchase[]>([])
+  const [filterType, setFilterType] = useState<FilterType>('ALL')
   const isDark = theme === 'dark'
 
   useEffect(() => {
@@ -31,7 +42,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onNavigate
   }, [])
 
   // Today's Date String
-  const todayStr = new Date().toISOString().split('T')[0]
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+  const formattedToday = today.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  })
 
   // Stats Calculations
   const todaysSales = invoices
@@ -44,295 +61,404 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onNavigate
   const todaysTasks = tasks.filter(t => t.due_date === todayStr || t.start_date === todayStr || t.status === 'PENDING')
   const totalPurchaseAmount = purchases.reduce((sum, p) => sum + p.total_amount, 0)
 
-  return (
-    <div className="vpm-dashboard-overview">
-      {/* ── Top Header Banner ─────────────────────────────────── */}
-      <div
-        className="p-4 mb-4 rounded-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center shadow-sm"
-        style={{
-          background: isDark
-            ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
-            : 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
-          border: isDark ? '1px solid rgba(255,255,255,0.08)' : 'none'
-        }}
-      >
-        <div>
-          <div className="d-flex align-items-center gap-2 mb-1">
-            <span className="badge bg-white text-dark fw-bold px-2 py-1 uppercase" style={{ fontSize: '0.7rem' }}>
-              OFFLINE LAN SYSTEM
-            </span>
-            <span className="text-white-50 small">Viral Print Media Management</span>
-          </div>
-          <h2 className="fw-bold m-0" style={{ letterSpacing: '-0.5px' }}>
-            Business Performance Dashboard
-          </h2>
-        </div>
+  // Filtered Invoices
+  const filteredInvoices = invoices.filter(inv => {
+    if (filterType === 'ALL') return true
+    return inv.type === filterType
+  })
 
-        <div className="d-flex flex-wrap gap-2 mt-3 mt-md-0">
-          <Button
-            variant="light"
-            className="fw-bold px-3 py-2 text-primary border-0 rounded-3 shadow-sm d-flex align-items-center gap-2"
-            onClick={() => onNavigate('invoice')}
-          >
-            <Receipt size={16} /> Create Invoice
-          </Button>
-          <Button
-            variant="outline-light"
-            className="fw-bold px-3 py-2 rounded-3 d-flex align-items-center gap-2"
-            onClick={() => onNavigate('backup')}
-          >
-            <HardDrive size={16} /> Backup Data to Drive
-          </Button>
+  return (
+    <div className={`vpm-dashboard-overview ${isDark ? 'theme-dark' : 'theme-light'}`}>
+      {/* ── 1. Top Hero Banner ─────────────────────────────────── */}
+      <div className="vpm-dashboard-hero mb-4">
+        <div className="vpm-hero-content d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+          <div>
+            <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
+              <div className="vpm-hero-badge">
+                <span className="vpm-pulse-dot"></span>
+                <span>OFFLINE LAN SYSTEM • ONLINE</span>
+              </div>
+              <span className="vpm-hero-subtitle d-flex align-items-center gap-1">
+                <Calendar size={13} /> {formattedToday}
+              </span>
+            </div>
+            <div className="d-flex align-items-center gap-3 mt-1 mb-1">
+              <img
+                src={viralLogo}
+                alt="Viral Print Media"
+                style={{ height: '44px', objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.25))' }}
+              />
+              <div>
+                <h2 className="vpm-hero-title my-0">
+                  Business Performance Dashboard
+                </h2>
+                <p className="vpm-hero-subtitle m-0">
+                  Real-time Financial Diagnostics & Operational Command Center
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+            <Button
+              className="vpm-hero-btn-primary"
+              onClick={() => onNavigate('invoice')}
+            >
+              <Receipt size={17} /> Create Invoice
+            </Button>
+            <Button
+              className="vpm-hero-btn-glass"
+              onClick={() => onNavigate('backup')}
+            >
+              <HardDrive size={17} /> Backup Data to Drive
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* ── Key Metrics Cards ──────────────────────────────────── */}
+      {/* ── 2. Key Metrics Cards (Row of 4) ────────────────────── */}
       <Row className="g-3 mb-4">
-        {/* Today's Sales */}
+        {/* Card 1: Today's Sales */}
         <Col xs={12} sm={6} lg={3}>
-          <Card
-            className={`border-0 h-100 shadow-sm rounded-4 ${
-              isDark ? 'bg-slate-900 text-white border border-slate-800' : 'bg-white'
-            }`}
-          >
-            <Card.Body className="p-3 d-flex flex-column justify-content-between">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-muted fw-semibold small text-uppercase" style={{ fontSize: '0.72rem' }}>
-                  Today's Sales
+          <div className="vpm-god-card emerald">
+            <div className="vpm-god-card-top">
+              <span className="vpm-god-card-title">Today's Sales</span>
+              <div className="vpm-god-icon-box">
+                <TrendingUp size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="vpm-god-card-value">
+                ₹{todaysSales.toLocaleString('en-IN')}
+              </div>
+              <div className="vpm-god-card-footer">
+                <span>Live calculated today</span>
+                <span className="vpm-trend-badge green">
+                  <Zap size={11} /> Live
                 </span>
-                <div
-                  className="rounded-3 p-2 d-flex align-items-center justify-content-center"
-                  style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10B981' }}
-                >
-                  <TrendingUp size={18} />
-                </div>
               </div>
-              <div>
-                <h3 className="fw-bold mb-1" style={{ color: isDark ? '#10B981' : '#059669' }}>
-                  ₹{todaysSales.toLocaleString('en-IN')}
-                </h3>
-                <span className="text-muted small">Live calculated today</span>
-              </div>
-            </Card.Body>
-          </Card>
+            </div>
+          </div>
         </Col>
 
-        {/* Total Sales */}
+        {/* Card 2: Total Sales */}
         <Col xs={12} sm={6} lg={3}>
-          <Card
-            className={`border-0 h-100 shadow-sm rounded-4 ${
-              isDark ? 'bg-slate-900 text-white border border-slate-800' : 'bg-white'
-            }`}
-          >
-            <Card.Body className="p-3 d-flex flex-column justify-content-between">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-muted fw-semibold small text-uppercase" style={{ fontSize: '0.72rem' }}>
-                  Total Sales
+          <div className="vpm-god-card cyan">
+            <div className="vpm-god-card-top">
+              <span className="vpm-god-card-title">Total Sales</span>
+              <div className="vpm-god-icon-box">
+                <FileText size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="vpm-god-card-value">
+                ₹{totalSales.toLocaleString('en-IN')}
+              </div>
+              <div className="vpm-god-card-footer">
+                <span>Total turnover</span>
+                <span className="vpm-trend-badge blue">
+                  {invoices.length} Invoices
                 </span>
-                <div
-                  className="rounded-3 p-2 d-flex align-items-center justify-content-center"
-                  style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6' }}
-                >
-                  <FileText size={18} />
-                </div>
               </div>
-              <div>
-                <h3 className="fw-bold mb-1" style={{ color: isDark ? '#60A5FA' : '#2563EB' }}>
-                  ₹{totalSales.toLocaleString('en-IN')}
-                </h3>
-                <span className="text-muted small">{invoices.length} Invoices generated</span>
-              </div>
-            </Card.Body>
-          </Card>
+            </div>
+          </div>
         </Col>
 
-        {/* Total Outstanding */}
+        {/* Card 3: Outstanding Amount */}
         <Col xs={12} sm={6} lg={3}>
-          <Card
-            className={`border-0 h-100 shadow-sm rounded-4 ${
-              isDark ? 'bg-slate-900 text-white border border-slate-800' : 'bg-white'
-            }`}
-          >
-            <Card.Body className="p-3 d-flex flex-column justify-content-between">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-muted fw-semibold small text-uppercase" style={{ fontSize: '0.72rem' }}>
-                  Outstanding Amount
+          <div className="vpm-god-card rose">
+            <div className="vpm-god-card-top">
+              <span className="vpm-god-card-title">Outstanding Amount</span>
+              <div className="vpm-god-icon-box">
+                <AlertCircle size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="vpm-god-card-value">
+                ₹{totalOutstanding.toLocaleString('en-IN')}
+              </div>
+              <div className="vpm-god-card-footer">
+                <span>Pending collectables</span>
+                <span className="vpm-trend-badge red">
+                  {pendingPaymentsCount} Unpaid
                 </span>
-                <div
-                  className="rounded-3 p-2 d-flex align-items-center justify-content-center"
-                  style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444' }}
-                >
-                  <AlertCircle size={18} />
-                </div>
               </div>
-              <div>
-                <h3 className="fw-bold mb-1" style={{ color: isDark ? '#F87171' : '#DC2626' }}>
-                  ₹{totalOutstanding.toLocaleString('en-IN')}
-                </h3>
-                <span className="text-muted small">{pendingPaymentsCount} Pending Payments</span>
-              </div>
-            </Card.Body>
-          </Card>
+            </div>
+          </div>
         </Col>
 
-        {/* Purchase Summary */}
+        {/* Card 4: Purchase Summary */}
         <Col xs={12} sm={6} lg={3}>
-          <Card
-            className={`border-0 h-100 shadow-sm rounded-4 ${
-              isDark ? 'bg-slate-900 text-white border border-slate-800' : 'bg-white'
-            }`}
-          >
-            <Card.Body className="p-3 d-flex flex-column justify-content-between">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="text-muted fw-semibold small text-uppercase" style={{ fontSize: '0.72rem' }}>
-                  Purchase Summary
+          <div className="vpm-god-card purple">
+            <div className="vpm-god-card-top">
+              <span className="vpm-god-card-title">Purchase Summary</span>
+              <div className="vpm-god-icon-box">
+                <ShoppingCart size={20} />
+              </div>
+            </div>
+            <div>
+              <div className="vpm-god-card-value">
+                ₹{totalPurchaseAmount.toLocaleString('en-IN')}
+              </div>
+              <div className="vpm-god-card-footer">
+                <span>Raw material stock</span>
+                <span className="vpm-trend-badge purple">
+                  {purchases.length} Purchases
                 </span>
-                <div
-                  className="rounded-3 p-2 d-flex align-items-center justify-content-center"
-                  style={{ background: 'rgba(168, 85, 247, 0.15)', color: '#A855F7' }}
-                >
-                  <ShoppingCart size={18} />
-                </div>
               </div>
-              <div>
-                <h3 className="fw-bold mb-1" style={{ color: isDark ? '#C084FC' : '#9333EA' }}>
-                  ₹{totalPurchaseAmount.toLocaleString('en-IN')}
-                </h3>
-                <span className="text-muted small">{purchases.length} Stock Purchases</span>
-              </div>
-            </Card.Body>
-          </Card>
+            </div>
+          </div>
         </Col>
       </Row>
 
-      {/* ── Main Content Grid ─────────────────────────────────── */}
+      {/* ── 3. Main Content Grid ─────────────────────────────────── */}
       <Row className="g-4">
-        {/* Recent Invoices Table */}
+        {/* Left Column (8 cols): Recent Invoices & Quotations Table */}
         <Col lg={8}>
-          <Card className={`border-0 shadow-sm rounded-4 overflow-hidden ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-            <Card.Header
-              className={`p-3 border-0 bg-transparent d-flex justify-content-between align-items-center`}
-            >
-              <div className="d-flex align-items-center gap-2">
-                <Receipt className="text-primary" size={20} />
-                <h6 className="fw-bold m-0">Recent Invoices & Quotations</h6>
+          <div className="vpm-table-panel">
+            <div className="vpm-table-header flex-column flex-sm-row gap-3">
+              <div className="vpm-table-header-title">
+                <div className="vpm-table-icon-badge">
+                  <Receipt size={18} />
+                </div>
+                <div>
+                  <h6>Recent Invoices & Quotations</h6>
+                </div>
               </div>
-              <Button
-                variant="link"
-                size="sm"
-                className="text-decoration-none fw-bold p-0 text-primary"
-                onClick={() => onNavigate('invoice')}
-              >
-                View All <ArrowUpRight size={14} />
-              </Button>
-            </Card.Header>
-            <Card.Body className="p-0">
-              <div className="table-responsive">
-                <Table hover className={`m-0 align-middle ${isDark ? 'table-dark' : ''}`}>
-                  <thead className={isDark ? 'bg-slate-800' : 'bg-light'}>
-                    <tr className="small text-uppercase text-muted">
-                      <th>Invoice #</th>
-                      <th>Customer</th>
-                      <th>Type</th>
-                      <th>Date</th>
-                      <th className="text-end">Amount</th>
-                      <th className="text-center">Status</th>
+
+              <div className="d-flex align-items-center gap-3 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+                {/* Filter Pills */}
+                <div className="vpm-filter-pill-group">
+                  <button
+                    className={`vpm-filter-pill ${filterType === 'ALL' ? 'active' : ''}`}
+                    onClick={() => setFilterType('ALL')}
+                  >
+                    All
+                  </button>
+                  <button
+                    className={`vpm-filter-pill ${filterType === 'TAX_INVOICE' ? 'active' : ''}`}
+                    onClick={() => setFilterType('TAX_INVOICE')}
+                  >
+                    Invoices
+                  </button>
+                  <button
+                    className={`vpm-filter-pill ${filterType === 'QUOTATION' ? 'active' : ''}`}
+                    onClick={() => setFilterType('QUOTATION')}
+                  >
+                    Quotes
+                  </button>
+                  <button
+                    className={`vpm-filter-pill ${filterType === 'ESTIMATE' ? 'active' : ''}`}
+                    onClick={() => setFilterType('ESTIMATE')}
+                  >
+                    Estimates
+                  </button>
+                </div>
+
+                <Button
+                  variant="link"
+                  className="p-0 text-decoration-none vpm-view-all-btn"
+                  onClick={() => onNavigate('invoice')}
+                >
+                  View All <ArrowUpRight size={15} />
+                </Button>
+              </div>
+            </div>
+
+            <div className="table-responsive">
+              <table className="vpm-god-table">
+                <thead>
+                  <tr>
+                    <th>Invoice #</th>
+                    <th>Customer</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th className="text-end">Amount</th>
+                    <th className="text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInvoices.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-4 text-muted">
+                        No records match the selected filter.
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {invoices.slice(0, 5).map((inv) => (
+                  ) : (
+                    filteredInvoices.slice(0, 6).map((inv) => (
                       <tr key={inv.id}>
-                        <td className="fw-semibold">{inv.invoice_number}</td>
-                        <td>{inv.customer_name}</td>
+                        <td className="vpm-inv-num">{inv.invoice_number}</td>
+                        <td className="vpm-customer-name">{inv.customer_name}</td>
                         <td>
-                          <Badge
-                            bg={inv.type === 'TAX_INVOICE' ? 'primary' : inv.type === 'QUOTATION' ? 'info' : 'warning'}
-                            className="px-2 py-1"
+                          <span
+                            className={`vpm-type-badge ${
+                              inv.type === 'TAX_INVOICE'
+                                ? 'tax'
+                                : inv.type === 'QUOTATION'
+                                ? 'quote'
+                                : 'est'
+                            }`}
                           >
                             {inv.type.replace('_', ' ')}
-                          </Badge>
+                          </span>
                         </td>
-                        <td className="small text-muted">{inv.date}</td>
-                        <td className="text-end fw-bold">₹{inv.grand_total.toLocaleString('en-IN')}</td>
+                        <td className="text-muted small">{inv.date}</td>
+                        <td className="text-end fw-bold">
+                          ₹{inv.grand_total.toLocaleString('en-IN')}
+                        </td>
                         <td className="text-center">
-                          <Badge
-                            bg={inv.status === 'PAID' ? 'success' : inv.status === 'PARTIALLY_PAID' ? 'warning' : 'danger'}
+                          <span
+                            className={`vpm-status-pill ${
+                              inv.status === 'PAID'
+                                ? 'paid'
+                                : inv.status === 'PARTIALLY_PAID'
+                                ? 'partial'
+                                : 'unpaid'
+                            }`}
                           >
+                            <span
+                              style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: '50%',
+                                backgroundColor:
+                                  inv.status === 'PAID'
+                                    ? '#10b981'
+                                    : inv.status === 'PARTIALLY_PAID'
+                                    ? '#f59e0b'
+                                    : '#ef4444'
+                              }}
+                            />
                             {inv.status}
-                          </Badge>
+                          </span>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            </Card.Body>
-          </Card>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </Col>
 
-        {/* Right Sidebar Widgets: Tasks & Pending Payments */}
+        {/* Right Column (4 cols): Sidebar Widgets */}
         <Col lg={4}>
           <div className="d-flex flex-column gap-3">
-            {/* Today's Tasks */}
-            <Card className={`border-0 shadow-sm rounded-4 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-              <Card.Header className="p-3 bg-transparent border-0 d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                  <CheckSquare className="text-warning" size={20} />
-                  <h6 className="fw-bold m-0">Today's Tasks ({todaysTasks.length})</h6>
+            {/* Quick Actions Grid Tile Widget */}
+            <div className="vpm-widget-card">
+              <div className="vpm-widget-header mb-3">
+                <h6 className="vpm-widget-title">
+                  <Zap size={18} className="text-primary" />
+                  Quick Shortcuts
+                </h6>
+              </div>
+              <div className="vpm-quick-grid">
+                <div className="vpm-quick-tile" onClick={() => onNavigate('quotation')}>
+                  <div className="vpm-quick-icon" style={{ background: 'rgba(6,182,212,0.12)', color: '#0891b2' }}>
+                    <PlusCircle size={18} />
+                  </div>
+                  <span className="vpm-quick-tile-text">New Quote</span>
                 </div>
-                <Button variant="link" size="sm" className="p-0 fw-bold text-decoration-none" onClick={() => onNavigate('tasks')}>
+                <div className="vpm-quick-tile" onClick={() => onNavigate('eway_bill')}>
+                  <div className="vpm-quick-icon" style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>
+                    <Truck size={18} />
+                  </div>
+                  <span className="vpm-quick-tile-text">E-Way Bill</span>
+                </div>
+                <div className="vpm-quick-tile" onClick={() => onNavigate('customers')}>
+                  <div className="vpm-quick-icon" style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981' }}>
+                    <Users size={18} />
+                  </div>
+                  <span className="vpm-quick-tile-text">Add Customer</span>
+                </div>
+                <div className="vpm-quick-tile" onClick={() => onNavigate('gst_reports')}>
+                  <div className="vpm-quick-icon" style={{ background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>
+                    <PieChart size={18} />
+                  </div>
+                  <span className="vpm-quick-tile-text">GST Summary</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Today's Tasks */}
+            <div className="vpm-widget-card">
+              <div className="vpm-widget-header">
+                <h6 className="vpm-widget-title">
+                  <CheckSquare size={18} className="text-warning" />
+                  Today's Tasks ({todaysTasks.length})
+                </h6>
+                <Button
+                  variant="link"
+                  className="p-0 text-decoration-none fw-bold text-primary small"
+                  onClick={() => onNavigate('tasks')}
+                >
                   Manage
                 </Button>
-              </Card.Header>
-              <Card.Body className="p-3 pt-0">
-                {todaysTasks.length === 0 ? (
-                  <p className="text-muted small m-0">No active tasks scheduled for today.</p>
-                ) : (
-                  <div className="d-flex flex-column gap-2">
-                    {todaysTasks.slice(0, 3).map((task) => (
-                      <div
-                        key={task.id}
-                        className={`p-2 rounded-3 border ${
-                          isDark ? 'bg-slate-800 border-slate-700' : 'bg-light border-gray-200'
-                        }`}
-                      >
-                        <div className="d-flex justify-content-between align-items-start mb-1">
-                          <span className="fw-semibold small">{task.title}</span>
-                          <Badge bg={task.priority === 'HIGH' || task.priority === 'URGENT' ? 'danger' : 'secondary'}>
-                            {task.priority}
-                          </Badge>
-                        </div>
-                        <span className="small text-muted d-block">{task.assigned_to}</span>
+              </div>
+
+              {todaysTasks.length === 0 ? (
+                <p className="text-muted small m-0 py-2">No active tasks scheduled for today.</p>
+              ) : (
+                <div className="d-flex flex-column">
+                  {todaysTasks.slice(0, 3).map((task) => (
+                    <div
+                      key={task.id}
+                      className={`vpm-task-item-pro ${
+                        task.priority === 'URGENT'
+                          ? 'urgent'
+                          : task.priority === 'HIGH'
+                          ? 'high'
+                          : ''
+                      }`}
+                    >
+                      <div className="d-flex justify-content-between align-items-start mb-1">
+                        <span className="fw-bold small" style={{ color: isDark ? '#ffffff' : '#0f172a' }}>
+                          {task.title}
+                        </span>
+                        <span
+                          className={`badge ${
+                            task.priority === 'URGENT' || task.priority === 'HIGH'
+                              ? 'bg-danger'
+                              : 'bg-secondary'
+                          }`}
+                          style={{ fontSize: '0.65rem' }}
+                        >
+                          {task.priority}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span className="small text-muted" style={{ fontSize: '0.74rem' }}>
+                          {task.assigned_to || 'Unassigned'}
+                        </span>
+                        <span className="small text-muted" style={{ fontSize: '0.72rem' }}>
+                          {task.due_date || task.start_date || 'Today'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Pending Payments Alert Card */}
-            <Card className={`border-0 shadow-sm rounded-4 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-              <Card.Header className="p-3 bg-transparent border-0 d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                  <AlertCircle className="text-danger" size={20} />
-                  <h6 className="fw-bold m-0 text-danger">Pending Payment Action</h6>
-                </div>
-              </Card.Header>
-              <Card.Body className="p-3 pt-0">
-                <p className="small text-muted mb-3">
-                  You have {pendingPaymentsCount} unpaid or partially paid bills totaling{' '}
-                  <strong className="text-danger">₹{totalOutstanding.toLocaleString('en-IN')}</strong>.
-                </p>
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  className="w-100 fw-bold rounded-3"
-                  onClick={() => onNavigate('payments')}
-                >
-                  Collect Pending Payments →
-                </Button>
-              </Card.Body>
-            </Card>
+            <div className="vpm-payment-alert-card">
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <AlertCircle size={20} className="text-danger" />
+                <h6 className="fw-bold m-0 text-danger" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                  Pending Payment Action
+                </h6>
+              </div>
+              <p className="small text-muted mb-3" style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>
+                You have <strong>{pendingPaymentsCount}</strong> unpaid or partially paid bills totaling{' '}
+                <strong className="text-danger fs-6">₹{totalOutstanding.toLocaleString('en-IN')}</strong>.
+              </p>
+              <Button
+                className="vpm-payment-alert-btn"
+                onClick={() => onNavigate('payments')}
+              >
+                Collect Pending Payments <ArrowRight size={16} />
+              </Button>
+            </div>
           </div>
         </Col>
       </Row>

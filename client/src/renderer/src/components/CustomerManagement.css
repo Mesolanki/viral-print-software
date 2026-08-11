@@ -1,0 +1,422 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — CustomerManagement.css ★ GOD-LEVEL PRO EDITION ★
+   Ultra-sleek Glassmorphism, Customer Avatars, Glow Badges & Zero Overflow
+   ================================================================= */
+
+/* ── Global Container ─────────────────────────────────────────── */
+.vpm-cust-module {
+  animation: vpmFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: calc(100vh - 85px);
+  overflow: hidden;
+}
+
+/* ── Header Banner Card ────────────────────────────────────────── */
+.vpm-cust-header {
+  border-radius: 16px !important;
+  border: 1px solid rgba(115, 110, 254, 0.18) !important;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 0.75rem 1.25rem !important;
+}
+
+.theme-light .vpm-cust-header {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 244, 255, 0.9) 100%) !important;
+  box-shadow: 0 6px 20px rgba(115, 110, 254, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+.theme-dark .vpm-cust-header {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(10, 16, 30, 0.9) 100%) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(0, 210, 255, 0.2) !important;
+}
+
+.vpm-cust-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #736efe 0%, #00D2FF 50%, #10B981 100%);
+}
+
+.vpm-cust-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #736efe 0%, #00D2FF 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(115, 110, 254, 0.3);
+  flex-shrink: 0;
+}
+
+/* Primary CTA Button */
+.vpm-btn-add-cust {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: linear-gradient(135deg, #736efe 0%, #00D2FF 100%);
+  color: #ffffff;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 8px 18px;
+  border-radius: 11px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(115, 110, 254, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.2px;
+  white-space: nowrap !important;
+}
+
+.vpm-btn-add-cust::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.75s ease;
+}
+
+.vpm-btn-add-cust:hover::after {
+  left: 180%;
+}
+
+.vpm-btn-add-cust:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(115, 110, 254, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.vpm-btn-add-cust:active {
+  transform: scale(0.96);
+}
+
+/* ── Pro Search Bar ────────────────────────────────────────────── */
+.vpm-cust-search-bar {
+  border-radius: 14px !important;
+  padding: 8px 14px !important;
+  border: 1px solid !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.theme-light .vpm-cust-search-bar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+}
+
+.theme-dark .vpm-cust-search-bar {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.vpm-cust-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.vpm-cust-search-icon {
+  position: absolute;
+  left: 14px;
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.vpm-cust-search-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 14px 0 40px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: #ffffff;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.theme-dark .vpm-cust-search-input {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.vpm-cust-search-input:focus {
+  border-color: #736efe;
+  box-shadow: 0 0 0 3px rgba(115, 110, 254, 0.14);
+}
+
+.theme-dark .vpm-cust-search-input:focus {
+  border-color: #00D2FF;
+  box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.15);
+}
+
+/* ── Table Container (Zero Page Scroll) ───────────────────────── */
+.vpm-cust-table-card {
+  border-radius: 16px !important;
+  border: 1px solid !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-light .vpm-cust-table-card {
+  background: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05) !important;
+}
+
+.theme-dark .vpm-cust-table-card {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.vpm-cust-table-card .table-responsive {
+  max-height: calc(100vh - 245px);
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.vpm-cust-table-card .table-responsive::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.vpm-cust-table-card .table-responsive::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #736efe 0%, #00D2FF 100%);
+  border-radius: 999px;
+}
+
+.vpm-cust-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.vpm-cust-table th {
+  padding: 10px 14px !important;
+  font-size: 0.70rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748B;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  background: rgba(248, 250, 252, 0.95);
+  white-space: nowrap !important;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  text-align: left;
+}
+
+.theme-dark .vpm-cust-table th {
+  color: #94A3B8;
+  background: rgba(30, 41, 59, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.vpm-cust-table td {
+  padding: 10px 14px !important;
+  font-size: 0.81rem;
+  font-weight: 500;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  transition: background 0.2s ease;
+  white-space: nowrap !important;
+  text-align: left;
+}
+
+.theme-dark .vpm-cust-table td {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+  color: #E2E8F0;
+}
+
+.vpm-cust-table th.text-center,
+.vpm-cust-table td.text-center {
+  text-align: center !important;
+}
+
+.vpm-cust-table th.text-end,
+.vpm-cust-table td.text-end {
+  text-align: right !important;
+}
+
+.vpm-cust-table th.text-start,
+.vpm-cust-table td.text-start {
+  text-align: left !important;
+}
+
+.theme-light .vpm-cust-table tbody tr:hover {
+  background: rgba(115, 110, 254, 0.04) !important;
+}
+
+.theme-dark .vpm-cust-table tbody tr:hover {
+  background: rgba(0, 210, 255, 0.05) !important;
+}
+
+/* ── Custom Elements for Customer Row ─────────────────────────── */
+.vpm-cust-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap !important;
+}
+
+.vpm-cust-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #736efe 0%, #00D2FF 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(115, 110, 254, 0.25);
+  letter-spacing: 0.5px;
+}
+
+.vpm-cust-info-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.vpm-cust-title {
+  font-weight: 800;
+  font-size: 0.86rem;
+  color: #0F172A;
+}
+
+.theme-dark .vpm-cust-title {
+  color: #ffffff;
+}
+
+.vpm-cust-date {
+  font-size: 0.70rem;
+  color: #94A3B8;
+  font-family: var(--font-mono);
+}
+
+.vpm-contact-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.theme-dark .vpm-contact-pill {
+  color: #CBD5E1;
+}
+
+/* GST Badge */
+.vpm-gst-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.74rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(115, 110, 254, 0.12) 0%, rgba(0, 210, 255, 0.12) 100%);
+  color: #736efe;
+  border: 1px solid rgba(115, 110, 254, 0.25);
+  letter-spacing: 0.4px;
+}
+
+.theme-dark .vpm-gst-badge {
+  color: #00D2FF;
+  border-color: rgba(0, 210, 255, 0.35);
+}
+
+.vpm-gst-nongst-tag {
+  font-size: 0.72rem;
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+/* Action Buttons */
+.vpm-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vpm-act-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.vpm-act-btn-ledger {
+  background: rgba(0, 210, 255, 0.1);
+  color: #00D2FF;
+  border-color: rgba(0, 210, 255, 0.25);
+}
+
+.vpm-act-btn-ledger:hover {
+  background: #00D2FF;
+  color: #050F1F;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 210, 255, 0.35);
+}
+
+.vpm-act-btn-edit {
+  background: rgba(115, 110, 254, 0.1);
+  color: #736efe;
+  border-color: rgba(115, 110, 254, 0.25);
+}
+
+.vpm-act-btn-edit:hover {
+  background: #736efe;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(115, 110, 254, 0.35);
+}
+
+.vpm-act-btn-delete {
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.vpm-act-btn-delete:hover {
+  background: #EF4444;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
