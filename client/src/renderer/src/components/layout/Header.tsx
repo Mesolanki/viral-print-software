@@ -13,7 +13,12 @@ import {
   FileText,
   Tag,
   HardDrive,
-  FileSpreadsheet
+  FileSpreadsheet,
+  History as HistoryIcon,
+  Truck,
+  CreditCard,
+  UserCheck,
+  ShoppingCart
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
@@ -28,14 +33,20 @@ interface HeaderProps {
   onToggleSidebar: () => void
 }
 
-const pageTitles = {
-  invoice: { icon: <Receipt size={18} />, label: 'Tax Invoice (GST Billing - PDF Page 1)' },
-  quotation: { icon: <FileText size={18} />, label: 'Quotation (Rate Quote - PDF Page 2)' },
-  estimate: { icon: <Tag size={18} />, label: 'Estimate Bill (Slip Format - PDF Page 3)' },
+const pageTitles: Record<string, { icon: React.ReactNode; label: string }> = {
+  dashboard: { icon: <LayoutDashboard size={18} />, label: 'Business Performance Dashboard' },
+  invoice: { icon: <Receipt size={18} />, label: 'Tax Invoice (GST Billing)' },
+  quotation: { icon: <FileText size={18} />, label: 'Quotation (Rate Quote & Proposal)' },
+  estimate: { icon: <Tag size={18} />, label: 'Estimate Bill (Non-GST Slip)' },
+  history: { icon: <HistoryIcon size={18} />, label: 'Previous Bills & Saved Invoices History' },
+  eway_bill: { icon: <Truck size={18} />, label: 'E-Way Bill Management & Govt Export' },
+  payments: { icon: <CreditCard size={18} />, label: 'Payment Entry & Ledger' },
+  customers: { icon: <UserCheck size={18} />, label: 'Customer Management' },
+  purchases: { icon: <ShoppingCart size={18} />, label: 'Purchase & Vendor Management' },
+  products: { icon: <Package size={18} />, label: 'Products & Rate Management' },
+  gst_reports: { icon: <FileSpreadsheet size={18} />, label: 'GST Ledger & CA Reports' },
   tasks: { icon: <CheckSquare size={18} />, label: 'Task Management & Calendar' },
   users: { icon: <Users size={18} />, label: 'Users & Role Management' },
-  dashboard: { icon: <LayoutDashboard size={18} />, label: 'System Diagnostics' },
-  products: { icon: <Package size={18} />, label: 'Products & Rate Management' },
   backup: { icon: <HardDrive size={18} />, label: 'Bill Data Drive Backup & Restore' },
 }
 

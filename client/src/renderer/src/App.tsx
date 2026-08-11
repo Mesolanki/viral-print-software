@@ -12,6 +12,8 @@ import PaymentEntryModule from './components/PaymentEntryModule'
 import GstReportModule from './components/GstReportModule'
 import EwayBillModule from './components/EwayBillModule'
 import BackupModule from './components/BackupModule'
+import { BillHistoryModule } from './components/BillHistoryModule'
+import { Invoice } from './services/dataService'
 import AppLayout, { type ActiveTabType } from './components/layout/AppLayout'
 import LoginPage from './pages/LoginPage'
 
@@ -25,13 +27,35 @@ function DashboardView({
 }): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<ActiveTabType>('dashboard')
   const [pingStatus, setPingStatus] = useState<string | null>(null)
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
+
+  const handleEditInvoice = (inv: Invoice) => {
+    setEditingInvoice(inv)
+    if (inv.type === 'TAX_INVOICE') {
+      setActiveTab('invoice')
+    } else if (inv.type === 'QUOTATION') {
+      setActiveTab('quotation')
+    } else {
+      setActiveTab('estimate')
+    }
+  }
+
+  const handleTabChange = (tab: ActiveTabType) => {
+    if (tab !== activeTab) {
+      // Clear editing state when switching manually to new blank form tabs
+      if (tab === 'invoice' || tab === 'quotation' || tab === 'estimate') {
+        setEditingInvoice(null)
+      }
+    }
+    setActiveTab(tab)
+  }
 
   return (
     <AppLayout
       theme={theme}
       toggleTheme={toggleTheme}
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
     >
       {/* ── Alert Banner ─────────────────────────────────── */}
       {pingStatus && (
@@ -50,11 +74,20 @@ function DashboardView({
       {activeTab === 'dashboard' ? (
         <DashboardOverview theme={theme} onNavigate={setActiveTab} />
       ) : activeTab === 'invoice' ? (
-        <EstimateBill key="tax-invoice" theme={theme} formatType="TAX_INVOICE" />
+        <EstimateBill key={`tax-invoice-${editingInvoice?.id || 'new'}`} theme={theme} formatType="TAX_INVOICE" editingInvoice={editingInvoice} />
       ) : activeTab === 'quotation' ? (
-        <EstimateBill key="quotation" theme={theme} formatType="QUOTATION" />
+        <EstimateBill key={`quotation-${editingInvoice?.id || 'new'}`} theme={theme} formatType="QUOTATION" editingInvoice={editingInvoice} />
       ) : activeTab === 'estimate' ? (
-        <EstimateBill key="estimate-slip" theme={theme} formatType="ESTIMATE" />
+        <EstimateBill key={`estimate-slip-${editingInvoice?.id || 'new'}`} theme={theme} formatType="ESTIMATE" editingInvoice={editingInvoice} />
+      ) : activeTab === 'history' ? (
+        <BillHistoryModule
+          theme={theme}
+          onEditInvoice={handleEditInvoice}
+          onCreateNewBill={() => {
+            setEditingInvoice(null)
+            setActiveTab('invoice')
+          }}
+        />
       ) : activeTab === 'eway_bill' ? (
         <EwayBillModule theme={theme} />
       ) : activeTab === 'payments' ? (

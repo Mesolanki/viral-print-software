@@ -1520,49 +1520,209 @@
   border-color: rgba(239,68,68,0.2) !important;
 }
 
+/* ── Product Search Autocomplete Dropdown ─────────────────────── */
+.eb-product-autocomplete-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 320px;
+  max-width: 500px;
+  z-index: 99999;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1.5px solid var(--eb-primary);
+  border-radius: 12px;
+  box-shadow:
+    0 16px 40px rgba(115, 110, 254, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.1);
+  max-height: 240px;
+  overflow-y: auto;
+  backdrop-filter: blur(16px);
+  animation: autocompleteFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-dark .eb-product-autocomplete-menu {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: var(--eb-primary);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.6),
+    0 4px 16px rgba(115, 110, 254, 0.2);
+}
+
+@keyframes autocompleteFade {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.eb-product-autocomplete-header {
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(115, 110, 254, 0.1), rgba(0, 210, 255, 0.05));
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--eb-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--eb-border-soft);
+}
+.theme-dark .eb-product-autocomplete-header {
+  background: linear-gradient(135deg, rgba(115, 110, 254, 0.2), rgba(0, 210, 255, 0.1));
+  color: #a09bff;
+}
+
+.eb-product-autocomplete-item {
+  padding: 9px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--eb-border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.15s ease;
+}
+
+.theme-dark .eb-product-autocomplete-item {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.eb-product-autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.eb-product-autocomplete-item:hover,
+.eb-product-autocomplete-item.active {
+  background: linear-gradient(135deg, rgba(115, 110, 254, 0.12), rgba(0, 210, 255, 0.06));
+}
+
+.theme-dark .eb-product-autocomplete-item:hover,
+.theme-dark .eb-product-autocomplete-item.active {
+  background: linear-gradient(135deg, rgba(115, 110, 254, 0.25), rgba(0, 210, 255, 0.12));
+}
+
+.eb-product-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1E293B;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.theme-dark .eb-product-title { color: #F8FAFC; }
+
+.eb-product-meta {
+  font-size: 0.7rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.theme-dark .eb-product-meta { color: #94A3B8; }
+
+.eb-product-price-tag {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--eb-primary);
+  background: rgba(115, 110, 254, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.theme-dark .eb-product-price-tag {
+  background: rgba(115, 110, 254, 0.2);
+  color: #a09bff;
+}
+
 /* ── Print Media Query ──────────────────────────────────────── */
 @media print {
-  body {
-    background: #fff !important;
+  /* 1. Reset root & container constraints */
+  html, body, #root, .vpm-app-shell, .vpm-main, .vpm-page-body {
+    background: #ffffff !important;
+    color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 
-  .vpm-app-shell,
+  /* 2. Hide non-printable app layout & sidebar elements */
   .vpm-sidebar,
   .vpm-header,
   .estimate-form-panel,
   .eb-preview-toolbar,
   .eb-preview-title,
-  .vpm-modal-backdrop {
+  .vpm-modal-backdrop,
+  .eb-actions,
+  .alert,
+  button,
+  nav,
+  header {
     display: none !important;
   }
 
+  /* 3. Make printable bill container full-width & visible */
   .estimate-panel,
   .estimate-preview-panel,
   .eb-preview-scroll {
     display: block !important;
     padding: 0 !important;
     margin: 0 !important;
-    background: #fff !important;
+    background: #ffffff !important;
     overflow: visible !important;
     height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 
   .bill-paper-container {
     transform: none !important;
     filter: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
   }
 
   .bill-paper {
     box-shadow: none !important;
+    border: none !important;
     width: 100% !important;
+    max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .pdf-grid-box {
+    border: 1.5px solid #000000 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    page-break-inside: avoid;
+  }
+
+  /* Force clean black text and crisp borders on print */
+  .pdf-grid-box *, .pdf-table, .pdf-table th, .pdf-table td {
+    color: #000000 !important;
+    border-color: #000000 !important;
   }
 
   @page {
-    size: A4;
-    margin: 10mm;
+    size: A4 portrait;
+    margin: 8mm;
   }
 }

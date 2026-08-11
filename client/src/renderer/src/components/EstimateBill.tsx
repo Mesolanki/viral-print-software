@@ -12,6 +12,7 @@ import {
   Search,
   CheckCircle2,
   Save,
+  Package,
   PackagePlus,
   ExternalLink,
   Copy,
@@ -26,11 +27,13 @@ import {
   ShieldCheck,
   FileDown,
   HardDrive,
+  Download,
+  History as HistoryIcon,
   FileSpreadsheet
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { customersApi, productsApi, type CustomerData } from '../api/apiClient'
-import { getNextInvoiceNumber, DataService } from '../services/dataService'
+import { getNextInvoiceNumber, DataService, type Invoice } from '../services/dataService'
 import './EstimateBill.css'
 
 // ── GST State Dictionary ──────────────────────────────────────
@@ -162,9 +165,11 @@ const newItem = (): BillItem => ({
 interface Props {
   theme: 'dark' | 'light'
   formatType?: BillFormatType
+  editingInvoice?: Invoice | null
+  onClearEditing?: () => void
 }
 
-const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) => {
+const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', editingInvoice = null, onClearEditing }) => {
   const { user } = useAuth()
   const billRef = useRef<HTMLDivElement>(null)
 
@@ -182,6 +187,7 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
 
   // ── State ──
   const [billType, setBillType] = useState<BillFormatType>(formatType)
+  const [editingInvoiceId, setEditingInvoiceId] = useState<number | null>(editingInvoice?.id || null)
 
   useEffect(() => {
     setBillType(formatType)
@@ -197,6 +203,52 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
   const [validFor, setValidFor]     = useState('15 Days')
   const [creditPeriod, setCreditPeriod] = useState('30 Days')
 
+  // Save Success Notification state
+  const [saveInvoiceMsg, setSaveInvoiceMsg] = useState<string | null>(null)
+
+  // Previous Bill History Modal state
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+
+  // Load Invoice data helper
+  const loadInvoiceData = useCallback((inv: Invoice) => {
+    setEditingInvoiceId(inv.id)
+    setBillType(inv.type)
+    setBillNo(inv.invoice_number)
+    if (inv.date) setBillDate(inv.date)
+    setCustName(inv.customer_name || '')
+    setCustMobile(inv.customer_mobile || '')
+    setCustGst(inv.customer_gstin || '')
+    setCustAddress(inv.customer_address || '')
+    setEwayBillNo(inv.eway_bill_no || '')
+    setVehicleNo(inv.vehicle_no || '')
+    setTransporterName(inv.transporter_name || '')
+    if (inv.distance_km) setDistanceKm(String(inv.distance_km))
+    if (inv.valid_for) setValidFor(inv.valid_for)
+    if (inv.credit_period) setCreditPeriod(inv.credit_period)
+
+    if (inv.items && inv.items.length > 0) {
+      setItems(inv.items.map((it) => ({
+        id: _itemId++,
+        description: it.description || '',
+        hsn: it.hsn || '9983',
+        unit: 'pcs',
+        qty: String(it.qty || 1),
+        rate: String(it.rate || 0),
+        gstPct: String(it.tax_percent || 18)
+      })))
+    }
+  }, [])
+
+  useEffect(() => {
+    if (editingInvoice) {
+      loadInvoiceData(editingInvoice)
+    } else {
+      setEditingInvoiceId(null)
+      setBillType(formatType)
+      setBillNo(getNextInvoiceNumber(formatType, billDate))
+    }
+  }, [editingInvoice, formatType, loadInvoiceData, billDate])
+
   // E-Way Bill Modal States
   const [isEwayModalOpen, setIsEwayModalOpen] = useState(false)
   const [ewayFromPincode, setEwayFromPincode] = useState('382424')
@@ -209,8 +261,8 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
   }, [billDate])
 
   useEffect(() => {
-    setBillNo(getNextInvoiceNumber(formatType, billDate))
-  }, [formatType, billDate])
+    setBillNo(getNextInvoiceNumber(billType, billDate))
+  }, [billType, billDate])
 
   // Customer
   const [custName, setCustName]       = useState('')
@@ -229,8 +281,18 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
   // Item Manager & Catalog Pop-Up Modal State
   const [isItemModalOpen, setIsItemModalOpen] = useState(false)
   const [activeItemSearchId, setActiveItemSearchId] = useState<number | null>(null)
-  const [productList, setProductList] = useState<ProductItem[]>([])
-  const [productSearchQuery, setProductSearchQuery] = useState('')
+  const [activeItemSearchIndex, setActiveItemSearchIndex] = useState<number>(0)
+  const [productList, setProductList] = useState<ProductItem[]>(() => {
+    const localProds = DataService.getProducts()
+    return localProds.map(p => ({
+      id: p.id,
+      name: p.name,
+      unit: p.unit || 'pcs',
+      price: p.price || 0,
+      gst_rate: p.gst_rate || 18,
+      hsn: p.hsn_code || '9983'
+    }))
+  })
 
   // Import Estimate Modal State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
@@ -248,8 +310,15 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
   // Load products list from API on mount
   useEffect(() => {
     productsApi.getAll().then(res => {
-      if (res.data?.data) {
-        setProductList(res.data.data)
+      if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
+        setProductList(res.data.data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          unit: p.unit || 'pcs',
+          price: p.price !== undefined ? p.price : 0,
+          gst_rate: p.gst_rate !== undefined ? p.gst_rate : 18,
+          hsn: p.hsn_code || p.hsn || '9983'
+        })))
       }
     }).catch(() => {})
   }, [])
@@ -365,10 +434,38 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
       description: prod.name,
       hsn: prod.hsn || '9983',
       unit: prod.unit || 'pcs',
-      rate: String(prod.price || '0'),
-      gstPct: String(prod.gst_rate || '18'),
+      rate: String(prod.price !== undefined ? prod.price : '0'),
+      gstPct: String(prod.gst_rate !== undefined ? prod.gst_rate : '18'),
     } : it))
     setActiveItemSearchId(null)
+    setActiveItemSearchIndex(0)
+  }
+
+  const getProductMatches = (queryStr: string) => {
+    const q = (queryStr || '').trim().toLowerCase()
+    if (!q) return productList.slice(0, 8)
+    return productList.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.hsn && p.hsn.toLowerCase().includes(q))
+    ).slice(0, 10)
+  }
+
+  const handleItemKeyDown = (e: React.KeyboardEvent, itemId: number, matches: ProductItem[]) => {
+    if (!matches || matches.length === 0) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveItemSearchIndex(prev => (prev + 1) % matches.length)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveItemSearchIndex(prev => (prev - 1 + matches.length) % matches.length)
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      if (activeItemSearchIndex >= 0 && activeItemSearchIndex < matches.length) {
+        e.preventDefault()
+        selectProductForItemRow(itemId, matches[activeItemSearchIndex])
+      }
+    } else if (e.key === 'Escape') {
+      setActiveItemSearchId(null)
+    }
   }
 
   const addProductFromCatalog = (prod: ProductItem) => {
@@ -512,6 +609,8 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE' }) =>
   const delItem = (id: number) => setItems(prev => prev.filter(it => it.id !== id))
 
   const resetBill = () => {
+    setEditingInvoiceId(null)
+    onClearEditing?.()
     setCustName(''); setCustOwner(''); setCustMobile(''); setCustAddress(''); setCustGst('')
     setCustStateInfo(null); setGstStatusMsg(null)
     setItems([newItem()])
@@ -551,11 +650,56 @@ Main HSN: 9983 (Printing / Advertising)`
     setIsImportModalOpen(false)
   }
 
+  // ── Save Current Invoice to Database History ─────────────────
+  const saveCurrentInvoiceToDb = () => {
+    const formattedItems = items.map(it => {
+      const { base, total } = calcRow(it)
+      return {
+        description: it.description || 'Printing Services',
+        hsn: it.hsn || '9983',
+        tax_percent: parseFloat(it.gstPct) || 0,
+        qty: parseFloat(it.qty) || 1,
+        rate: parseFloat(it.rate) || 0,
+        amount: total || base
+      }
+    })
+
+    const saved = DataService.saveInvoice({
+      id: editingInvoiceId || undefined,
+      invoice_number: billNo,
+      type: billType,
+      date: billDate,
+      customer_name: custName || 'Walk-in Customer',
+      customer_mobile: custMobile,
+      customer_gstin: custGst,
+      customer_address: custAddress,
+      eway_bill_no: ewayBillNo,
+      vehicle_no: vehicleNo,
+      transporter_name: transporterName,
+      distance_km: parseFloat(distanceKm) || 0,
+      valid_for: validFor,
+      credit_period: creditPeriod,
+      sub_total: subtotal,
+      cgst: billType === 'ESTIMATE' ? 0 : cgst,
+      sgst: billType === 'ESTIMATE' ? 0 : sgst,
+      round_off: roundOff,
+      grand_total: roundedGrand,
+      paid_amount: billType === 'ESTIMATE' ? advanceNum : roundedGrand,
+      items: formattedItems
+    })
+
+    setEditingInvoiceId(saved.id)
+    setSaveInvoiceMsg(`✅ Bill ${saved.invoice_number} saved to History!`)
+    setTimeout(() => setSaveInvoiceMsg(null), 3000)
+    return saved
+  }
+
   // ── Print Action ──
   const handlePrint = async () => {
     if (custName.trim()) {
       saveCustomerToDb()
     }
+    saveCurrentInvoiceToDb()
     window.print()
   }
 
@@ -565,14 +709,97 @@ Main HSN: 9983 (Printing / Advertising)`
 
   const filteredProducts = productList.filter(p => p.name.toLowerCase().includes(productSearchQuery.toLowerCase()))
 
+  const allSavedInvoices = DataService.getInvoices()
+
   return (
     <div className={`estimate-panel ${cls}`}>
 
       {/* ═══════════ LEFT: INPUT FORM ═══════════ */}
       <div className="estimate-form-panel">
 
-        {/* Top Actions: Import Estimate & E-Way Portal & Backup Buttons */}
+        {/* Format Selector Bar */}
+        <div style={{ display: 'flex', background: isDark ? 'rgba(15,23,42,0.8)' : 'rgba(255,255,255,0.9)', padding: 4, borderRadius: 12, border: '1.5px solid var(--eb-border)', gap: 4, marginBottom: 4 }}>
+          <button
+            onClick={() => {
+              setEditingInvoiceId(null)
+              onClearEditing?.()
+              setBillType('TAX_INVOICE')
+              setBillNo(getNextInvoiceNumber('TAX_INVOICE', billDate))
+            }}
+            style={{
+              flex: 1, padding: '7px 8px', borderRadius: 8, border: 'none', fontWeight: 800, fontSize: '0.76rem', cursor: 'pointer',
+              background: billType === 'TAX_INVOICE' ? 'linear-gradient(135deg, #736efe, #00D2FF)' : 'transparent',
+              color: billType === 'TAX_INVOICE' ? '#ffffff' : (isDark ? '#94a3b8' : '#64748b'),
+              boxShadow: billType === 'TAX_INVOICE' ? '0 3px 10px rgba(115,110,254,0.3)' : 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.2s ease'
+            }}
+          >
+            <Receipt size={14} /> Tax Invoice
+          </button>
+
+          <button
+            onClick={() => {
+              setEditingInvoiceId(null)
+              onClearEditing?.()
+              setBillType('QUOTATION')
+              setBillNo(getNextInvoiceNumber('QUOTATION', billDate))
+            }}
+            style={{
+              flex: 1, padding: '7px 8px', borderRadius: 8, border: 'none', fontWeight: 800, fontSize: '0.76rem', cursor: 'pointer',
+              background: billType === 'QUOTATION' ? 'linear-gradient(135deg, #00D2FF, #00A8FF)' : 'transparent',
+              color: billType === 'QUOTATION' ? '#ffffff' : (isDark ? '#94a3b8' : '#64748b'),
+              boxShadow: billType === 'QUOTATION' ? '0 3px 10px rgba(0,210,255,0.3)' : 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.2s ease'
+            }}
+          >
+            <FileText size={14} /> Quotation
+          </button>
+
+          <button
+            onClick={() => {
+              setEditingInvoiceId(null)
+              onClearEditing?.()
+              setBillType('ESTIMATE')
+              setBillNo(getNextInvoiceNumber('ESTIMATE', billDate))
+            }}
+            style={{
+              flex: 1, padding: '7px 8px', borderRadius: 8, border: 'none', fontWeight: 800, fontSize: '0.76rem', cursor: 'pointer',
+              background: billType === 'ESTIMATE' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'transparent',
+              color: billType === 'ESTIMATE' ? '#ffffff' : (isDark ? '#94a3b8' : '#64748b'),
+              boxShadow: billType === 'ESTIMATE' ? '0 3px 10px rgba(245,158,11,0.3)' : 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.2s ease'
+            }}
+          >
+            <Tag size={14} /> Estimate Bill
+          </button>
+        </div>
+
+        {/* Save Status Alert Banner */}
+        {saveInvoiceMsg && (
+          <div style={{ background: 'rgba(16,185,129,0.15)', color: '#10B981', border: '1px solid rgba(16,185,129,0.3)', padding: '8px 14px', borderRadius: 8, fontSize: '0.82rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <CheckCircle2 size={16} /> {saveInvoiceMsg}
+          </div>
+        )}
+
+        {/* Top Actions: Save Bill, Load History, Import Estimate & Backup Buttons */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            className="eb-btn-secondary"
+            onClick={saveCurrentInvoiceToDb}
+            style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 13px', background: 'linear-gradient(135deg, #736efe, #00D2FF)', color: '#ffffff', border: 'none', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 3px 10px rgba(115,110,254,0.3)' }}
+            title="Save Bill to Database History"
+          >
+            <Save size={14} /> 💾 Save Bill to History
+          </button>
+
+          <button
+            className="eb-btn-secondary"
+            onClick={() => setIsHistoryModalOpen(true)}
+            style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 13px', background: 'rgba(115,110,254,0.1)', color: '#736efe', borderColor: 'rgba(115,110,254,0.3)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+            title="Open Saved Previous Bills Modal to select and edit any past bill"
+          >
+            <HistoryIcon size={14} /> 📜 Load Previous Bill
+          </button>
           <button
             className="eb-btn-secondary"
             onClick={() => DataService.exportAllDataToExcel()}
@@ -831,57 +1058,161 @@ Main HSN: 9983 (Printing / Advertising)`
           </div>
         </div>
 
-        {/* Particulars / Goods Description Summary Box with POP-UP Trigger */}
+        {/* Particulars / Goods Description Box with Inline Editing & POP-UP Trigger */}
         <div className="eb-card">
           <div className="eb-card-header" style={{ justifyContent: 'space-between' }}>
             <span className="eb-header-title">
               <Layers size={14} /> Particulars / Goods Description ({items.length} {items.length === 1 ? 'Item' : 'Items'})
             </span>
-            <button
-              onClick={() => setIsItemModalOpen(true)}
-              className="eb-header-btn"
-              title="Open Item Manager Pop-Up"
-            >
-              <PackagePlus size={13} /> Item Pop-Up
-            </button>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                onClick={addBlankRow}
+                className="eb-header-btn"
+                style={{ background: 'rgba(115,110,254,0.15)', color: '#736efe', boxShadow: 'none', border: '1px solid rgba(115,110,254,0.3)' }}
+                title="Add New Blank Row"
+              >
+                <Plus size={13} /> Add Row
+              </button>
+              <button
+                onClick={() => setIsItemModalOpen(true)}
+                className="eb-header-btn"
+                title="Open Item Manager Pop-Up"
+              >
+                <PackagePlus size={13} /> Full Pop-Up
+              </button>
+            </div>
           </div>
-          <div className="eb-card-body" style={{ padding: 12 }}>
+          <div className="eb-card-body" style={{ padding: 10 }}>
 
-            {/* Added Items Preview Pill List */}
-            <div className="eb-item-pills-list">
-              {items.map((it, idx) => {
-                const { total } = calcRow(it)
-                return (
-                  <div
-                    key={it.id}
-                    onClick={() => setIsItemModalOpen(true)}
-                    className="eb-item-pill"
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span className="eb-pill-index">#{idx + 1}</span>
-                      <strong className="eb-pill-name">{it.description || 'Custom Item'}</strong>
-                      <span className="eb-pill-meta">({it.qty} {it.unit} @ ₹{it.rate || '0'})</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <strong className="eb-pill-total">₹{fmt(total)}</strong>
-                      <Edit3 size={12} style={{ color: '#736efe' }} />
-                    </div>
-                  </div>
-                )
-              })}
+            {/* Inline Items Table with Product Search Autocomplete */}
+            <div className="eb-items-table-wrap" style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
+              <table className="eb-items-table" style={{ width: '100%', minWidth: 460 }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: 24 }}>#</th>
+                    <th style={{ minWidth: 150 }}>Product / Description</th>
+                    <th style={{ width: 55 }}>Qty</th>
+                    <th style={{ width: 75 }}>Rate</th>
+                    <th style={{ width: 75, textAlign: 'right' }}>Total</th>
+                    <th style={{ width: 28 }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item, idx) => {
+                    const { total } = calcRow(item)
+                    const matches = getProductMatches(item.description)
+                    const showDropdown = activeItemSearchId === (item.id + 100000) && matches.length > 0
+
+                    return (
+                      <tr key={item.id}>
+                        <td style={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8' }}>{idx + 1}</td>
+                        <td style={{ position: 'relative' }}>
+                          <input
+                            placeholder="Type product name..."
+                            value={item.description}
+                            onChange={e => {
+                              updateItem(item.id, 'description', e.target.value)
+                              setActiveItemSearchId(item.id + 100000)
+                              setActiveItemSearchIndex(0)
+                            }}
+                            onFocus={() => {
+                              setActiveItemSearchId(item.id + 100000)
+                              setActiveItemSearchIndex(0)
+                            }}
+                            onKeyDown={e => handleItemKeyDown(e, item.id, matches)}
+                            onBlur={() => setTimeout(() => setActiveItemSearchId(null), 250)}
+                            style={{ width: '100%', padding: '5px 8px', fontSize: '0.8rem' }}
+                          />
+
+                          {/* Autocomplete Dropdown */}
+                          {showDropdown && (
+                            <div className="eb-product-autocomplete-menu" style={{ minWidth: 280 }}>
+                              <div className="eb-product-autocomplete-header">
+                                <span><Package size={11} style={{ display: 'inline', marginRight: 4 }} /> Catalog Suggestions</span>
+                                <span style={{ fontSize: '0.6rem', opacity: 0.85 }}>↑ ↓ · Enter</span>
+                              </div>
+                              {matches.map((p, pIdx) => {
+                                const isSelected = activeItemSearchIndex === pIdx
+                                return (
+                                  <div
+                                    key={p.id}
+                                    className={`eb-product-autocomplete-item ${isSelected ? 'active' : ''}`}
+                                    onMouseDown={e => {
+                                      e.preventDefault()
+                                      selectProductForItemRow(item.id, p)
+                                    }}
+                                    onMouseEnter={() => setActiveItemSearchIndex(pIdx)}
+                                  >
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div className="eb-product-title">
+                                        <Package size={12} style={{ color: '#736efe', flexShrink: 0 }} />
+                                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                                      </div>
+                                      <div className="eb-product-meta">
+                                        {p.unit && <span>{p.unit}</span>}
+                                        {billType !== 'ESTIMATE' && p.gst_rate !== undefined && (
+                                          <span style={{ color: '#10B981', fontWeight: 700 }}>{p.gst_rate}% GST</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="eb-product-price-tag" style={{ fontSize: '0.78rem' }}>
+                                      ₹{p.price}
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <input
+                            type="number" min="0" step="0.01"
+                            value={item.qty}
+                            onChange={e => updateItem(item.id, 'qty', e.target.value)}
+                            style={{ padding: '5px 4px', textAlign: 'center' }}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number" min="0" step="0.01" placeholder="0.00"
+                            value={item.rate}
+                            onChange={e => updateItem(item.id, 'rate', e.target.value)}
+                            style={{ padding: '5px 4px' }}
+                          />
+                        </td>
+                        <td style={{ textAlign: 'right', fontWeight: 800, fontSize: '0.8rem', color: '#1E293B' }}>
+                          ₹{fmt(total)}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          {items.length > 1 && (
+                            <button className="eb-del-btn" onClick={() => delItem(item.id)} title="Delete row">
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
 
-            <button
-              onClick={() => setIsItemModalOpen(true)}
-              style={{
-                width: '100%', padding: '10px', borderRadius: 10, background: 'linear-gradient(135deg, #736efe, #00D2FF)',
-                color: '#fff', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                boxShadow: '0 4px 12px rgba(115,110,254,0.25)'
-              }}
-            >
-              <PackagePlus size={16} /> Manage Items & Pick Products in Pop-Up
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={addBlankRow}
+                className="eb-add-row-btn"
+                style={{ flex: 1, padding: '6px' }}
+              >
+                <Plus size={13} /> Add Custom Line
+              </button>
+              <button
+                onClick={() => setIsItemModalOpen(true)}
+                className="eb-btn-secondary"
+                style={{ padding: '6px 12px', fontSize: '0.75rem', fontWeight: 800 }}
+              >
+                <PackagePlus size={14} /> Full Screen Manager
+              </button>
+            </div>
           </div>
 
           {/* Totals Summary */}
@@ -935,10 +1266,13 @@ Main HSN: 9983 (Printing / Advertising)`
           </div>
         )}
 
-        {/* Action Buttons (Print, WhatsApp Share, Email Share, Reset) */}
+        {/* Action Buttons (Print, Save PDF, WhatsApp Share, Email Share, Reset) */}
         <div className="eb-actions" style={{ flexWrap: 'wrap', gap: 8 }}>
-          <button className="eb-btn-primary" onClick={handlePrint}>
-            <Printer size={16} /> Print / Save PDF
+          <button className="eb-btn-primary" onClick={handlePrint} title="Print Bill directly to printer or save as PDF">
+            <Printer size={16} /> 🖨️ Print Bill
+          </button>
+          <button className="eb-btn-primary" onClick={handlePrint} style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }} title="Download & Save Bill as PDF Document">
+            <Download size={16} /> 📥 Download PDF
           </button>
           <button
             className="eb-btn-secondary"
@@ -979,19 +1313,32 @@ Main HSN: 9983 (Printing / Advertising)`
           <div className="eb-preview-title">
             <Eye size={15} /> Live Print Preview ({formatTitle})
           </div>
-          <div className="eb-zoom-controls">
-            <button className="eb-zoom-btn" onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} title="Zoom Out">
-              <ZoomOut size={13} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              onClick={handlePrint}
+              style={{
+                background: 'linear-gradient(135deg, #736efe, #00D2FF)', color: '#fff',
+                border: 'none', padding: '5px 12px', borderRadius: 6, fontWeight: 800,
+                fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
+              }}
+              title="Print / Save PDF"
+            >
+              <Printer size={13} /> Print / Save PDF
             </button>
-            <span className="eb-zoom-pct">
-              {Math.round(zoom * 100)}%
-            </span>
-            <button className="eb-zoom-btn" onClick={() => setZoom(z => Math.min(1.3, z + 0.1))} title="Zoom In">
-              <ZoomIn size={13} />
-            </button>
-            <button className="eb-zoom-btn" onClick={() => setZoom(0.9)} title="Reset Zoom">
-              <RotateCcw size={13} />
-            </button>
+            <div className="eb-zoom-controls">
+              <button className="eb-zoom-btn" onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} title="Zoom Out">
+                <ZoomOut size={13} />
+              </button>
+              <span className="eb-zoom-pct">
+                {Math.round(zoom * 100)}%
+              </span>
+              <button className="eb-zoom-btn" onClick={() => setZoom(z => Math.min(1.3, z + 0.1))} title="Zoom In">
+                <ZoomIn size={13} />
+              </button>
+              <button className="eb-zoom-btn" onClick={() => setZoom(0.9)} title="Reset Zoom">
+                <RotateCcw size={13} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1040,11 +1387,11 @@ Main HSN: 9983 (Printing / Advertising)`
                       <div className="pdf-meta-col">
                         <div className="pdf-meta-top-grid">
                           <div className="pdf-meta-cell">
-                            {billType === 'TAX_INVOICE' ? 'INVOICE NO.' : 'ESTIMATE NO.'}<br />
+                            {billType === 'TAX_INVOICE' ? 'INVOICE NO.' : billType === 'QUOTATION' ? 'QUOTATION NO.' : 'ESTIMATE NO.'}<br />
                             <span style={{ fontSize: 11, color: '#000' }}>{billNo}</span>
                           </div>
                           <div className="pdf-meta-cell">
-                            {billType === 'TAX_INVOICE' ? 'INVOICE DATE :' : 'ESTIMATE DATE :'}<br />
+                            {billType === 'TAX_INVOICE' ? 'INVOICE DATE :' : billType === 'QUOTATION' ? 'QUOTATION DATE :' : 'ESTIMATE DATE :'}<br />
                             <span style={{ fontSize: 11, color: '#000' }}>
                               {billDate ? new Date(billDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : ''} ({billTime})
                             </span>
@@ -1078,7 +1425,7 @@ Main HSN: 9983 (Printing / Advertising)`
                         {/* Details of Receiver (Billed to) */}
                         <div className="pdf-customer-box">
                           <div className="pdf-customer-title">
-                            {billType === 'TAX_INVOICE' ? 'Details of Receiver (Billed to)' : 'Details of Receiver (Estimate to)'}
+                            {billType === 'TAX_INVOICE' ? 'Details of Receiver (Billed to)' : billType === 'QUOTATION' ? 'Details of Receiver (Quoted to)' : 'Details of Receiver (Estimate to)'}
                           </div>
                           <div className="pdf-customer-name">
                             {custName || 'COMPANY NAME'}
@@ -1365,67 +1712,30 @@ Main HSN: 9983 (Printing / Advertising)`
             {/* Modal Body */}
             <div className="vpm-modal-body">
 
-              {/* 1. Quick Catalog Product Search Grid */}
-              <div style={{ background: 'rgba(115,110,254,0.04)', padding: 14, borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: 16 }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#736efe', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <PackagePlus size={16} /> 1. Quick Add Saved Product from Catalog
-                </div>
-
-                <div style={{ position: 'relative', marginBottom: 10 }}>
-                  <input
-                    placeholder="Search product catalog by name (e.g. Banner, Card, Sticker)..."
-                    value={productSearchQuery}
-                    onChange={e => setProductSearchQuery(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px 9px 36px', borderRadius: 8, border: '1.5px solid #736efe', fontSize: '0.85rem', outline: 'none' }}
-                  />
-                  <Search size={15} style={{ position: 'absolute', left: 12, top: 11, color: '#736efe' }} />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8, maxHeight: 130, overflowY: 'auto' }}>
-                  {filteredProducts.map(p => (
-                    <div
-                      key={p.id}
-                      onClick={() => addProductFromCatalog(p)}
-                      style={{
-                        padding: '8px 10px', borderRadius: 8, border: '1.5px solid #E2E8F0', background: '#fff',
-                        cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = '#736efe'}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = '#E2E8F0'}
-                    >
-                      <div>
-                        <strong style={{ fontSize: '0.8rem', color: '#1E293B', display: 'block' }}>{p.name}</strong>
-                        <span style={{ fontSize: '0.72rem', color: '#64748B' }}>{p.unit}</span>
-                      </div>
-                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#736efe', background: 'rgba(115,110,254,0.08)', padding: '2px 6px', borderRadius: 4 }}>
-                        + ₹{p.price}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 2. Spacious Particulars Items Table */}
-              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1E293B', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>2. Current Items in Bill ({items.length})</span>
+              {/* Current Bill Items Table */}
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1E293B', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Layers size={16} style={{ color: '#736efe' }} /> Current Items in Bill ({items.length})
+                </span>
                 <button
                   onClick={addBlankRow}
                   style={{
-                    background: 'none', border: '1.5px dashed #736efe', color: '#736efe',
-                    padding: '4px 10px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem',
-                    display: 'flex', alignItems: 'center', gap: 4
+                    background: 'linear-gradient(135deg, rgba(115,110,254,0.1), rgba(0,210,255,0.08))',
+                    border: '1.5px solid #736efe', color: '#736efe',
+                    padding: '6px 12px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem',
+                    display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 2px 6px rgba(115,110,254,0.15)'
                   }}
                 >
-                  <Plus size={13} /> Add Custom Line
+                  <Plus size={14} /> Add Custom Line
                 </button>
               </div>
 
-              <div className="eb-items-table-wrap" style={{ maxHeight: 260, overflowY: 'auto' }}>
+              <div className="eb-items-table-wrap" style={{ maxHeight: 380, overflowY: 'auto' }}>
                 <table className="eb-items-table" style={{ width: '100%', minWidth: 700 }}>
                   <thead>
                     <tr>
                       <th style={{ width: 30 }}>#</th>
-                      <th style={{ minWidth: 200 }}>Description</th>
+                      <th style={{ minWidth: 220 }}>Description & Product Search</th>
                       {billType === 'TAX_INVOICE' && <th style={{ width: 75 }}>HSN</th>}
                       <th style={{ width: 80 }}>Unit</th>
                       <th style={{ width: 70 }}>Qty</th>
@@ -1438,10 +1748,8 @@ Main HSN: 9983 (Printing / Advertising)`
                   <tbody>
                     {items.map((item, idx) => {
                       const { total } = calcRow(item)
-                      const matches = productList.filter(p =>
-                        item.description && p.name.toLowerCase().includes(item.description.toLowerCase())
-                      )
-                      const showDropdown = activeItemSearchId === item.id && item.description.trim().length > 0 && matches.length > 0
+                      const matches = getProductMatches(item.description)
+                      const showDropdown = activeItemSearchId === item.id && matches.length > 0
 
                       return (
                         <tr key={item.id}>
@@ -1453,33 +1761,54 @@ Main HSN: 9983 (Printing / Advertising)`
                               onChange={e => {
                                 updateItem(item.id, 'description', e.target.value)
                                 setActiveItemSearchId(item.id)
+                                setActiveItemSearchIndex(0)
                               }}
-                              onFocus={() => setActiveItemSearchId(item.id)}
-                              onBlur={() => setTimeout(() => setActiveItemSearchId(null), 200)}
+                              onFocus={() => {
+                                setActiveItemSearchId(item.id)
+                                setActiveItemSearchIndex(0)
+                              }}
+                              onKeyDown={e => handleItemKeyDown(e, item.id, matches)}
+                              onBlur={() => setTimeout(() => setActiveItemSearchId(null), 250)}
                               style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
                             />
 
-                            {/* Item Row Autocomplete */}
+                            {/* Item Row Product Search Autocomplete Menu */}
                             {showDropdown && (
-                              <div style={{
-                                position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                                background: '#fff', border: '1.5px solid #736efe', borderRadius: 8,
-                                boxShadow: '0 8px 24px rgba(0,0,0,0.15)', maxHeight: 160, overflowY: 'auto'
-                              }}>
-                                {matches.map(p => (
-                                  <div
-                                    key={p.id}
-                                    onClick={() => selectProductForItemRow(item.id, p)}
-                                    style={{
-                                      padding: '7px 10px', cursor: 'pointer', borderBottom: '1px solid #E2E8F0',
-                                      fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between'
-                                    }}
-                                    onMouseDown={e => e.preventDefault()}
-                                  >
-                                    <strong>{p.name}</strong>
-                                    <span style={{ color: '#736efe', fontWeight: 700 }}>₹{p.price}/{p.unit}</span>
-                                  </div>
-                                ))}
+                              <div className="eb-product-autocomplete-menu">
+                                <div className="eb-product-autocomplete-header">
+                                  <span><Package size={12} style={{ display: 'inline', marginRight: 4 }} /> Saved Product Catalog Suggestions</span>
+                                  <span style={{ fontSize: '0.62rem', opacity: 0.85 }}>↑ ↓ Navigate · Enter Select</span>
+                                </div>
+                                {matches.map((p, pIdx) => {
+                                  const isSelected = activeItemSearchIndex === pIdx
+                                  return (
+                                    <div
+                                      key={p.id}
+                                      className={`eb-product-autocomplete-item ${isSelected ? 'active' : ''}`}
+                                      onMouseDown={e => {
+                                        e.preventDefault()
+                                        selectProductForItemRow(item.id, p)
+                                      }}
+                                      onMouseEnter={() => setActiveItemSearchIndex(pIdx)}
+                                    >
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div className="eb-product-title">
+                                          <Package size={13} style={{ color: '#736efe', flexShrink: 0 }} />
+                                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                                        </div>
+                                        <div className="eb-product-meta">
+                                          {p.hsn && <span>HSN: {p.hsn}</span>}
+                                          {billType !== 'ESTIMATE' && p.gst_rate !== undefined && (
+                                            <span style={{ color: '#10B981', fontWeight: 700 }}>{p.gst_rate}% GST</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="eb-product-price-tag">
+                                        ₹{p.price} / {p.unit || 'pcs'}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
                               </div>
                             )}
                           </td>
@@ -1722,6 +2051,81 @@ Main HSN: 9983 (Printing / Advertising)`
                 </button>
               </div>
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════ MODAL 4: LOAD PREVIOUS BILL / HISTORY MODAL ═══════════ */}
+      {isHistoryModalOpen && (
+        <div className="vpm-modal-backdrop" onClick={() => setIsHistoryModalOpen(false)}>
+          <div className="vpm-modal-card" style={{ maxWidth: 820, width: '95%' }} onClick={e => e.stopPropagation()}>
+            <div className="vpm-modal-header" style={{ background: 'linear-gradient(135deg, #736efe, #00D2FF)', color: '#fff' }}>
+              <div className="vpm-modal-title" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff' }}>
+                <HistoryIcon size={20} /> Select & Load Previous Bill into Editor
+              </div>
+              <button className="vpm-modal-close-btn" style={{ color: '#fff' }} onClick={() => setIsHistoryModalOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="vpm-modal-body" style={{ padding: 20, maxHeight: '75vh', overflowY: 'auto' }}>
+              <p style={{ fontSize: '0.85rem', color: '#64748B', marginBottom: 14 }}>
+                Click any saved bill below to load its full details, customer information, rates, and line items directly into this editor:
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {allSavedInvoices.length === 0 ? (
+                  <div style={{ padding: 20, textAlign: 'center', color: '#94A3B8' }}>
+                    No previous bills found in storage.
+                  </div>
+                ) : (
+                  allSavedInvoices.map((inv) => (
+                    <div
+                      key={inv.id}
+                      onClick={() => {
+                        loadInvoiceData(inv)
+                        setIsHistoryModalOpen(false)
+                      }}
+                      style={{
+                        padding: '12px 16px', borderRadius: 10, border: '1.5px solid #E2E8F0',
+                        cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        transition: 'all 0.2s ease', background: '#F8FAFC'
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = '#736efe'
+                        e.currentTarget.style.background = 'rgba(115,110,254,0.06)'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = '#E2E8F0'
+                        e.currentTarget.style.background = '#F8FAFC'
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <strong style={{ fontSize: '0.9rem', color: '#736efe', fontFamily: 'monospace' }}>{inv.invoice_number}</strong>
+                          <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '2px 7px', borderRadius: 4, background: '#E2E8F0', color: '#475569' }}>
+                            {inv.type}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', marginTop: 3 }}>
+                          Customer: {inv.customer_name} {inv.customer_mobile ? `(${inv.customer_mobile})` : ''}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                          Date: {inv.date} • {inv.items?.length || 0} Line Items
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 900, fontSize: '1rem', color: '#10B981' }}>
+                          ₹{fmt(inv.grand_total || 0)}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#736efe', marginTop: 4 }}>
+                          Click to Edit ✏️
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>

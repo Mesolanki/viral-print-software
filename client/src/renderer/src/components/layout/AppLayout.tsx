@@ -8,6 +8,7 @@ export type ActiveTabType =
   | 'invoice'
   | 'quotation'
   | 'estimate'
+  | 'history'
   | 'eway_bill'
   | 'payments'
   | 'customers'

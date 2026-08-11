@@ -12,6 +12,7 @@ import {
   CheckSquare,
   Users,
   Truck,
+  History,
   HardDrive
 } from 'lucide-react'
 import electronLogo from '../../assets/electron.svg'
@@ -93,6 +94,17 @@ const Sidebar: React.FC<SidebarProps> = ({ theme, activeTab, onTabChange, mode }
             <Tag size={18} />
           </span>
           {mode === 'open' && <span className="vpm-nav-label">Estimate Bill</span>}
+        </button>
+
+        <button
+          className={`vpm-nav-item ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => onTabChange('history')}
+          title="Previous Bills & Saved Invoices History"
+        >
+          <span className="vpm-nav-icon">
+            <History size={18} />
+          </span>
+          {mode === 'open' && <span className="vpm-nav-label">Bill History</span>}
         </button>
 
         <button
