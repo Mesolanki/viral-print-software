@@ -12,7 +12,6 @@ import {
   CheckSquare,
   Users,
   Truck,
-  History,
   HardDrive
 } from 'lucide-react'
 import viralLogo from '../../assets/logo_viral.png'
@@ -166,80 +165,9 @@ const Sidebar: React.FC<SidebarProps> = ({ theme, activeTab, onTabChange, mode }
           </button>
         )}
 
-<<<<<<< HEAD
-        <button
-          className={`vpm-nav-item ${activeTab === 'invoice' ? 'active' : ''}`}
-          onClick={() => onTabChange('invoice')}
-          title="Tax Invoice (GST)"
-        >
-          <span className="vpm-nav-icon">
-            <Receipt size={18} />
-          </span>
-          {mode === 'open' && <span className="vpm-nav-label">Tax Invoice (GST)</span>}
-        </button>
-
-        <button
-          className={`vpm-nav-item ${activeTab === 'quotation' ? 'active' : ''}`}
-          onClick={() => onTabChange('quotation')}
-          title="Quotation"
-        >
-          <span className="vpm-nav-icon">
-            <FileText size={18} />
-          </span>
-          {mode === 'open' && <span className="vpm-nav-label">Quotation</span>}
-        </button>
-
-        <button
-          className={`vpm-nav-item ${activeTab === 'estimate' ? 'active' : ''}`}
-          onClick={() => onTabChange('estimate')}
-          title="Estimate Bill (Non-GST)"
-        >
-          <span className="vpm-nav-icon">
-            <Tag size={18} />
-          </span>
-          {mode === 'open' && <span className="vpm-nav-label">Estimate Bill</span>}
-        </button>
-
-        <button
-          className={`vpm-nav-item ${activeTab === 'history' ? 'active' : ''}`}
-          onClick={() => onTabChange('history')}
-          title="Previous Bills & Saved Invoices History"
-        >
-          <span className="vpm-nav-icon">
-            <History size={18} />
-          </span>
-          {mode === 'open' && <span className="vpm-nav-label">Bill History</span>}
-        </button>
-
-        <button
-          className={`vpm-nav-item ${activeTab === 'eway_bill' ? 'active' : ''}`}
-          onClick={() => onTabChange('eway_bill')}
-          title="E-Way Bill Management & NIC Govt Export"
-        >
-          <span className="vpm-nav-icon">
-            <Truck size={18} />
-          </span>
-          {mode === 'open' && <span className="vpm-nav-label">E-Way Bills</span>}
-        </button>
-
-        <button
-          className={`vpm-nav-item ${activeTab === 'payments' ? 'active' : ''}`}
-          onClick={() => onTabChange('payments')}
-          title="Payment Entry & Ledger"
-        >
-          <span className="vpm-nav-icon">
-            <CreditCard size={18} />
-          </span>
-          {mode === 'open' && <span className="vpm-nav-label">Payment Entry</span>}
-        </button>
-
-        {mode === 'open' && (
-          <span className="vpm-nav-section-label" style={{ marginTop: 10 }}>Commercial & Stock</span>
-=======
         {/* Section: Billing & Payments */}
         {mode === 'open' && showBillingSection && (
           <span className="vpm-nav-section-label" style={{ marginTop: 10 }}>Billing &amp; Payments</span>
->>>>>>> a17c383 (Refactor code structure for improved readability and maintainability)
         )}
 
         {checkPermission('invoice') && (
