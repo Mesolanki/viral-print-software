@@ -808,13 +808,22 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
         size="lg"
         className={`vpm-modal ${isDark ? 'modal-dark' : 'modal-light'}`}
       >
-        <Modal.Header className="vpm-modal-header" closeButton>
-          <Modal.Title className="vpm-modal-title">
+        <Modal.Header className="vpm-modal-header d-flex align-items-center justify-content-between">
+          <Modal.Title className="vpm-modal-title mb-0">
             <div className="vpm-modal-title-icon">
               {editingProduct ? <Edit2 size={18} /> : <PackagePlus size={18} />}
             </div>
-            {editingProduct ? 'Edit Product' : 'Add New Product'}
+            <span>{editingProduct ? 'Edit Product' : 'Add New Product'}</span>
           </Modal.Title>
+          <button
+            type="button"
+            onClick={() => setShowProductModal(false)}
+            className="um-modal-close-btn"
+            aria-label="Close Modal"
+            title="Close Modal"
+          >
+            <X size={18} strokeWidth={2.4} />
+          </button>
         </Modal.Header>
         <Modal.Body className="vpm-modal-body p-4">
           {error && (
@@ -984,13 +993,22 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
         size="sm"
         className={`vpm-modal ${isDark ? 'modal-dark' : 'modal-light'}`}
       >
-        <Modal.Header className="vpm-modal-header" closeButton>
-          <Modal.Title className="vpm-modal-title">
+        <Modal.Header className="vpm-modal-header d-flex align-items-center justify-content-between">
+          <Modal.Title className="vpm-modal-title mb-0">
             <div className="vpm-modal-title-icon">
               {editingCat ? <Edit2 size={16} /> : <PlusCircle size={16} />}
             </div>
-            {editingCat ? 'Edit Category' : 'Add Category'}
+            <span>{editingCat ? 'Edit Category' : 'Add Category'}</span>
           </Modal.Title>
+          <button
+            type="button"
+            onClick={() => setShowCatModal(false)}
+            className="um-modal-close-btn"
+            aria-label="Close Modal"
+            title="Close Modal"
+          >
+            <X size={18} strokeWidth={2.4} />
+          </button>
         </Modal.Header>
         <Modal.Body className="vpm-modal-body p-4">
           {error && (

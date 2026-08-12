@@ -1612,13 +1612,22 @@ export default function TaskManagement({ theme = 'dark' }: TaskManagementProps):
 
       {/* Add / Edit Task Modal - ULTRA-PREMIUM PRO LEVEL FORM */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg" className={`vpm-pro-modal ${isDark ? 'dark-modal' : 'light-modal'}`}>
-        <Modal.Header closeButton className={`px-4 py-3 border-bottom ${isDark ? 'bg-dark text-light border-secondary border-opacity-40' : 'bg-white text-dark border-light-subtle'}`}>
-          <Modal.Title className={`fw-bold d-flex align-items-center gap-2 ${isDark ? 'text-info' : 'text-primary'} fs-5`}>
-            <div className="vpm-modal-icon-badge">
+        <Modal.Header className="d-flex align-items-center justify-content-between px-4 py-3.5 border-bottom">
+          <Modal.Title className={`fw-bold d-flex align-items-center gap-2.5 ${isDark ? 'text-info' : 'text-primary'} fs-5 mb-0`}>
+            <div className={`um-modal-header-icon ${isDark ? 'icon-box-dark' : 'icon-box-light'}`}>
               {editingTask ? <Edit2 size={18} /> : <Plus size={18} />}
             </div>
             <span>{editingTask ? `Edit Task #${editingTask.id}` : 'Create New Shop Task'}</span>
           </Modal.Title>
+          <button
+            type="button"
+            onClick={() => setShowModal(false)}
+            className="um-modal-close-btn"
+            aria-label="Close Modal"
+            title="Close Modal"
+          >
+            <X size={18} strokeWidth={2.4} />
+          </button>
         </Modal.Header>
         <Form onSubmit={handleSaveTask}>
           <Modal.Body className={`${isDark ? 'bg-dark text-light' : 'bg-white text-dark'} p-4`}>

@@ -614,6 +614,25 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #FFFFFF !important;
 }
 
+.modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+.modal-header > :first-child {
+  flex: 1 1 auto !important;
+}
+
+.modal-header .btn-close,
+.modal-header button.btn-close,
+.modal-header .btn-close-white,
+.modal-header .um-modal-close-btn {
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+}
+
 .dark-modal .modal-header,
 .theme-dark .modal-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -681,6 +700,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   background-size: 0.8rem !important;
   transition: all var(--transition-fast) !important;
   opacity: 0.65 !important;
+  margin-left: auto !important;
 }
 
 .theme-dark .btn-close { filter: invert(1) grayscale(1) brightness(1.5) !important; }

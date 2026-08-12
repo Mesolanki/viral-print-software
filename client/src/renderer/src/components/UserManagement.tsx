@@ -26,16 +26,25 @@ import {
   RefreshCw,
   X,
   Sparkles,
-  KeyRound,
   Mail,
-  Phone,
   User,
   Eye,
   EyeOff,
   Briefcase,
-  Lock,
   UserCheck,
-  Check
+  Check,
+  Building,
+  LayoutDashboard,
+  Receipt,
+  FileText,
+  Tag,
+  Truck,
+  CreditCard,
+  ShoppingCart,
+  Package,
+  FileSpreadsheet,
+  CheckSquare,
+  HardDrive
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -44,6 +53,46 @@ const API_BASE_URL = `http://${API_HOST}:5000/api`
 const DEFAULT_COMPANY_ID = 1
 
 export type RoleType = 'ADMIN' | 'MANAGER' | 'DESIGNER' | 'OPERATOR' | 'SALES_BILLING'
+
+export interface ModulePermission {
+  view: boolean
+  add: boolean
+  edit: boolean
+  delete: boolean
+}
+
+export type UserPermissions = Record<string, ModulePermission>
+
+export interface ModuleDef {
+  key: string
+  name: string
+  desc: string
+  icon: any
+}
+
+export const MODULE_LIST: ModuleDef[] = [
+  { key: 'dashboard', name: 'Dashboard Overview', desc: 'Command center & sales metrics overview', icon: LayoutDashboard },
+  { key: 'invoice', name: 'Tax Invoice (GST)', desc: 'GST tax invoices, GSTN validation & billing', icon: Receipt },
+  { key: 'quotation', name: 'Quotations & Sales', desc: 'Estimations, client quotes & proforma', icon: FileText },
+  { key: 'estimate', name: 'Estimate Bill (Non-GST)', desc: 'Non-GST bills, job vouchers & receipts', icon: Tag },
+  { key: 'eway_bill', name: 'E-Way Bills & Logistics', desc: 'E-way bills, vehicle transport & NIC export', icon: Truck },
+  { key: 'payments', name: 'Payment Entry & Ledger', desc: 'Customer payments, cash/bank entries & Khata', icon: CreditCard },
+  { key: 'customers', name: 'Customer Directory', desc: 'Customer profiles, contact details & balances', icon: UserCheck },
+  { key: 'purchases', name: 'Purchase Management', desc: 'Vendor purchase bills & raw material stock', icon: ShoppingCart },
+  { key: 'products', name: 'Products & Rate Cards', desc: 'Printing services, unit prices & catalog', icon: Package },
+  { key: 'gst_reports', name: 'GST & CA Reports', desc: 'GSTR-1, GSTR-3B summaries & accounting export', icon: FileSpreadsheet },
+  { key: 'tasks', name: 'Tasks & Production To-Do', desc: 'Daily task checklists & team workflow', icon: CheckSquare },
+  { key: 'users', name: 'User Management', desc: 'Employee profiles, roles & security control', icon: Shield },
+  { key: 'backup', name: 'Drive Backup & Restore', desc: 'Google Drive & local cloud database backup', icon: HardDrive }
+]
+
+export const DEPARTMENTS = [
+  'Sales & Business Development',
+  'Printing & Press Production',
+  'Design & Prepress Studio',
+  'Management & Operations',
+  'Accounts & Financial Billing'
+]
 
 export interface UserAccount {
   id: number
@@ -54,8 +103,10 @@ export interface UserAccount {
   phone?: string | null
   role: RoleType
   role_label?: string
+  department?: string
   status: 'ACTIVE' | 'INACTIVE'
   created_at?: string
+  permissions?: UserPermissions
 }
 
 interface UserManagementProps {
@@ -85,6 +136,42 @@ export const getRoleLabel = (role: RoleType): string => {
   }
 }
 
+export const getDefaultPermissionsForRole = (role: RoleType): UserPermissions => {
+  const perms: UserPermissions = {}
+  MODULE_LIST.forEach((m) => {
+    if (role === 'ADMIN') {
+      perms[m.key] = { view: true, add: true, edit: true, delete: true }
+    } else if (role === 'MANAGER') {
+      perms[m.key] = { view: true, add: true, edit: true, delete: m.key === 'tasks' || m.key === 'customers' }
+    } else if (role === 'DESIGNER') {
+      const isDesignModule = ['dashboard', 'quotation', 'estimate', 'tasks', 'products'].includes(m.key)
+      perms[m.key] = {
+        view: isDesignModule || m.key === 'customers',
+        add: isDesignModule,
+        edit: isDesignModule,
+        delete: false
+      }
+    } else if (role === 'OPERATOR') {
+      const isOpModule = ['dashboard', 'estimate', 'tasks', 'products'].includes(m.key)
+      perms[m.key] = {
+        view: isOpModule,
+        add: isOpModule,
+        edit: isOpModule,
+        delete: false
+      }
+    } else if (role === 'SALES_BILLING') {
+      const isSalesModule = ['dashboard', 'invoice', 'quotation', 'estimate', 'payments', 'customers', 'products', 'tasks'].includes(m.key)
+      perms[m.key] = {
+        view: isSalesModule,
+        add: isSalesModule,
+        edit: isSalesModule,
+        delete: m.key === 'quotation' || m.key === 'estimate'
+      }
+    }
+  })
+  return perms
+}
+
 export const getUserInitials = (name?: string): string => {
   if (!name) return '?'
   const parts = name.trim().split(' ')
@@ -99,8 +186,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
 
   const { user: currentUser, isLoading: isAuthLoading } = useAuth()
   const currentUserRole = currentUser?.role?.name ? String(currentUser.role.name).toUpperCase() : ''
-  // User is admin ONLY if their role explicitly says ADMIN. Never grant admin by default.
-  // While auth is still loading, treat as non-admin to avoid a false-admin flash.
   const isAdmin = !isAuthLoading && currentUserRole === 'ADMIN'
 
   const [users, setUsers] = useState<UserAccount[]>([])
@@ -123,19 +208,43 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
   const [email, setEmail] = useState<string>('')
   const [phone, setPhone] = useState<string>('')
   const [selectedRole, setSelectedRole] = useState<RoleType>('OPERATOR')
+  const [department, setDepartment] = useState<string>('Sales & Business Development')
   const [password, setPassword] = useState<string>('')
-  const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [userStatus, setUserStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE')
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [submitting, setSubmitting] = useState<boolean>(false)
+  const [permissions, setPermissions] = useState<UserPermissions>(getDefaultPermissionsForRole('OPERATOR'))
 
   useEffect(() => {
     fetchUsers()
   }, [])
 
+  useEffect(() => {
+    if (users.length > 0) {
+      localStorage.setItem('vpm_users_roster', JSON.stringify(users))
+      window.dispatchEvent(new Event('vpm_roster_updated'))
+    }
+  }, [users])
+
   const fetchUsers = async (): Promise<void> => {
     setLoading(true)
     setError(null)
+
+    // Check local stored roster for custom granular permissions
+    const localSaved = localStorage.getItem('vpm_users_roster')
+    if (localSaved) {
+      try {
+        const parsed = JSON.parse(localSaved)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setUsers(parsed)
+          setLoading(false)
+          return
+        }
+      } catch (e) {
+        console.warn('Error reading saved roster', e)
+      }
+    }
+
     const headers = getAuthHeaders()
 
     try {
@@ -143,19 +252,23 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       if (res.ok) {
         const json = await res.json()
         const rawData = Array.isArray(json) ? json : (json.data || [])
-        // Map backend response to local schema
-        const mapped: UserAccount[] = rawData.map((u: any) => ({
-          id: u.id,
-          company_id: u.company_id || DEFAULT_COMPANY_ID,
-          full_name: u.full_name || u.name || u.username,
-          username: u.username,
-          email: u.email || `${u.username}@viralprint.com`,
-          phone: u.phone || '+91 98765 43210',
-          role: u.role?.name ? mapBackendRole(u.role.name) : (u.role || 'OPERATOR'),
-          role_label: u.role?.label || getRoleLabel(u.role || 'OPERATOR'),
-          status: u.status || 'ACTIVE',
-          created_at: u.createdAt || new Date().toISOString()
-        }))
+        const mapped: UserAccount[] = rawData.map((u: any) => {
+          const r: RoleType = u.role?.name ? mapBackendRole(u.role.name) : (u.role || 'OPERATOR')
+          return {
+            id: u.id,
+            company_id: u.company_id || DEFAULT_COMPANY_ID,
+            full_name: u.full_name || u.name || u.username,
+            username: u.username,
+            email: u.email || `${u.username}@gmail.com`,
+            phone: u.phone || '+91 98765 43210',
+            role: r,
+            role_label: u.role?.label || getRoleLabel(r),
+            department: u.department || 'Sales & Business Development',
+            status: u.status || 'ACTIVE',
+            created_at: u.createdAt || new Date().toISOString(),
+            permissions: u.permissions || getDefaultPermissionsForRole(r)
+          }
+        })
         setUsers(mapped)
       } else {
         setUsers(getSampleUsers())
@@ -182,14 +295,16 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
     {
       id: 1,
       company_id: DEFAULT_COMPANY_ID,
-      full_name: 'Rajesh Sharma (Admin)',
-      username: 'admin',
-      email: 'admin@viralprint.com',
+      full_name: 'smit',
+      username: 'smit',
+      email: 'kathanpatel09@gmail.com',
       phone: '+91 98200 11223',
       role: 'ADMIN',
       role_label: 'Administrator',
+      department: 'Management & Operations',
       status: 'ACTIVE',
-      created_at: '2026-01-10T10:00:00Z'
+      created_at: '2026-01-10T10:00:00Z',
+      permissions: getDefaultPermissionsForRole('ADMIN')
     },
     {
       id: 2,
@@ -200,8 +315,10 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       phone: '+91 98765 43210',
       role: 'MANAGER',
       role_label: 'Shop Manager',
+      department: 'Printing & Press Production',
       status: 'ACTIVE',
-      created_at: '2026-02-01T11:30:00Z'
+      created_at: '2026-02-01T11:30:00Z',
+      permissions: getDefaultPermissionsForRole('MANAGER')
     },
     {
       id: 3,
@@ -212,8 +329,10 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       phone: '+91 98111 22334',
       role: 'DESIGNER',
       role_label: 'Graphic Designer',
+      department: 'Design & Prepress Studio',
       status: 'ACTIVE',
-      created_at: '2026-02-15T14:20:00Z'
+      created_at: '2026-02-15T14:20:00Z',
+      permissions: getDefaultPermissionsForRole('DESIGNER')
     },
     {
       id: 4,
@@ -224,8 +343,10 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       phone: '+91 97222 33445',
       role: 'OPERATOR',
       role_label: 'Print Operator',
+      department: 'Printing & Press Production',
       status: 'ACTIVE',
-      created_at: '2026-03-01T09:15:00Z'
+      created_at: '2026-03-01T09:15:00Z',
+      permissions: getDefaultPermissionsForRole('OPERATOR')
     },
     {
       id: 5,
@@ -236,8 +357,10 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       phone: '+91 96333 44556',
       role: 'SALES_BILLING',
       role_label: 'Sales & Billing',
+      department: 'Sales & Business Development',
       status: 'ACTIVE',
-      created_at: '2026-03-10T16:45:00Z'
+      created_at: '2026-03-10T16:45:00Z',
+      permissions: getDefaultPermissionsForRole('SALES_BILLING')
     }
   ]
 
@@ -258,10 +381,11 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
     setEmail('')
     setPhone('')
     setSelectedRole('OPERATOR')
+    setDepartment('Sales & Business Development')
     setPassword('')
-    setConfirmPassword('')
     setUserStatus('ACTIVE')
     setShowPassword(false)
+    setPermissions(getDefaultPermissionsForRole('OPERATOR'))
     setShowModal(true)
   }
 
@@ -277,11 +401,75 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
     setEmail(user.email || '')
     setPhone(user.phone || '')
     setSelectedRole(user.role)
+    setDepartment(user.department || 'Sales & Business Development')
     setPassword('')
-    setConfirmPassword('')
     setUserStatus(user.status)
     setShowPassword(false)
+    setPermissions(user.permissions || getDefaultPermissionsForRole(user.role))
     setShowModal(true)
+  }
+
+  // Role Selection Change Handler
+  const handleRoleChange = (newRole: RoleType) => {
+    setSelectedRole(newRole)
+  }
+
+  // Matrix Action Button Handlers
+  const handleSelectAllFull = () => {
+    const updated: UserPermissions = {}
+    MODULE_LIST.forEach((m) => {
+      updated[m.key] = { view: true, add: true, edit: true, delete: true }
+    })
+    setPermissions(updated)
+  }
+
+  const handleSelectReadOnly = () => {
+    const updated: UserPermissions = {}
+    MODULE_LIST.forEach((m) => {
+      updated[m.key] = { view: true, add: false, edit: false, delete: false }
+    })
+    setPermissions(updated)
+  }
+
+  const handleRevokeAll = () => {
+    const updated: UserPermissions = {}
+    MODULE_LIST.forEach((m) => {
+      updated[m.key] = { view: false, add: false, edit: false, delete: false }
+    })
+    setPermissions(updated)
+  }
+
+  // Toggle individual permission checkbox
+  const togglePermission = (modKey: string, field: 'view' | 'add' | 'edit' | 'delete') => {
+    setPermissions((prev) => {
+      const currentMod = prev[modKey] || { view: false, add: false, edit: false, delete: false }
+      const newVal = !currentMod[field]
+      const updatedMod = { ...currentMod, [field]: newVal }
+      // If adding/editing/deleting is enabled, automatically enable view as well
+      if (field !== 'view' && newVal) {
+        updatedMod.view = true
+      }
+      return { ...prev, [modKey]: updatedMod }
+    })
+  }
+
+  // Column Header ALL toggle handler
+  const toggleColumnAll = (field: 'view' | 'add' | 'edit' | 'delete') => {
+    const allChecked = MODULE_LIST.every((m) => permissions[m.key]?.[field])
+    const targetVal = !allChecked
+
+    setPermissions((prev) => {
+      const updated: UserPermissions = { ...prev }
+      MODULE_LIST.forEach((m) => {
+        const cur = updated[m.key] || { view: false, add: false, edit: false, delete: false }
+        const nextMod = { ...cur, [field]: targetVal }
+        if (field !== 'view' && targetVal) {
+          nextMod.view = true
+        }
+        updated[m.key] = nextMod
+      })
+      return updated
+    })
   }
 
   // Save/Register user
@@ -289,7 +477,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
     e.preventDefault()
 
     if (!fullName.trim() || !username.trim()) {
-      setError('Full name and username are required.')
+      setError('Display name and username are required.')
       return
     }
 
@@ -298,13 +486,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
         setError('Password is required for new registration.')
         return
       }
-      if (password !== confirmPassword) {
-        setError('Passwords do not match. Please verify.')
-        return
-      }
-    } else if (password && password !== confirmPassword) {
-      setError('Passwords do not match.')
-      return
     }
 
     setSubmitting(true)
@@ -313,10 +494,12 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
     const payload = {
       fullName: fullName.trim(),
       username: username.trim().toLowerCase(),
-      email: email.trim() || `${username.trim().toLowerCase()}@viralprint.com`,
+      email: email.trim() || `${username.trim().toLowerCase()}@gmail.com`,
       phone: phone.trim() || null,
       role: selectedRole,
+      department,
       status: userStatus,
+      permissions,
       ...(password ? { password } : {})
     }
 
@@ -324,7 +507,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
 
     try {
       if (editingUser) {
-        // Update user
         await fetch(`${API_BASE_URL}/users/${editingUser.id}`, {
           method: 'PUT',
           headers,
@@ -339,13 +521,14 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
           phone: payload.phone,
           role: payload.role,
           role_label: getRoleLabel(payload.role),
-          status: payload.status
+          department: payload.department,
+          status: payload.status,
+          permissions: payload.permissions
         }
 
         setUsers((prev) => prev.map((u) => (u.id === editingUser.id ? updated : u)))
         showToast(`User ${updated.full_name} updated successfully!`)
       } else {
-        // Register new user via users management API
         const res = await fetch(`${API_BASE_URL}/users`, {
           method: 'POST',
           headers,
@@ -366,8 +549,10 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
             phone: payload.phone,
             role: raw.role?.name ? mapBackendRole(raw.role.name) : payload.role,
             role_label: raw.role?.label || getRoleLabel(payload.role),
+            department: payload.department,
             status: raw.status || payload.status,
-            created_at: raw.createdAt || new Date().toISOString()
+            created_at: raw.createdAt || new Date().toISOString(),
+            permissions: payload.permissions
           }
         } else {
           createdUser = {
@@ -379,8 +564,10 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
             phone: payload.phone,
             role: payload.role,
             role_label: getRoleLabel(payload.role),
+            department: payload.department,
             status: payload.status,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            permissions: payload.permissions
           }
         }
 
@@ -400,8 +587,10 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
         phone: payload.phone,
         role: payload.role,
         role_label: getRoleLabel(payload.role),
+        department: payload.department,
         status: payload.status,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        permissions: payload.permissions
       }
 
       if (editingUser) {
@@ -597,8 +786,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
 
       {/* Stat Overview Cards */}
       <Row className="g-3 mb-4 w-100 mx-0">
-
-        {/* ── Total Employees — Cyan ── */}
         <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
           <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-cyan`}>
             <div className="vpm-stat-top">
@@ -613,7 +800,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
           </div>
         </Col>
 
-        {/* ── Administrators — Amber ── */}
         <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
           <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-amber`}>
             <div className="vpm-stat-top">
@@ -628,7 +814,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
           </div>
         </Col>
 
-        {/* ── Shop Managers — Indigo ── */}
         <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
           <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-indigo`}>
             <div className="vpm-stat-top">
@@ -643,7 +828,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
           </div>
         </Col>
 
-        {/* ── Staff & Operators — Emerald ── */}
         <Col className="col-12 col-sm-6 col-md flex-grow-1 px-2">
           <div className={`vpm-stat-card ${isDark ? 'vpm-stat-card-dark' : 'vpm-stat-card-light'} vpm-stat-emerald`}>
             <div className="vpm-stat-top">
@@ -657,13 +841,11 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
             <div className="vpm-stat-desc">Designers & operators roster</div>
           </div>
         </Col>
-
       </Row>
 
       {/* Filter Toolbar */}
       <div className={`vpm-filter-toolbar ${isDark ? 'filter-toolbar-dark' : 'filter-toolbar-light'} mb-4 w-100`}>
         <Row className="g-2.5 align-items-center w-100 mx-0">
-          {/* Search Input */}
           <Col lg={5} md={12} className="px-1">
             <div className="position-relative">
               <div className={`cal-search-box ${isDark ? 'search-dark' : 'search-light'}`}>
@@ -688,7 +870,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
             </div>
           </Col>
 
-          {/* Role Filter */}
           <Col lg={3} md={6} className="px-1">
             <Form.Select
               value={roleFilter}
@@ -704,7 +885,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
             </Form.Select>
           </Col>
 
-          {/* Status Filter */}
           <Col lg={2} md={4} className="px-1">
             <Form.Select
               value={statusFilter}
@@ -717,7 +897,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
             </Form.Select>
           </Col>
 
-          {/* Reset */}
           <Col lg={2} md={2} className="px-1 text-end">
             <button
               className="vpm-btn-secondary w-100 py-1.5 fs-7"
@@ -754,8 +933,8 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                   <tr className="user-roster-thead-row">
                     <th className="ps-4 py-3">Employee Name</th>
                     <th className="py-3">Role & Access</th>
+                    <th className="py-3">Department</th>
                     <th className="py-3">Contact Email</th>
-                    <th className="py-3">Mobile Phone</th>
                     <th className="py-3">Status</th>
                     {isAdmin && <th className="pe-4 text-end py-3">Actions</th>}
                   </tr>
@@ -784,6 +963,13 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                           {renderRoleBadge(u.role)}
                         </td>
 
+                        {/* Department */}
+                        <td className="py-3">
+                          <span className="fs-7 text-secondary fw-semibold">
+                            {u.department || 'Sales & Business Development'}
+                          </span>
+                        </td>
+
                         {/* Email */}
                         <td className="py-3">
                           <div className="user-contact-pill" title={u.email || ''}>
@@ -791,16 +977,6 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                               <Mail size={13} />
                             </span>
                             <span className="user-contact-text">{u.email}</span>
-                          </div>
-                        </td>
-
-                        {/* Phone */}
-                        <td className="py-3">
-                          <div className="user-contact-pill" title={u.phone || 'N/A'}>
-                            <span className="user-contact-icon">
-                              <Phone size={13} />
-                            </span>
-                            <span className="user-contact-text user-contact-phone">{u.phone || 'N/A'}</span>
                           </div>
                         </td>
 
@@ -826,7 +1002,7 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                                 type="button"
                                 onClick={() => handleOpenEditModal(u)}
                                 className="um-icon-btn um-btn-edit"
-                                  aria-label="Edit User"
+                                aria-label="Edit User"
                               >
                                 <Edit2 size={14} strokeWidth={2.2} />
                                 <span className="um-btn-tooltip">Edit User</span>
@@ -855,232 +1031,387 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
       </Card>
 
       {/* Register / Edit User Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg" className={isDark ? 'dark-modal' : 'light-modal'}>
-        <Modal.Header closeButton className={`px-4 py-3 border-bottom ${isDark ? 'bg-dark text-light border-secondary' : 'bg-white text-dark border-light-subtle'}`}>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered size="xl" className={isDark ? 'dark-modal' : 'light-modal'}>
+        <Modal.Header className="d-flex align-items-center justify-content-between px-4 py-3.5 border-bottom">
           <div className="d-flex align-items-center gap-3">
-            <div className={`p-2.5 rounded-3 d-flex align-items-center justify-content-center ${isDark ? 'bg-info bg-opacity-15 text-info' : 'bg-primary bg-opacity-10 text-primary'}`}>
-              {editingUser ? <Edit2 size={22} /> : <UserPlus size={22} />}
+            <div className={`um-modal-header-icon ${isDark ? 'icon-box-dark' : 'icon-box-light'}`}>
+              {editingUser ? <Edit2 size={20} /> : <UserPlus size={20} />}
             </div>
             <div>
               <Modal.Title className={`fw-bold mb-0.5 fs-5 ${isDark ? 'text-white' : 'text-dark'}`}>
                 {editingUser ? `Edit Account: ${editingUser.full_name}` : 'Register New Role-Based Employee'}
               </Modal.Title>
-              <div className="fs-8 text-secondary">Configure employee profile credentials, role permissions, and access status.</div>
+              <div className="fs-8 text-secondary">Configure identity credentials, system role hierarchy, and granular module access matrix.</div>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowModal(false)}
+            className="um-modal-close-btn"
+            aria-label="Close Modal"
+            title="Close Modal"
+          >
+            <X size={18} strokeWidth={2.4} />
+          </button>
         </Modal.Header>
         <Form onSubmit={handleSaveUser}>
           <Modal.Body className={`${isDark ? 'bg-dark text-light' : 'bg-white text-dark'} p-4`}>
             <div className="d-flex flex-column gap-4">
 
-              {/* SECTION 1: PERSONAL IDENTITY & CONTACT */}
-              <div>
-                <div className="fs-8 fw-bold text-uppercase tracking-wider text-primary mb-2.5 d-flex align-items-center gap-1.5">
-                  <User size={14} /> 1. Personal Details &amp; Contact Info
-                </div>
-                <Row className="g-3">
-                  {/* Full Name */}
-                  <Col md={6} xs={12}>
-                    <Form.Group>
-                      <Form.Label className="vpm-input-label">Full Name *</Form.Label>
-                      <InputGroup className="vpm-input-group">
-                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
-                          <User size={15} />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="text"
-                          required
-                          placeholder="e.g. Rahul Sharma"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
-                        />
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
+              {/* TOP ROW: CREDENTIALS (LEFT) & ROLE/DEPARTMENT (RIGHT) */}
+              <Row className="g-4">
 
-                  {/* Username */}
-                  <Col md={6} xs={12}>
-                    <Form.Group>
-                      <Form.Label className="vpm-input-label">Username (@handle) *</Form.Label>
-                      <InputGroup className="vpm-input-group">
-                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
-                          @
-                        </InputGroup.Text>
+                {/* ── CARD 1: ACCOUNT IDENTITY CREDENTIALS (LEFT) ── */}
+                <Col lg={6} md={12}>
+                  <div className={`um-section-card ${isDark ? 'um-section-card-dark' : 'um-section-card-light'} h-100 rounded-4 border`}>
+                    <div className="um-section-header d-flex align-items-center gap-2">
+                      <div className="um-header-icon-box text-purple">
+                        <User size={16} />
+                      </div>
+                      <h6 className="fw-bold mb-0 text-uppercase tracking-wider fs-7">
+                        ACCOUNT IDENTITY CREDENTIALS
+                      </h6>
+                    </div>
+
+                    <div className="d-flex flex-column gap-3.5">
+                      {/* USER ID / USERNAME */}
+                      <Form.Group>
+                        <Form.Label className="vpm-input-label fs-8 fw-bold text-uppercase">
+                          USER ID / USERNAME *
+                        </Form.Label>
                         <Form.Control
                           type="text"
                           required
-                          placeholder="e.g. rahul_print"
+                          placeholder="e.g. smit"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
                           className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
                         />
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
+                      </Form.Group>
 
-                  {/* Email Address */}
-                  <Col md={6} xs={12}>
-                    <Form.Group>
-                      <Form.Label className="vpm-input-label">Email Address</Form.Label>
-                      <InputGroup className="vpm-input-group">
-                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
-                          <Mail size={15} />
-                        </InputGroup.Text>
+                      {/* EMAIL ADDRESS */}
+                      <Form.Group>
+                        <Form.Label className="vpm-input-label fs-8 fw-bold text-uppercase">
+                          EMAIL ADDRESS *
+                        </Form.Label>
                         <Form.Control
                           type="email"
-                          placeholder="rahul@viralprint.com"
+                          required
+                          placeholder="kathanpatel09@gmail.com"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
                         />
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
+                      </Form.Group>
 
-                  {/* Mobile Phone */}
-                  <Col md={6} xs={12}>
-                    <Form.Group>
-                      <Form.Label className="vpm-input-label">Mobile Phone</Form.Label>
-                      <InputGroup className="vpm-input-group">
-                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
-                          <Phone size={15} />
-                        </InputGroup.Text>
+                      {/* NEW PASSWORD */}
+                      <Form.Group>
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                          <Form.Label className="vpm-input-label fs-8 fw-bold text-uppercase mb-0">
+                            NEW PASSWORD
+                          </Form.Label>
+                          <span className="fs-8 text-secondary italic opacity-75">
+                            leave blank to keep unchanged
+                          </span>
+                        </div>
+                        <InputGroup className="vpm-input-group">
+                          <Form.Control
+                            type={showPassword ? 'text' : 'password'}
+                            required={!editingUser}
+                            placeholder={editingUser ? '•••••••• (unchanged)' : 'Enter password'}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className={`btn-password-toggle ${isDark ? 'btn-toggle-dark' : 'btn-toggle-light'}`}
+                          >
+                            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                          </button>
+                        </InputGroup>
+                      </Form.Group>
+
+                      {/* DISPLAY NAME */}
+                      <Form.Group>
+                        <Form.Label className="vpm-input-label fs-8 fw-bold text-uppercase">
+                          DISPLAY NAME *
+                        </Form.Label>
                         <Form.Control
                           type="text"
-                          placeholder="+91 98765 43210"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
+                          required
+                          placeholder="e.g. smit"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
                           className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
                         />
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-                </Row>
-              </div>
+                      </Form.Group>
 
-              {/* SECTION 2: ROLE & PERMISSION SELECTION */}
-              <div>
-                <div className="fs-8 fw-bold text-uppercase tracking-wider text-primary mb-2.5 d-flex align-items-center gap-1.5">
-                  <ShieldCheck size={14} /> 2. Assign System Role &amp; Access Level *
-                </div>
-                <Row className="g-2.5">
-                  {[
-                    { id: 'ADMIN', title: 'Administrator', desc: 'Full system access & settings', icon: ShieldCheck, color: 'purple' },
-                    { id: 'MANAGER', title: 'Shop Manager', desc: 'Manage orders, tasks & staff', icon: Briefcase, color: 'blue' },
-                    { id: 'DESIGNER', title: 'Graphic Designer', desc: 'Layout proofing & CMYK files', icon: Sparkles, color: 'cyan' },
-                    { id: 'OPERATOR', title: 'Print Operator', desc: 'Digital press & machine queue', icon: User, color: 'amber' },
-                    { id: 'SALES_BILLING', title: 'Sales & Billing', desc: 'POS Invoicing & customer orders', icon: CheckCircle2, color: 'green' }
-                  ].map((rOption) => {
-                    const isSelected = selectedRole === rOption.id
-                    const IconComp = rOption.icon
-
-                    return (
-                      <Col key={rOption.id} md={6} xs={12} className="d-flex">
-                        <div
-                          className={`role-select-card ${isSelected ? 'is-selected' : ''} ${isDark ? 'role-card-dark' : 'role-card-light'}`}
-                          onClick={() => setSelectedRole(rOption.id as RoleType)}
-                        >
-                          <div className={`role-icon-box box-${rOption.color} me-3`}>
-                            <IconComp size={18} />
-                          </div>
-                          <div className="flex-grow-1 min-w-0">
-                            <div className="fw-bold fs-7 text-truncate">{rOption.title}</div>
-                            <div className="fs-8 text-secondary text-truncate">{rOption.desc}</div>
-                          </div>
-                          {isSelected && (
-                            <div className="role-check-mark ms-2">
-                              <Check size={14} />
-                            </div>
-                          )}
+                      {/* ACTIVE STATUS TOGGLE */}
+                      <div className="um-status-toggle-card">
+                        <div>
+                          <div className="fw-bold fs-7">Active Status</div>
+                          <div className="fs-8 text-secondary">Enable user account access</div>
                         </div>
-                      </Col>
-                    )
-                  })}
-                </Row>
-              </div>
-
-              {/* SECTION 3: SECURITY CREDENTIALS & ACCESS STATUS */}
-              <div>
-                <div className="fs-8 fw-bold text-uppercase tracking-wider text-primary mb-2.5 d-flex align-items-center gap-1.5">
-                  <Lock size={14} /> 3. Security Credentials &amp; Access Status
-                </div>
-                <Row className="g-3">
-                  {/* Password */}
-                  <Col md={6} xs={12}>
-                    <Form.Group>
-                      <Form.Label className="vpm-input-label">
-                        {editingUser ? 'New Password' : 'Account Password *'}
-                      </Form.Label>
-                      <InputGroup className="vpm-input-group">
-                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
-                          <Lock size={15} />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type={showPassword ? 'text' : 'password'}
-                          required={!editingUser}
-                          placeholder={editingUser ? 'Leave blank to keep existing' : 'Enter secure password'}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
+                        <Form.Check
+                          type="switch"
+                          id="active-status-switch"
+                          checked={userStatus === 'ACTIVE'}
+                          onChange={(e) => setUserStatus(e.target.checked ? 'ACTIVE' : 'INACTIVE')}
+                          className="um-purple-switch fs-5"
                         />
-                        <Button
-                          variant={isDark ? 'outline-secondary' : 'outline-dark'}
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="px-2.5 border-0 bg-transparent text-secondary"
-                        >
-                          {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                        </Button>
-                      </InputGroup>
-                      {editingUser && <div className="fs-8 text-secondary mt-1">Leave blank to retain current password</div>}
-                    </Form.Group>
-                  </Col>
-
-                  {/* Confirm Password */}
-                  <Col md={6} xs={12}>
-                    <Form.Group>
-                      <Form.Label className="vpm-input-label">
-                        Confirm Password
-                      </Form.Label>
-                      <InputGroup className="vpm-input-group">
-                        <InputGroup.Text className={`vpm-input-addon ${isDark ? 'addon-dark' : 'addon-light'}`}>
-                          <KeyRound size={15} />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type={showPassword ? 'text' : 'password'}
-                          required={!editingUser && Boolean(password)}
-                          placeholder="Confirm password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
-                        />
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-
-                  {/* Account Status Switch */}
-                  <Col xs={12}>
-                    <Form.Group className={`d-flex align-items-center justify-content-between p-3 rounded-3 border ${isDark ? 'border-secondary border-opacity-30 bg-secondary bg-opacity-10' : 'border-light-subtle bg-light'}`}>
-                      <div>
-                        <div className="fw-bold fs-7">Account Active Status</div>
-                        <div className="fs-8 text-secondary">Active employees can log in and perform role-assigned shop actions.</div>
                       </div>
-                      <Form.Check
-                        type="switch"
-                        id="account-status-switch"
-                        checked={userStatus === 'ACTIVE'}
-                        onChange={(e) => setUserStatus(e.target.checked ? 'ACTIVE' : 'INACTIVE')}
-                        label={userStatus === 'ACTIVE' ? 'Active' : 'Inactive'}
-                        className="fw-bold fs-7 ms-3"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
+                    </div>
+                  </div>
+                </Col>
+
+                {/* ── CARD 2: ROLE & DEPARTMENT HIERARCHY (RIGHT) ── */}
+                <Col lg={6} md={12}>
+                  <div className={`um-section-card ${isDark ? 'um-section-card-dark' : 'um-section-card-light'} h-100 rounded-4 border d-flex flex-column justify-content-between`}>
+                    <div>
+                      <div className="um-section-header d-flex align-items-center gap-2">
+                        <div className="um-header-icon-box text-purple">
+                          <Building size={16} />
+                        </div>
+                        <h6 className="fw-bold mb-0 text-uppercase tracking-wider fs-7">
+                          ROLE &amp; DEPARTMENT HIERARCHY
+                        </h6>
+                      </div>
+
+                      <div className="d-flex flex-column gap-3.5">
+                        {/* ROLE DROPDOWN */}
+                        <Form.Group>
+                          <Form.Label className="vpm-input-label fs-8 fw-bold text-uppercase">
+                            ROLE *
+                          </Form.Label>
+                          <Form.Select
+                            value={selectedRole}
+                            onChange={(e) => handleRoleChange(e.target.value as RoleType)}
+                            className={`um-form-select ${isDark ? 'select-dark' : 'select-light'}`}
+                          >
+                            <option value="ADMIN">ADMIN (Administrator)</option>
+                            <option value="MANAGER">Shop Manager</option>
+                            <option value="DESIGNER">Graphic Designer</option>
+                            <option value="OPERATOR">Print Operator</option>
+                            <option value="SALES_BILLING">Sales &amp; Billing</option>
+                          </Form.Select>
+                        </Form.Group>
+
+                        {/* DEPARTMENT DROPDOWN */}
+                        <Form.Group>
+                          <Form.Label className="vpm-input-label fs-8 fw-bold text-uppercase">
+                            DEPARTMENT / DIVISION *
+                          </Form.Label>
+                          <Form.Select
+                            value={department}
+                            onChange={(e) => setDepartment(e.target.value)}
+                            className={`um-form-select ${isDark ? 'select-dark' : 'select-light'}`}
+                          >
+                            {DEPARTMENTS.map((dept) => (
+                              <option key={dept} value={dept}>
+                                {dept}
+                              </option>
+                            ))}
+                          </Form.Select>
+                        </Form.Group>
+                      </div>
+                    </div>
+
+                    {/* ROLE INFO SUMMARY CARD FOR VISUAL SYMMETRY */}
+                    <div className="um-role-info-card mt-4">
+                      <div className="d-flex align-items-center justify-content-between mb-1.5">
+                        <span className="fs-8 fw-bold text-uppercase text-purple tracking-wider">Role Authority Summary</span>
+                        {renderRoleBadge(selectedRole)}
+                      </div>
+                      <p className="fs-8 text-secondary mb-0 lh-sm">
+                        {selectedRole === 'ADMIN' && 'Unrestricted system control, user account management, and financial reporting privileges.'}
+                        {selectedRole === 'MANAGER' && 'Operational overview, job assignments, customer quotes, and staff roster control.'}
+                        {selectedRole === 'DESIGNER' && 'Artwork proofing, design file management, print assets, and order status updates.'}
+                        {selectedRole === 'OPERATOR' && 'Print queue execution, machine setup, order completion, and production tracking.'}
+                        {selectedRole === 'SALES_BILLING' && 'POS checkout, customer invoices, payments, tax receipts, and order intake.'}
+                      </p>
+                    </div>
+                  </div>
+                </Col>
+
+              </Row>
+
+              {/* ── CARD 3: GRANULAR MODULE ACCESS MATRIX (BOTTOM FULL-WIDTH) ── */}
+              <div className={`um-section-card ${isDark ? 'um-section-card-dark' : 'um-section-card-light'} p-3.5 rounded-4 border w-100`}>
+                <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2.5 pb-3 mb-3 border-bottom">
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="um-header-icon-box text-purple">
+                      <Shield size={18} />
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-0 text-uppercase tracking-wider fs-7 text-purple">
+                        GRANULAR MODULE ACCESS MATRIX
+                      </h6>
+                      <div className="fs-8 text-secondary">
+                        Configure exact View, Add, Edit &amp; Delete privileges across all {MODULE_LIST.length} authentic app modules
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ACTION PRESET BUTTONS */}
+                  <div className="d-flex align-items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleSelectAllFull}
+                      className="um-preset-btn preset-full"
+                    >
+                      Select All (Full)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSelectReadOnly}
+                      className="um-preset-btn preset-readonly"
+                    >
+                      Read-Only
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRevokeAll}
+                      className="um-preset-btn preset-revoke"
+                    >
+                      Revoke All
+                    </button>
+                  </div>
+                </div>
+
+                {/* ACCESS MATRIX TABLE */}
+                <div className="table-responsive w-100 um-matrix-container">
+                  <Table className="align-middle mb-0 um-matrix-table" borderless>
+                    <thead>
+                      <tr className="um-matrix-thead-row">
+                        <th className="ps-3 py-2.5 text-uppercase fs-8 fw-bold">
+                          AUTHENTIC CRM MODULE NAME
+                        </th>
+                        <th className="text-center py-2.5 text-uppercase fs-8 fw-bold">
+                          View{' '}
+                          <button
+                            type="button"
+                            onClick={() => toggleColumnAll('view')}
+                            className="um-all-badge"
+                          >
+                            ALL
+                          </button>
+                        </th>
+                        <th className="text-center py-2.5 text-uppercase fs-8 fw-bold">
+                          Add{' '}
+                          <button
+                            type="button"
+                            onClick={() => toggleColumnAll('add')}
+                            className="um-all-badge"
+                          >
+                            ALL
+                          </button>
+                        </th>
+                        <th className="text-center py-2.5 text-uppercase fs-8 fw-bold">
+                          Edit{' '}
+                          <button
+                            type="button"
+                            onClick={() => toggleColumnAll('edit')}
+                            className="um-all-badge"
+                          >
+                            ALL
+                          </button>
+                        </th>
+                        <th className="text-center py-2.5 text-uppercase fs-8 fw-bold">
+                          Delete{' '}
+                          <button
+                            type="button"
+                            onClick={() => toggleColumnAll('delete')}
+                            className="um-all-badge"
+                          >
+                            ALL
+                          </button>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {MODULE_LIST.map((mod) => {
+                        const IconComp = mod.icon
+                        const perm = permissions[mod.key] || { view: false, add: false, edit: false, delete: false }
+
+                        return (
+                          <tr key={mod.key} className="um-matrix-row">
+                            {/* Module Name & Icon */}
+                            <td className="ps-3 py-2.5">
+                              <div className="d-flex align-items-center gap-3">
+                                <div className="um-module-icon-box">
+                                  <IconComp size={16} />
+                                </div>
+                                <div>
+                                  <div className="fw-bold fs-7 text-dark-emphasis mb-0">
+                                    {mod.name}
+                                  </div>
+                                  <div className="fs-8 text-secondary">
+                                    {mod.desc}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* View Column */}
+                            <td className="text-center py-2.5">
+                              <button
+                                type="button"
+                                onClick={() => togglePermission(mod.key, 'view')}
+                                className={`um-check-circle ${perm.view ? 'is-checked' : ''}`}
+                                title={`Toggle View for ${mod.name}`}
+                              >
+                                {perm.view && <Check size={14} strokeWidth={3} />}
+                              </button>
+                            </td>
+
+                            {/* Add Column */}
+                            <td className="text-center py-2.5">
+                              <button
+                                type="button"
+                                onClick={() => togglePermission(mod.key, 'add')}
+                                className={`um-check-circle ${perm.add ? 'is-checked' : ''}`}
+                                title={`Toggle Add for ${mod.name}`}
+                              >
+                                {perm.add && <Check size={14} strokeWidth={3} />}
+                              </button>
+                            </td>
+
+                            {/* Edit Column */}
+                            <td className="text-center py-2.5">
+                              <button
+                                type="button"
+                                onClick={() => togglePermission(mod.key, 'edit')}
+                                className={`um-check-circle ${perm.edit ? 'is-checked' : ''}`}
+                                title={`Toggle Edit for ${mod.name}`}
+                              >
+                                {perm.edit && <Check size={14} strokeWidth={3} />}
+                              </button>
+                            </td>
+
+                            {/* Delete Column */}
+                            <td className="text-center py-2.5">
+                              <button
+                                type="button"
+                                onClick={() => togglePermission(mod.key, 'delete')}
+                                className={`um-check-circle ${perm.delete ? 'is-checked' : ''}`}
+                                title={`Toggle Delete for ${mod.name}`}
+                              >
+                                {perm.delete && <Check size={14} strokeWidth={3} />}
+                              </button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </Table>
+                </div>
               </div>
 
             </div>
           </Modal.Body>
-          <Modal.Footer className={`px-4 py-3 ${isDark ? 'bg-dark border-secondary' : 'bg-white border-light-subtle'}`}>
+          <Modal.Footer className={`px-4 py-3 ${isDark ? 'bg-dark border-secondary border-opacity-40' : 'bg-white border-light-subtle'}`}>
             <Button variant={isDark ? 'outline-secondary' : 'outline-dark'} onClick={() => setShowModal(false)} className="px-3.5 py-1.5 fs-7 rounded-3">
               Cancel
             </Button>
