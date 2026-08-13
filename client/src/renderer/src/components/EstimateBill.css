@@ -411,9 +411,108 @@
 /* ── Actions ────────────────────────────────────────────────── */
 .eb-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 2px;
   flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.eb-btn-action {
+  flex: 1 1 auto;
+  min-width: 90px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 13px;
+  border-radius: var(--eb-radius-sm);
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.eb-btn-action svg {
+  flex-shrink: 0;
+}
+
+.eb-btn-action:hover {
+  transform: translateY(-2px);
+}
+
+.eb-btn-action:active {
+  transform: translateY(0);
+}
+
+/* Print Bill - Vibrant Primary Gradient */
+.eb-btn-print {
+  background: linear-gradient(135deg, #736efe 0%, #00D2FF 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(115, 110, 254, 0.35);
+}
+.eb-btn-print:hover {
+  box-shadow: 0 6px 20px rgba(115, 110, 254, 0.5);
+  color: #ffffff;
+}
+
+/* Download PDF - Emerald Gradient */
+.eb-btn-download {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+.eb-btn-download:hover {
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+  color: #ffffff;
+}
+
+/* WhatsApp - Official WhatsApp Green */
+.eb-btn-whatsapp {
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+}
+.eb-btn-whatsapp:hover {
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+  color: #ffffff;
+}
+
+/* Email - Royal Blue */
+.eb-btn-email {
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+}
+.eb-btn-email:hover {
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  color: #ffffff;
+}
+
+/* Reset - Glassmorphic Reset */
+.eb-btn-reset {
+  background: rgba(255, 255, 255, 0.85);
+  color: #64748B;
+  border: 1.5px solid var(--eb-border-soft);
+}
+.eb-btn-reset:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #EF4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.theme-dark .eb-btn-reset {
+  background: rgba(255, 255, 255, 0.06);
+  color: #94A3B8;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.theme-dark .eb-btn-reset:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #FCA5A5;
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 /* PRIMARY — Gradient Glow Button */
@@ -423,12 +522,12 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 11px 16px;
+  padding: 10px 14px;
   background: var(--eb-grad);
   border: none;
   border-radius: var(--eb-radius-sm);
   color: #fff;
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -467,13 +566,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 14px;
+  gap: 5px;
+  padding: 8px 12px;
   background: rgba(255,255,255,0.7);
   border: 1.5px solid var(--eb-border-soft);
   border-radius: var(--eb-radius-sm);
   color: #64748B;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.25s ease;

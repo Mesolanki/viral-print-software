@@ -21,7 +21,6 @@ import {
   Boxes,
   FileText,
   UserCheck,
-  Edit3,
   Layers,
   Truck,
   ShieldCheck,
@@ -29,7 +28,11 @@ import {
   HardDrive,
   Download,
   History as HistoryIcon,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Receipt,
+  Tag,
+  MessageCircle,
+  Mail
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { customersApi, productsApi, type CustomerData } from '../api/apiClient'
@@ -468,20 +471,7 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
     }
   }
 
-  const addProductFromCatalog = (prod: ProductItem) => {
-    setItems(prev => [
-      ...prev,
-      {
-        id: _itemId++,
-        description: prod.name,
-        hsn: prod.hsn || '9983',
-        unit: prod.unit || 'pcs',
-        qty: '1',
-        rate: String(prod.price || '0'),
-        gstPct: String(prod.gst_rate || '18'),
-      }
-    ])
-  }
+
 
   // ── Calculations ──
   const calcRow = (item: BillItem) => {
@@ -706,9 +696,6 @@ Main HSN: 9983 (Printing / Advertising)`
   const MIN_ROWS = billType === 'ESTIMATE' ? 8 : 10
   const fillerCount = Math.max(0, MIN_ROWS - items.length)
   const formatTitle = billType === 'TAX_INVOICE' ? 'Tax Invoice' : billType === 'QUOTATION' ? 'Quotation' : 'Estimate Bill'
-
-  const filteredProducts = productList.filter(p => p.name.toLowerCase().includes(productSearchQuery.toLowerCase()))
-
   const allSavedInvoices = DataService.getInvoices()
 
   return (
@@ -782,48 +769,49 @@ Main HSN: 9983 (Printing / Advertising)`
         )}
 
         {/* Top Actions: Save Bill, Load History, Import Estimate & Backup Buttons */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <button
             className="eb-btn-secondary"
             onClick={saveCurrentInvoiceToDb}
-            style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 13px', background: 'linear-gradient(135deg, #736efe, #00D2FF)', color: '#ffffff', border: 'none', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 3px 10px rgba(115,110,254,0.3)' }}
+            style={{ fontSize: '0.76rem', fontWeight: 800, padding: '6px 11px', background: 'linear-gradient(135deg, #736efe, #00D2FF)', color: '#ffffff', border: 'none', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 3px 10px rgba(115,110,254,0.3)' }}
             title="Save Bill to Database History"
           >
-            <Save size={14} /> 💾 Save Bill to History
+            <Save size={13} /> Save Bill
           </button>
 
           <button
             className="eb-btn-secondary"
             onClick={() => setIsHistoryModalOpen(true)}
-            style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 13px', background: 'rgba(115,110,254,0.1)', color: '#736efe', borderColor: 'rgba(115,110,254,0.3)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+            style={{ fontSize: '0.76rem', fontWeight: 800, padding: '6px 11px', background: 'rgba(115,110,254,0.1)', color: '#736efe', borderColor: 'rgba(115,110,254,0.3)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
             title="Open Saved Previous Bills Modal to select and edit any past bill"
           >
-            <HistoryIcon size={14} /> 📜 Load Previous Bill
+            <HistoryIcon size={13} /> Load Previous
           </button>
+
           <button
             className="eb-btn-secondary"
             onClick={() => DataService.exportAllDataToExcel()}
-            style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 13px', background: 'rgba(16,185,129,0.15)', color: '#10B981', borderColor: 'rgba(16,185,129,0.3)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+            style={{ fontSize: '0.76rem', fontWeight: 800, padding: '6px 11px', background: 'rgba(16,185,129,0.12)', color: '#10B981', borderColor: 'rgba(16,185,129,0.3)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
             title="Backup all bill data to Excel (.xlsx)"
           >
-            <FileSpreadsheet size={14} /> Backup to Excel (.xlsx)
+            <FileSpreadsheet size={13} /> Excel Backup
           </button>
 
           <button
             className="eb-btn-secondary"
             onClick={() => DataService.saveBackupToFileDrive()}
-            style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 13px', background: 'rgba(99,102,241,0.1)', color: '#6366f1', borderColor: 'rgba(99,102,241,0.25)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+            style={{ fontSize: '0.76rem', fontWeight: 800, padding: '6px 11px', background: 'rgba(99,102,241,0.1)', color: '#6366f1', borderColor: 'rgba(99,102,241,0.25)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
             title="Backup all bill data as JSON file to drive"
           >
-            <HardDrive size={14} /> Backup JSON
+            <HardDrive size={13} /> JSON Backup
           </button>
 
           <button
             className="eb-btn-secondary"
             onClick={() => setIsImportModalOpen(true)}
-            style={{ fontSize: '0.78rem', fontWeight: 700, padding: '7px 12px', background: 'rgba(115,110,254,0.08)', color: '#736efe', borderColor: 'rgba(115,110,254,0.2)' }}
+            style={{ fontSize: '0.76rem', fontWeight: 700, padding: '6px 11px', background: 'rgba(115,110,254,0.08)', color: '#736efe', borderColor: 'rgba(115,110,254,0.2)' }}
           >
-            <FileCheck size={14} /> Import Estimate / Quote
+            <FileCheck size={13} /> Import Estimate
           </button>
 
           {billType === 'TAX_INVOICE' && (
@@ -831,19 +819,19 @@ Main HSN: 9983 (Printing / Advertising)`
               <button
                 className="eb-btn-secondary"
                 onClick={() => setIsEwayModalOpen(true)}
-                style={{ fontSize: '0.78rem', fontWeight: 800, padding: '7px 14px', background: 'linear-gradient(135deg, #10B981, #059669)', color: '#ffffff', border: 'none', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 3px 10px rgba(16,185,129,0.3)' }}
+                style={{ fontSize: '0.76rem', fontWeight: 800, padding: '6px 11px', background: 'linear-gradient(135deg, #10B981, #059669)', color: '#ffffff', border: 'none', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 3px 10px rgba(16,185,129,0.3)' }}
                 title="Generate & Download Official Govt GST E-Way Bill JSON Payload"
               >
-                <Truck size={14} /> 🚀 Generate Govt E-Way Bill
+                <Truck size={13} /> Govt E-Way Bill
               </button>
 
               <button
                 className="eb-btn-secondary"
                 onClick={openOfficialEwayPortal}
-                style={{ fontSize: '0.78rem', fontWeight: 700, padding: '7px 12px', background: 'rgba(16,185,129,0.08)', color: '#10B981', borderColor: 'rgba(16,185,129,0.2)' }}
+                style={{ fontSize: '0.76rem', fontWeight: 700, padding: '6px 11px', background: 'rgba(16,185,129,0.08)', color: '#10B981', borderColor: 'rgba(16,185,129,0.2)' }}
                 title="Open Official GST E-Way Bill Portal (ewaybillgst.gov.in)"
               >
-                <ExternalLink size={14} /> ewaybillgst.gov.in
+                <ExternalLink size={13} /> ewaybillgst.gov.in
               </button>
             </>
           )}
@@ -1267,39 +1255,42 @@ Main HSN: 9983 (Printing / Advertising)`
         )}
 
         {/* Action Buttons (Print, Save PDF, WhatsApp Share, Email Share, Reset) */}
-        <div className="eb-actions" style={{ flexWrap: 'wrap', gap: 8 }}>
-          <button className="eb-btn-primary" onClick={handlePrint} title="Print Bill directly to printer or save as PDF">
-            <Printer size={16} /> 🖨️ Print Bill
+        <div className="eb-actions">
+          <button className="eb-btn-action eb-btn-print" onClick={handlePrint} title="Print Bill directly to printer or save as PDF">
+            <Printer size={15} />
+            <span>Print Bill</span>
           </button>
-          <button className="eb-btn-primary" onClick={handlePrint} style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }} title="Download & Save Bill as PDF Document">
-            <Download size={16} /> 📥 Download PDF
+          <button className="eb-btn-action eb-btn-download" onClick={handlePrint} title="Download & Save Bill as PDF Document">
+            <Download size={15} />
+            <span>Download PDF</span>
           </button>
           <button
-            className="eb-btn-secondary"
+            className="eb-btn-action eb-btn-whatsapp"
             onClick={() => {
               const text = `*VIRAL PRINT MEDIA - ${formatTitle}*\nInvoice No: ${billNo}\nCustomer: ${custName}\nTotal Amount: ₹${roundedGrand}\n\nThank you for doing business with Viral Print Media!`
               const mob = custMobile.replace(/\D/g, '')
               window.open(`https://wa.me/${mob}?text=${encodeURIComponent(text)}`, '_blank')
             }}
-            style={{ background: '#25D366', color: '#fff', border: 'none', fontWeight: 700 }}
             title="Send Invoice Summary via WhatsApp"
           >
-            💬 WhatsApp Share
+            <MessageCircle size={15} />
+            <span>WhatsApp</span>
           </button>
           <button
-            className="eb-btn-secondary"
+            className="eb-btn-action eb-btn-email"
             onClick={() => {
               const subject = `Invoice ${billNo} from Viral Print Media`
               const body = `Dear ${custName || 'Customer'},\n\nPlease find the details for ${formatTitle} ${billNo}.\nGrand Total: ₹${roundedGrand}\n\nViral Print Media\nAhmedabad, Gujarat`
               window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
             }}
-            style={{ background: '#3B82F6', color: '#fff', border: 'none', fontWeight: 700 }}
             title="Send Invoice Summary via Email"
           >
-            ✉️ Email Share
+            <Mail size={15} />
+            <span>Email</span>
           </button>
-          <button className="eb-btn-secondary" onClick={resetBill} title="Reset Form">
-            <RefreshCw size={15} /> Reset
+          <button className="eb-btn-action eb-btn-reset" onClick={resetBill} title="Reset Form">
+            <RefreshCw size={14} />
+            <span>Reset</span>
           </button>
         </div>
 
