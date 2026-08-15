@@ -42,10 +42,23 @@ export interface InvoiceItem {
   product_id?: number
   description: string
   hsn: string
+  unit?: string
   tax_percent: number
   qty: number
   rate: number
   amount: number
+}
+
+export interface DailyTransaction {
+  id: number
+  type: 'INCOME' | 'EXPENSE'
+  category: string
+  amount: number
+  payment_mode: 'CASH' | 'UPI' | 'BANK'
+  date: string
+  time?: string
+  notes?: string
+  created_at: string
 }
 
 export interface Invoice {
@@ -129,6 +142,7 @@ export function getNextInvoiceNumber(type: 'TAX_INVOICE' | 'QUOTATION' | 'ESTIMA
 export interface PurchaseItem {
   id?: number
   product_name: string
+  unit?: string
   qty: number
   rate: number
   amount: number
@@ -139,6 +153,7 @@ export interface Purchase {
   purchase_number: string
   supplier_name: string
   supplier_mobile: string
+  supplier_gstin?: string
   date: string
   total_amount: number
   paid_amount: number
@@ -785,6 +800,7 @@ export const DataService = {
       purchase_number: purchase.purchase_number || `PUR-2627-${String(list.length + 15).padStart(3, '0')}`,
       supplier_name: purchase.supplier_name || 'Vendor',
       supplier_mobile: purchase.supplier_mobile || '',
+      supplier_gstin: purchase.supplier_gstin || '',
       date: purchase.date || new Date().toISOString().split('T')[0],
       total_amount: purchase.total_amount || 0,
       paid_amount: purchase.paid_amount || 0,
@@ -797,6 +813,30 @@ export const DataService = {
     list.unshift(newPurchase)
     setStoredItem(STORAGE_KEYS.PURCHASES, list)
     return newPurchase
+  },
+  deletePurchase: (id: number): void => {
+    const list = DataService.getPurchases().filter(p => p.id !== id)
+    setStoredItem(STORAGE_KEYS.PURCHASES, list)
+  },
+  recordPurchasePayment: (purchaseId: number, addPaidAmount: number): Purchase | null => {
+    const list = DataService.getPurchases()
+    const idx = list.findIndex(p => p.id === purchaseId)
+    if (idx !== -1) {
+      const pur = list[idx]
+      const newPaid = (Number(pur.paid_amount) || 0) + Number(addPaidAmount)
+      const newBalance = Math.max(0, Number(pur.total_amount) - newPaid)
+      const newStatus = newPaid >= Number(pur.total_amount) ? 'PAID' : newPaid > 0 ? 'PARTIALLY_PAID' : 'UNPAID'
+
+      list[idx] = {
+        ...pur,
+        paid_amount: newPaid,
+        balance_amount: newBalance,
+        status: newStatus
+      }
+      setStoredItem(STORAGE_KEYS.PURCHASES, list)
+      return list[idx]
+    }
+    return null
   },
 
   // Payments
@@ -1267,6 +1307,51 @@ export const DataService = {
     URL.revokeObjectURL(url)
 
     DataService.addActivityLog('admin', 'Bills CSV Exported', 'Backup Module', 'Exported all bill data as CSV report.')
+  },
+
+  getDailyTransactions(): DailyTransaction[] {
+    try {
+      const raw = localStorage.getItem('vpm_daily_transactions')
+      return raw ? JSON.parse(raw) : []
+    } catch {
+      return []
+    }
+  },
+
+  saveDailyTransaction(tx: Partial<DailyTransaction>): DailyTransaction {
+    const list = this.getDailyTransactions()
+    let savedTx: DailyTransaction
+    if (tx.id) {
+      const idx = list.findIndex(t => t.id === tx.id)
+      if (idx !== -1) {
+        savedTx = { ...list[idx], ...tx } as DailyTransaction
+        list[idx] = savedTx
+      } else {
+        savedTx = { id: Date.now(), ...tx } as DailyTransaction
+        list.push(savedTx)
+      }
+    } else {
+      savedTx = {
+        id: Date.now(),
+        type: tx.type || 'EXPENSE',
+        category: tx.category || 'General',
+        amount: tx.amount || 0,
+        payment_mode: tx.payment_mode || 'CASH',
+        date: tx.date || new Date().toISOString().split('T')[0],
+        time: tx.time || new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+        notes: tx.notes || '',
+        created_at: new Date().toISOString(),
+        ...tx
+      } as DailyTransaction
+      list.push(savedTx)
+    }
+    localStorage.setItem('vpm_daily_transactions', JSON.stringify(list))
+    return savedTx
+  },
+
+  deleteDailyTransaction(id: number): void {
+    const list = this.getDailyTransactions().filter(t => t.id !== id)
+    localStorage.setItem('vpm_daily_transactions', JSON.stringify(list))
   }
 }
 

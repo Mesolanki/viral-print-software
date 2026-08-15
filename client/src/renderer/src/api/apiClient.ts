@@ -107,7 +107,8 @@ export const customersApi = {
 
 // ── Products API ─────────────────────────────────────────────
 export const productsApi = {
-  getAll: () => apiClient.get('/products'),
+  getAll: (companyId: number = 1, search?: string) =>
+    apiClient.get('/products', { params: { company_id: companyId, search } }),
 }
 
 export default apiClient

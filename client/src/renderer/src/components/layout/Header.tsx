@@ -1,4 +1,3 @@
-import type React from 'react'
 import {
   CheckSquare,
   LayoutDashboard,
@@ -17,7 +16,8 @@ import {
   Truck,
   CreditCard,
   UserCheck,
-  ShoppingCart
+  ShoppingCart,
+  DollarSign
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
@@ -40,6 +40,7 @@ const pageTitles: Record<string, { icon: React.ReactNode; label: string }> = {
   estimate: { icon: <Tag size={18} />, label: 'Estimate Bill (Non-GST Slip)' },
   history: { icon: <HistoryIcon size={18} />, label: 'Previous Bills & Saved Invoices History' },
   eway_bill: { icon: <Truck size={18} />, label: 'E-Way Bill Management & Govt Export' },
+  daily_expenses: { icon: <DollarSign size={18} />, label: 'Daily Small Income & Expense Loss Tracker' },
   payments: { icon: <CreditCard size={18} />, label: 'Payment Entry & Ledger' },
   customers: { icon: <UserCheck size={18} />, label: 'Customer Management' },
   purchases: { icon: <ShoppingCart size={18} />, label: 'Purchase & Vendor Management' },

@@ -61,6 +61,21 @@ export const EwayBillModule: React.FC<EwayBillModuleProps> = ({ theme }) => {
     stateCode: '24'
   }
 
+  const mapUnitToNicCode = (unitStr: string): string => {
+    const u = (unitStr || '').trim().toLowerCase()
+    if (u.includes('sqft') || u.includes('sq.ft') || u.includes('feet')) return 'SQF'
+    if (u.includes('sqmtr') || u.includes('sq.mtr') || u.includes('sqmt')) return 'SQM'
+    if (u.includes('pc') || u.includes('piece')) return 'PCS'
+    if (u.includes('box')) return 'BOX'
+    if (u.includes('kg')) return 'KGS'
+    if (u.includes('meter') || u.includes('mtr')) return 'MTR'
+    if (u.includes('nos') || u.includes('no')) return 'NOS'
+    if (u.includes('set')) return 'SET'
+    if (u.includes('roll')) return 'ROL'
+    if (u.includes('bundle')) return 'BND'
+    return 'OTH'
+  }
+
   // Generate Official Govt NIC JSON payload (v1.0.0421)
   const generateEwayJsonPayload = useCallback(() => {
     if (!selectedInvoice) return null
@@ -77,7 +92,7 @@ export const EwayBillModule: React.FC<EwayBillModuleProps> = ({ theme }) => {
       productDesc: item.description || 'Print Materials',
       hsnCode: parseInt((item.hsn || '9983').replace(/[^0-9]/g, ''), 10) || 9983,
       quantity: item.qty || 1,
-      qtyUnit: 'SQF',
+      qtyUnit: mapUnitToNicCode(item.unit || 'sqft'),
       taxableAmount: item.amount || 0,
       cgstRate: 9,
       sgstRate: 9,
@@ -123,7 +138,7 @@ export const EwayBillModule: React.FC<EwayBillModuleProps> = ({ theme }) => {
           transporterName: transporter || '',
           transDocNo: '',
           transDocDate: '',
-          vehicleNo: vehicleNo ? vehicleNo.replace(/[^A-Z0-9]/gi, '') : '',
+          vehicleNo: vehicleNo ? vehicleNo.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '',
           vehicleType: 'R',
           itemList: itemsPayload
         }
@@ -145,6 +160,59 @@ export const EwayBillModule: React.FC<EwayBillModuleProps> = ({ theme }) => {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+  }
+
+  const downloadGovtExcelSheet = () => {
+    const payload = generateEwayJsonPayload()
+    if (!payload || !selectedInvoice) return
+    const b = payload.billDtls[0]
+
+    const rows: any[] = []
+    b.itemList.forEach((item, idx) => {
+      rows.push({
+        'Supply Type': b.supplyType,
+        'Sub Supply Type': b.subSupplyType,
+        'Doc Type': b.docType,
+        'Doc No': b.docNo,
+        'Doc Date': b.docDate,
+        'From GSTIN': b.fromGstin,
+        'From Trade Name': b.fromTrdName,
+        'From Address 1': b.fromAddr1,
+        'From Place': b.fromPlace,
+        'From Pincode': b.fromPincode,
+        'From State Code': b.fromStateCode,
+        'To GSTIN': b.toGstin,
+        'To Trade Name': b.toTrdName,
+        'To Address 1': b.toAddr1,
+        'To Place': b.toPlace,
+        'To Pincode': b.toPincode,
+        'To State Code': b.toStateCode,
+        'Item Sr No': idx + 1,
+        'Product Name': item.productName,
+        'Product Description': item.productDesc,
+        'HSN Code': item.hsnCode,
+        'Quantity': item.quantity,
+        'Unit': item.qtyUnit,
+        'Taxable Value (Rs)': item.taxableAmount,
+        'CGST Rate (%)': item.cgstRate,
+        'SGST Rate (%)': item.sgstRate,
+        'IGST Rate (%)': item.igstRate,
+        'Cess Rate (%)': item.cessRate,
+        'Total Invoice Value (Rs)': b.totInvValue,
+        'Trans Mode': b.transMode,
+        'Distance (Km)': b.transDistance,
+        'Transporter Name': b.transporterName,
+        'Vehicle No': b.vehicleNo,
+        'Vehicle Type': b.vehicleType
+      })
+    })
+
+    import('xlsx').then(XLSX => {
+      const worksheet = XLSX.utils.json_to_sheet(rows)
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'EWB_Preparation_Sheet')
+      XLSX.writeFile(workbook, `EWB_PREP_TOOL_${selectedInvoice.invoice_number.replace(/[^A-Z0-9]/gi, '_')}.xlsx`)
+    })
   }
 
   const copyGovtJson = () => {
@@ -337,6 +405,9 @@ export const EwayBillModule: React.FC<EwayBillModuleProps> = ({ theme }) => {
                     </Button>
                     <Button variant="outline-primary" className="fw-bold d-flex align-items-center gap-1" onClick={copyGovtJson}>
                       <Copy size={16} /> {copiedMsg ? 'Copied NIC JSON!' : 'Copy NIC JSON'}
+                    </Button>
+                    <Button variant="outline-success" className="fw-bold d-flex align-items-center gap-1" onClick={downloadGovtExcelSheet} title="Export Excel sheet compatible with EWB_Preparation_Tool_08122025.xlsm">
+                      Export EWB Excel Sheet (.xlsx)
                     </Button>
                     <Button variant="success" className="fw-bold d-flex align-items-center gap-2" onClick={downloadGovtJson}>
                       <FileDown size={18} /> Download Govt JSON (.json)

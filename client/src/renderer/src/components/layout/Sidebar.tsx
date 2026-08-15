@@ -12,7 +12,8 @@ import {
   CheckSquare,
   Users,
   Truck,
-  HardDrive
+  HardDrive,
+  DollarSign
 } from 'lucide-react'
 import viralLogo from '../../assets/logo_viral.png'
 import type { ActiveTabType } from './AppLayout'
@@ -219,6 +220,19 @@ const Sidebar: React.FC<SidebarProps> = ({ theme, activeTab, onTabChange, mode }
               <Truck size={18} />
             </span>
             {mode === 'open' && <span className="vpm-nav-label">E-Way Bills</span>}
+          </button>
+        )}
+
+        {checkPermission('daily_expenses') && (
+          <button
+            className={`vpm-nav-item ${activeTab === 'daily_expenses' ? 'active' : ''}`}
+            onClick={() => onTabChange('daily_expenses')}
+            title="Daily Small Income & Expense Loss Tracker"
+          >
+            <span className="vpm-nav-icon">
+              <DollarSign size={18} />
+            </span>
+            {mode === 'open' && <span className="vpm-nav-label">Daily Income &amp; Loss</span>}
           </button>
         )}
 

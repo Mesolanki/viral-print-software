@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import * as XLSX from 'xlsx'
 import {
   Plus,
   Trash2,
@@ -29,14 +30,13 @@ import {
   Download,
   History as HistoryIcon,
   FileSpreadsheet,
-  Receipt,
-  Tag,
   MessageCircle,
   Mail
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { customersApi, productsApi, type CustomerData } from '../api/apiClient'
 import { getNextInvoiceNumber, DataService, type Invoice } from '../services/dataService'
+import { manojMehtaQrBase64 } from '../assets/manojMehtaQrBase64'
 import './EstimateBill.css'
 
 // ── GST State Dictionary ──────────────────────────────────────
@@ -63,6 +63,9 @@ interface BillItem {
   qty: string
   rate: string
   gstPct: string
+  width?: string
+  height?: string
+  showSizeCalc?: boolean
 }
 
 interface ProductItem {
@@ -151,7 +154,7 @@ const defaultCompany: CompanyDetails = {
   branch: 'Main Branch',
 }
 
-const UNITS = ['pcs', 'sqft', 'meter', 'kg', 'litre', 'sheet', 'roll', 'set', 'nos', 'hr']
+const UNITS = ['pcs', 'roll', 'sqft', 'sqmtr', 'meter', 'feet', 'inch', 'kg', 'litre', 'sheet', 'packet', 'ream', 'box', 'set', 'nos', 'bundle', 'job', 'carton', 'hr', 'Other']
 const GST_RATES = ['0', '5', '12', '18', '28']
 
 let _itemId = 1
@@ -252,12 +255,18 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
     }
   }, [editingInvoice, formatType, loadInvoiceData, billDate])
 
-  // E-Way Bill Modal States
-  const [isEwayModalOpen, setIsEwayModalOpen] = useState(false)
-  const [ewayFromPincode, setEwayFromPincode] = useState('382424')
-  const [ewayToPincode, setEwayToPincode]     = useState('380054')
-  const [ewayTransMode]                       = useState('1')
-  const [ewayJsonCopied, setEwayJsonCopied]   = useState(false)
+  // E-Way Bill Modal States (NIC Schema v1.0.0421 & Excel Prep Tool Compatible)
+  const [isEwayModalOpen, setIsEwayModalOpen]         = useState(false)
+  const [ewayFromPincode, setEwayFromPincode]       = useState('382424')
+  const [ewayToPincode, setEwayToPincode]           = useState('380054')
+  const [ewayTransMode, setEwayTransMode]           = useState('1') // 1: Road, 2: Rail, 3: Air, 4: Ship
+  const [ewaySupplyType, setEwaySupplyType]         = useState('O') // O: Outward, I: Inward
+  const [ewaySubSupplyType, setEwaySubSupplyType]   = useState('1') // 1: Supply, 2: Export, 7: Job Work, 12: Others
+  const [ewayDocType, setEwayDocType]               = useState('INV') // INV: Invoice, CHL: Delivery Challan, BIL: Bill of Supply
+  const [ewayVehicleType, setEwayVehicleType]       = useState('R') // R: Regular, O: ODC
+  const [ewayTransDocNo, setEwayTransDocNo]         = useState('') // L.R. No.
+  const [ewayTransDocDate, setEwayTransDocDate]     = useState('') // L.R. Date
+  const [ewayJsonCopied, setEwayJsonCopied]         = useState(false)
 
   const genNumber = useCallback((type: BillFormatType, dateStr?: string) => {
     return getNextInvoiceNumber(type, dateStr || billDate)
@@ -283,7 +292,8 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
 
   // Item Manager & Catalog Pop-Up Modal State
   const [isItemModalOpen, setIsItemModalOpen] = useState(false)
-  const [activeItemSearchId, setActiveItemSearchId] = useState<number | null>(null)
+  const [activeInlineSearchId, setActiveInlineSearchId] = useState<number | null>(null)
+  const [activeModalSearchId, setActiveModalSearchId] = useState<number | null>(null)
   const [activeItemSearchIndex, setActiveItemSearchIndex] = useState<number>(0)
   const [productList, setProductList] = useState<ProductItem[]>(() => {
     const localProds = DataService.getProducts()
@@ -310,20 +320,42 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
   // Preview Zoom
   const [zoom, setZoom] = useState(0.9)
 
-  // Load products list from API on mount
+  // Load products list from API and DataService on mount
   useEffect(() => {
-    productsApi.getAll().then(res => {
-      if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
-        setProductList(res.data.data.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          unit: p.unit || 'pcs',
-          price: p.price !== undefined ? p.price : 0,
-          gst_rate: p.gst_rate !== undefined ? p.gst_rate : 18,
-          hsn: p.hsn_code || p.hsn || '9983'
-        })))
+    const loadProducts = async () => {
+      const localProds = DataService.getProducts().map(p => ({
+        id: p.id,
+        name: p.name,
+        unit: p.unit || 'pcs',
+        price: p.price !== undefined ? p.price : 0,
+        gst_rate: p.gst_rate !== undefined ? p.gst_rate : 18,
+        hsn: p.hsn_code || '9983'
+      }))
+
+      try {
+        const res = await productsApi.getAll(1)
+        const rawData = Array.isArray(res.data) ? res.data : (res.data?.data || [])
+        if (Array.isArray(rawData) && rawData.length > 0) {
+          const apiProds = rawData.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            unit: p.unit || 'pcs',
+            price: p.price !== undefined ? p.price : 0,
+            gst_rate: p.gst_rate !== undefined ? p.gst_rate : 18,
+            hsn: p.hsn_code || p.hsn || '9983'
+          }))
+
+          const existingNames = new Set(apiProds.map(p => p.name.toLowerCase()))
+          const filteredLocal = localProds.filter(p => !existingNames.has(p.name.toLowerCase()))
+          setProductList([...apiProds, ...filteredLocal])
+        } else {
+          setProductList(localProds)
+        }
+      } catch {
+        setProductList(localProds)
       }
-    }).catch(() => {})
+    }
+    loadProducts()
   }, [])
 
   // ── GST Auto-Fetch Function (Company, Owner Name, Phone, Address) ──
@@ -430,18 +462,61 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
     } catch {}
   }
 
+  // Quick Catalog Picker Modal State
+  const [showCatalogPickerModal, setShowCatalogPickerModal] = useState(false)
+  const [catalogSearchQuery, setCatalogSearchQuery] = useState('')
+
   // ── Add Product from Catalog / Autocomplete ──────────────────
   const selectProductForItemRow = (itemId: number, prod: ProductItem) => {
+    const isSquareUnit = ['sqft', 'sqmtr', 'sqmt'].includes((prod.unit || '').toLowerCase())
     setItems(prev => prev.map(it => it.id === itemId ? {
       ...it,
       description: prod.name,
-      hsn: prod.hsn || '9983',
+      hsn: prod.hsn || (prod as any).hsn_code || '9983',
       unit: prod.unit || 'pcs',
       rate: String(prod.price !== undefined ? prod.price : '0'),
       gstPct: String(prod.gst_rate !== undefined ? prod.gst_rate : '18'),
+      showSizeCalc: isSquareUnit
     } : it))
-    setActiveItemSearchId(null)
+    setActiveInlineSearchId(null)
+    setActiveModalSearchId(null)
     setActiveItemSearchIndex(0)
+  }
+
+  const addProductFromCatalogPicker = (prod: ProductItem) => {
+    const isSquareUnit = ['sqft', 'sqmtr', 'sqmt'].includes((prod.unit || '').toLowerCase())
+    setItems(prev => [
+      ...prev,
+      {
+        id: _itemId++,
+        description: prod.name,
+        hsn: prod.hsn || (prod as any).hsn_code || '9983',
+        unit: prod.unit || 'pcs',
+        qty: '1',
+        rate: String(prod.price !== undefined ? prod.price : '0'),
+        gstPct: String(prod.gst_rate !== undefined ? prod.gst_rate : '18'),
+        showSizeCalc: isSquareUnit
+      }
+    ])
+    setShowCatalogPickerModal(false)
+  }
+
+  const updateItemDimensions = (itemId: number, wStr: string, hStr: string) => {
+    const w = parseFloat(wStr) || 0
+    const h = parseFloat(hStr) || 0
+    const calculatedQty = (w > 0 && h > 0) ? (w * h).toString() : ''
+    setItems(prev => prev.map(it => {
+      if (it.id !== itemId) return it
+      const cleanDesc = (it.description || '').replace(/\s*\(\d+(\.\d+)?ft\s*x\s*\d+(\.\d+)?ft\)/gi, '')
+      const newDesc = (w > 0 && h > 0) ? `${cleanDesc} (${w}ft x ${h}ft)` : cleanDesc
+      return {
+        ...it,
+        width: wStr,
+        height: hStr,
+        qty: calculatedQty || it.qty,
+        description: newDesc
+      }
+    }))
   }
 
   const getProductMatches = (queryStr: string) => {
@@ -467,7 +542,8 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
         selectProductForItemRow(itemId, matches[activeItemSearchIndex])
       }
     } else if (e.key === 'Escape') {
-      setActiveItemSearchId(null)
+      setActiveInlineSearchId(null)
+      setActiveModalSearchId(null)
     }
   }
 
@@ -496,8 +572,23 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
 
   const isInterState = custStateInfo ? custStateInfo.stateCode !== '24' : false
 
+  const mapUnitToNicCode = (unitStr: string): string => {
+    const u = (unitStr || '').trim().toLowerCase()
+    if (u.includes('sqft') || u.includes('sq.ft') || u.includes('feet')) return 'SQF'
+    if (u.includes('sqmtr') || u.includes('sq.mtr') || u.includes('sqmt')) return 'SQM'
+    if (u.includes('pc') || u.includes('piece')) return 'PCS'
+    if (u.includes('box')) return 'BOX'
+    if (u.includes('kg')) return 'KGS'
+    if (u.includes('meter') || u.includes('mtr')) return 'MTR'
+    if (u.includes('nos') || u.includes('no')) return 'NOS'
+    if (u.includes('set')) return 'SET'
+    if (u.includes('roll')) return 'ROL'
+    if (u.includes('bundle')) return 'BND'
+    return 'OTH'
+  }
+
   const generateGovtEwayJsonPayload = useCallback(() => {
-    const cleanGstFrom = company.gstNo.replace(/[^A-Z0-9]/gi, '')
+    const cleanGstFrom = (company.gstNo || '').replace(/[^A-Z0-9]/gi, '')
     const cleanGstTo   = custGst ? custGst.replace(/[^A-Z0-9]/gi, '') : 'URP'
 
     const stateCodeFrom = parseInt(company.stateCode, 10) || 24
@@ -509,16 +600,19 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
       const qty  = parseFloat(item.qty) || 0
       const rate = parseFloat(item.rate) || 0
       const base = qty * rate
+      const gstRateNum = parseFloat(item.gstPct) || 18
+      const halfRate = gstRateNum / 2
+
       return {
         productName: item.description || 'Printing Services',
         productDesc: item.description || 'Print Items',
         hsnCode: parseInt((item.hsn || '9983').replace(/[^0-9]/g, ''), 10) || 9983,
         quantity: qty,
-        qtyUnit: item.unit ? item.unit.toUpperCase() : 'SQF',
+        qtyUnit: mapUnitToNicCode(item.unit),
         taxableAmount: base,
-        cgstRate: isInterState ? 0 : 9,
-        sgstRate: isInterState ? 0 : 9,
-        igstRate: isInterState ? 18 : 0,
+        cgstRate: isInterState ? 0 : halfRate,
+        sgstRate: isInterState ? 0 : halfRate,
+        igstRate: isInterState ? gstRateNum : 0,
         cessRate: 0
       }
     })
@@ -528,9 +622,9 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
       billDtls: [
         {
           userGstin: cleanGstFrom,
-          supplyType: "O",
-          subSupplyType: "1",
-          docType: "INV",
+          supplyType: ewaySupplyType,
+          subSupplyType: ewaySubSupplyType,
+          docType: ewayDocType,
           docNo: billNo,
           docDate: formattedDate,
           fromGstin: cleanGstFrom,
@@ -559,15 +653,15 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
           transDistance: distanceKm || "25",
           transporterId: "",
           transporterName: transporterName || "",
-          transDocNo: "",
-          transDocDate: "",
-          vehicleNo: vehicleNo ? vehicleNo.replace(/[^A-Z0-9]/gi, '') : "",
-          vehicleType: "R",
+          transDocNo: ewayTransDocNo,
+          transDocDate: ewayTransDocDate,
+          vehicleNo: vehicleNo ? vehicleNo.replace(/[^A-Z0-9]/gi, '').toUpperCase() : "",
+          vehicleType: ewayVehicleType,
           itemList: itemsPayload
         }
       ]
     }
-  }, [company, custGst, custStateInfo, billDate, items, billNo, ewayFromPincode, ewayToPincode, custName, custAddress, subtotal, isInterState, cgst, sgst, roundedGrand, ewayTransMode, distanceKm, transporterName, vehicleNo])
+  }, [company, custGst, custStateInfo, billDate, items, billNo, ewayFromPincode, ewayToPincode, custName, custAddress, subtotal, isInterState, cgst, sgst, roundedGrand, ewayTransMode, distanceKm, transporterName, vehicleNo, ewaySupplyType, ewaySubSupplyType, ewayDocType, ewayTransDocNo, ewayTransDocDate, ewayVehicleType])
 
   const downloadGovtEwayJson = () => {
     const payload = generateGovtEwayJsonPayload()
@@ -581,6 +675,56 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+  }
+
+  const downloadGovtEwayExcelSheet = () => {
+    const payload = generateGovtEwayJsonPayload()
+    const b = payload.billDtls[0]
+
+    const rows: any[] = []
+    b.itemList.forEach((item, idx) => {
+      rows.push({
+        'Supply Type': b.supplyType,
+        'Sub Supply Type': b.subSupplyType,
+        'Doc Type': b.docType,
+        'Doc No': b.docNo,
+        'Doc Date': b.docDate,
+        'From GSTIN': b.fromGstin,
+        'From Trade Name': b.fromTrdName,
+        'From Address 1': b.fromAddr1,
+        'From Place': b.fromPlace,
+        'From Pincode': b.fromPincode,
+        'From State Code': b.fromStateCode,
+        'To GSTIN': b.toGstin,
+        'To Trade Name': b.toTrdName,
+        'To Address 1': b.toAddr1,
+        'To Place': b.toPlace,
+        'To Pincode': b.toPincode,
+        'To State Code': b.toStateCode,
+        'Item Sr No': idx + 1,
+        'Product Name': item.productName,
+        'Product Description': item.productDesc,
+        'HSN Code': item.hsnCode,
+        'Quantity': item.quantity,
+        'Unit': item.qtyUnit,
+        'Taxable Value (Rs)': item.taxableAmount,
+        'CGST Rate (%)': item.cgstRate,
+        'SGST Rate (%)': item.sgstRate,
+        'IGST Rate (%)': item.igstRate,
+        'Cess Rate (%)': item.cessRate,
+        'Total Invoice Value (Rs)': b.totInvValue,
+        'Trans Mode': b.transMode,
+        'Distance (Km)': b.transDistance,
+        'Transporter Name': b.transporterName,
+        'Vehicle No': b.vehicleNo,
+        'Vehicle Type': b.vehicleType
+      })
+    })
+
+    const worksheet = XLSX.utils.json_to_sheet(rows)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'EWB_Preparation_Sheet')
+    XLSX.writeFile(workbook, `EWB_PREP_TOOL_${billNo.replace(/[^A-Z0-9]/gi, '_')}.xlsx`)
   }
 
   const copyGovtEwayJson = () => {
@@ -642,6 +786,24 @@ Main HSN: 9983 (Printing / Advertising)`
 
   // ── Save Current Invoice to Database History ─────────────────
   const saveCurrentInvoiceToDb = () => {
+    // Auto-sync products to catalog
+    items.forEach(it => {
+      const name = (it.description || '').trim()
+      if (name) {
+        const localProds = DataService.getProducts()
+        const exists = localProds.some(p => p.name.toLowerCase() === name.toLowerCase())
+        if (!exists) {
+          DataService.saveProduct({
+            name,
+            hsn_code: it.hsn || '9983',
+            unit: it.unit || 'pcs',
+            price: parseFloat(it.rate) || 0,
+            gst_rate: parseFloat(it.gstPct) || 18,
+          })
+        }
+      }
+    })
+
     const formattedItems = items.map(it => {
       const { base, total } = calcRow(it)
       return {
@@ -685,13 +847,28 @@ Main HSN: 9983 (Printing / Advertising)`
   }
 
   // ── Print Action ──
-  const handlePrint = async () => {
+  const handlePrint = useCallback(async () => {
     if (custName.trim()) {
       saveCustomerToDb()
     }
     saveCurrentInvoiceToDb()
     window.print()
-  }
+  }, [custName, saveCustomerToDb, saveCurrentInvoiceToDb])
+
+  // ── Keyboard Shortcuts for Fast Daily Counter Operations ──
+  useEffect(() => {
+    const handleGlobalShortcuts = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        saveCurrentInvoiceToDb()
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault()
+        handlePrint()
+      }
+    }
+    window.addEventListener('keydown', handleGlobalShortcuts)
+    return () => window.removeEventListener('keydown', handleGlobalShortcuts)
+  }, [saveCurrentInvoiceToDb, handlePrint])
 
   const MIN_ROWS = billType === 'ESTIMATE' ? 8 : 10
   const fillerCount = Math.max(0, MIN_ROWS - items.length)
@@ -703,63 +880,6 @@ Main HSN: 9983 (Printing / Advertising)`
 
       {/* ═══════════ LEFT: INPUT FORM ═══════════ */}
       <div className="estimate-form-panel">
-
-        {/* Format Selector Bar */}
-        <div style={{ display: 'flex', background: isDark ? 'rgba(15,23,42,0.8)' : 'rgba(255,255,255,0.9)', padding: 4, borderRadius: 12, border: '1.5px solid var(--eb-border)', gap: 4, marginBottom: 4 }}>
-          <button
-            onClick={() => {
-              setEditingInvoiceId(null)
-              onClearEditing?.()
-              setBillType('TAX_INVOICE')
-              setBillNo(getNextInvoiceNumber('TAX_INVOICE', billDate))
-            }}
-            style={{
-              flex: 1, padding: '7px 8px', borderRadius: 8, border: 'none', fontWeight: 800, fontSize: '0.76rem', cursor: 'pointer',
-              background: billType === 'TAX_INVOICE' ? 'linear-gradient(135deg, #736efe, #00D2FF)' : 'transparent',
-              color: billType === 'TAX_INVOICE' ? '#ffffff' : (isDark ? '#94a3b8' : '#64748b'),
-              boxShadow: billType === 'TAX_INVOICE' ? '0 3px 10px rgba(115,110,254,0.3)' : 'none',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.2s ease'
-            }}
-          >
-            <Receipt size={14} /> Tax Invoice
-          </button>
-
-          <button
-            onClick={() => {
-              setEditingInvoiceId(null)
-              onClearEditing?.()
-              setBillType('QUOTATION')
-              setBillNo(getNextInvoiceNumber('QUOTATION', billDate))
-            }}
-            style={{
-              flex: 1, padding: '7px 8px', borderRadius: 8, border: 'none', fontWeight: 800, fontSize: '0.76rem', cursor: 'pointer',
-              background: billType === 'QUOTATION' ? 'linear-gradient(135deg, #00D2FF, #00A8FF)' : 'transparent',
-              color: billType === 'QUOTATION' ? '#ffffff' : (isDark ? '#94a3b8' : '#64748b'),
-              boxShadow: billType === 'QUOTATION' ? '0 3px 10px rgba(0,210,255,0.3)' : 'none',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.2s ease'
-            }}
-          >
-            <FileText size={14} /> Quotation
-          </button>
-
-          <button
-            onClick={() => {
-              setEditingInvoiceId(null)
-              onClearEditing?.()
-              setBillType('ESTIMATE')
-              setBillNo(getNextInvoiceNumber('ESTIMATE', billDate))
-            }}
-            style={{
-              flex: 1, padding: '7px 8px', borderRadius: 8, border: 'none', fontWeight: 800, fontSize: '0.76rem', cursor: 'pointer',
-              background: billType === 'ESTIMATE' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'transparent',
-              color: billType === 'ESTIMATE' ? '#ffffff' : (isDark ? '#94a3b8' : '#64748b'),
-              boxShadow: billType === 'ESTIMATE' ? '0 3px 10px rgba(245,158,11,0.3)' : 'none',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.2s ease'
-            }}
-          >
-            <Tag size={14} /> Estimate Bill
-          </button>
-        </div>
 
         {/* Save Status Alert Banner */}
         {saveInvoiceMsg && (
@@ -1054,6 +1174,14 @@ Main HSN: 9983 (Printing / Advertising)`
             </span>
             <div style={{ display: 'flex', gap: 6 }}>
               <button
+                onClick={() => setShowCatalogPickerModal(true)}
+                className="eb-header-btn"
+                style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', boxShadow: 'none', border: '1px solid rgba(16, 185, 129, 0.3)' }}
+                title="Pick Product from Catalog"
+              >
+                <Package size={13} /> Pick Catalog Product
+              </button>
+              <button
                 onClick={addBlankRow}
                 className="eb-header-btn"
                 style={{ background: 'rgba(115,110,254,0.15)', color: '#736efe', boxShadow: 'none', border: '1px solid rgba(115,110,254,0.3)' }}
@@ -1070,17 +1198,20 @@ Main HSN: 9983 (Printing / Advertising)`
               </button>
             </div>
           </div>
-          <div className="eb-card-body" style={{ padding: 10 }}>
+          <div className="eb-card-body" style={{ padding: 10, overflow: 'visible', position: 'relative' }}>
 
             {/* Inline Items Table with Product Search Autocomplete */}
-            <div className="eb-items-table-wrap" style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
-              <table className="eb-items-table" style={{ width: '100%', minWidth: 460 }}>
+            <div className="eb-items-table-wrap" style={{ minHeight: activeInlineSearchId !== null ? 220 : 'auto', overflowY: activeInlineSearchId !== null ? 'visible' : 'auto', overflowX: 'visible', marginBottom: 8, position: 'relative' }}>
+              <table className="eb-items-table" style={{ width: '100%', minWidth: 620 }}>
                 <thead>
                   <tr>
                     <th style={{ width: 24 }}>#</th>
                     <th style={{ minWidth: 150 }}>Product / Description</th>
+                    <th style={{ width: 70 }}>HSN / SAC</th>
+                    <th style={{ width: 65 }}>Unit</th>
                     <th style={{ width: 55 }}>Qty</th>
                     <th style={{ width: 75 }}>Rate</th>
+                    {billType !== 'ESTIMATE' && <th style={{ width: 65 }}>GST%</th>}
                     <th style={{ width: 75, textAlign: 'right' }}>Total</th>
                     <th style={{ width: 28 }}></th>
                   </tr>
@@ -1089,38 +1220,39 @@ Main HSN: 9983 (Printing / Advertising)`
                   {items.map((item, idx) => {
                     const { total } = calcRow(item)
                     const matches = getProductMatches(item.description)
-                    const showDropdown = activeItemSearchId === (item.id + 100000) && matches.length > 0
+                    const showDropdown = activeInlineSearchId === item.id && matches.length > 0
 
                     return (
-                      <tr key={item.id}>
+                      <tr key={item.id} style={{ position: 'relative', zIndex: showDropdown ? 1000 : 1 }}>
                         <td style={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8' }}>{idx + 1}</td>
-                        <td style={{ position: 'relative' }}>
+                        <td style={{ position: 'relative', zIndex: showDropdown ? 1001 : 1 }}>
                           <input
                             placeholder="Type product name..."
                             value={item.description}
                             onChange={e => {
                               updateItem(item.id, 'description', e.target.value)
-                              setActiveItemSearchId(item.id + 100000)
+                              setActiveInlineSearchId(item.id)
                               setActiveItemSearchIndex(0)
                             }}
                             onFocus={() => {
-                              setActiveItemSearchId(item.id + 100000)
+                              setActiveInlineSearchId(item.id)
                               setActiveItemSearchIndex(0)
                             }}
                             onKeyDown={e => handleItemKeyDown(e, item.id, matches)}
-                            onBlur={() => setTimeout(() => setActiveItemSearchId(null), 250)}
+                            onBlur={() => setTimeout(() => setActiveInlineSearchId(null), 250)}
                             style={{ width: '100%', padding: '5px 8px', fontSize: '0.8rem' }}
                           />
 
                           {/* Autocomplete Dropdown */}
                           {showDropdown && (
-                            <div className="eb-product-autocomplete-menu" style={{ minWidth: 280 }}>
+                            <div className="eb-product-autocomplete-menu" style={{ position: 'absolute', top: '100%', left: 0, minWidth: 320, zIndex: 99999, boxShadow: '0 14px 40px rgba(0,0,0,0.3)', background: isDark ? '#0f172a' : '#ffffff' }}>
                               <div className="eb-product-autocomplete-header">
                                 <span><Package size={11} style={{ display: 'inline', marginRight: 4 }} /> Catalog Suggestions</span>
                                 <span style={{ fontSize: '0.6rem', opacity: 0.85 }}>↑ ↓ · Enter</span>
                               </div>
                               {matches.map((p, pIdx) => {
                                 const isSelected = activeItemSearchIndex === pIdx
+                                const hsnVal = p.hsn || (p as any).hsn_code || '9983'
                                 return (
                                   <div
                                     key={p.id}
@@ -1137,7 +1269,8 @@ Main HSN: 9983 (Printing / Advertising)`
                                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
                                       </div>
                                       <div className="eb-product-meta">
-                                        {p.unit && <span>{p.unit}</span>}
+                                        {p.unit && <span style={{ marginRight: 6 }}>{p.unit}</span>}
+                                        <span style={{ color: '#736efe', fontWeight: 600, marginRight: 6 }}>HSN: {hsnVal}</span>
                                         {billType !== 'ESTIMATE' && p.gst_rate !== undefined && (
                                           <span style={{ color: '#10B981', fontWeight: 700 }}>{p.gst_rate}% GST</span>
                                         )}
@@ -1151,6 +1284,48 @@ Main HSN: 9983 (Printing / Advertising)`
                               })}
                             </div>
                           )}
+
+                          {/* Inline W x H Size Calculator Helper for Print Items */}
+                          {item.showSizeCalc && (
+                            <div className="d-flex align-items-center gap-1 mt-1 px-1 py-0.5 rounded" style={{ background: 'rgba(115,110,254,0.08)', fontSize: '0.68rem' }}>
+                              <span style={{ color: '#736efe', fontWeight: 700 }}>Size (ft):</span>
+                              <input
+                                type="number" min="0" step="0.1"
+                                placeholder="W"
+                                value={item.width || ''}
+                                onChange={e => updateItemDimensions(item.id, e.target.value, item.height || '')}
+                                style={{ width: 42, padding: '2px 4px', fontSize: '0.70rem', textAlign: 'center', borderRadius: 4, border: '1px solid #736efe' }}
+                              />
+                              <span>×</span>
+                              <input
+                                type="number" min="0" step="0.1"
+                                placeholder="H"
+                                value={item.height || ''}
+                                onChange={e => updateItemDimensions(item.id, item.width || '', e.target.value)}
+                                style={{ width: 42, padding: '2px 4px', fontSize: '0.70rem', textAlign: 'center', borderRadius: 4, border: '1px solid #736efe' }}
+                              />
+                              <span style={{ color: '#10B981', fontWeight: 700, marginLeft: 2 }}>
+                                = {((parseFloat(item.width || '0') || 0) * (parseFloat(item.height || '0') || 0)).toFixed(1)} {item.unit || 'sqft'}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <input
+                            placeholder="9983"
+                            value={item.hsn}
+                            onChange={e => updateItem(item.id, 'hsn', e.target.value)}
+                            style={{ padding: '5px 4px', textAlign: 'center', fontSize: '0.75rem', width: '100%' }}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            list="vpm-unit-list"
+                            placeholder="pcs"
+                            value={item.unit}
+                            onChange={e => updateItem(item.id, 'unit', e.target.value)}
+                            style={{ padding: '5px 4px', textAlign: 'center', fontSize: '0.75rem', width: '100%' }}
+                          />
                         </td>
                         <td>
                           <input
@@ -1168,6 +1343,17 @@ Main HSN: 9983 (Printing / Advertising)`
                             style={{ padding: '5px 4px' }}
                           />
                         </td>
+                        {billType !== 'ESTIMATE' && (
+                          <td>
+                            <select
+                              value={item.gstPct}
+                              onChange={e => updateItem(item.id, 'gstPct', e.target.value)}
+                              style={{ padding: '4px 2px', fontSize: '0.75rem' }}
+                            >
+                              {GST_RATES.map(g => <option key={g}>{g}%</option>)}
+                            </select>
+                          </td>
+                        )}
                         <td style={{ textAlign: 'right', fontWeight: 800, fontSize: '0.8rem', color: '#1E293B' }}>
                           ₹{fmt(total)}
                         </td>
@@ -1183,6 +1369,11 @@ Main HSN: 9983 (Printing / Advertising)`
                   })}
                 </tbody>
               </table>
+
+              {/* Datalist for unit typing & dropdown suggestions */}
+              <datalist id="vpm-unit-list">
+                {UNITS.filter(u => u !== 'Other').map(u => <option key={u} value={u} />)}
+              </datalist>
             </div>
 
             <div style={{ display: 'flex', gap: 8 }}>
@@ -1267,14 +1458,42 @@ Main HSN: 9983 (Printing / Advertising)`
           <button
             className="eb-btn-action eb-btn-whatsapp"
             onClick={() => {
-              const text = `*VIRAL PRINT MEDIA - ${formatTitle}*\nInvoice No: ${billNo}\nCustomer: ${custName}\nTotal Amount: ₹${roundedGrand}\n\nThank you for doing business with Viral Print Media!`
-              const mob = custMobile.replace(/\D/g, '')
-              window.open(`https://wa.me/${mob}?text=${encodeURIComponent(text)}`, '_blank')
+              let targetMob = custMobile ? custMobile.replace(/\D/g, '') : ''
+              if (!targetMob || targetMob.length < 10) {
+                const input = window.prompt('Enter customer 10-digit mobile number to send WhatsApp bill:', targetMob || '')
+                if (!input) return
+                targetMob = input.replace(/\D/g, '')
+              }
+              if (targetMob.length === 10) {
+                targetMob = '91' + targetMob
+              }
+
+              const itemDetails = items.map((it, i) => {
+                const { total } = calcRow(it)
+                return `${i + 1}. *${it.description || 'Printing Services'}*\n   Qty: ${it.qty || 1} ${it.unit || 'pcs'} @ ₹${it.rate} = ₹${fmt(total)}`
+              }).join('\n')
+
+              const text = `*VIRAL PRINT MEDIA* - *${formatTitle.toUpperCase()}*\n` +
+                `-----------------------------------------\n` +
+                `*Bill No:* ${billNo}\n` +
+                `*Date:* ${billDate}\n` +
+                `*Customer:* ${custName || 'Valued Customer'}\n` +
+                `-----------------------------------------\n` +
+                `*ITEM DETAILS:*\n${itemDetails}\n` +
+                `-----------------------------------------\n` +
+                `*Total Amount:* ₹${fmt(roundedGrand)}\n` +
+                (billType === 'ESTIMATE' ? `*Advance Paid:* ₹${fmt(advanceNum)}\n*Balance Due:* ₹${fmt(remainNum)}\n` : '') +
+                `-----------------------------------------\n` +
+                (billType === 'ESTIMATE' ? `*PAY VIA GOOGLE PAY / BHIM UPI:*\n*UPI ID:* 9898015205@okbizaxis\n*Name:* Manoj Mehta (+91 98980 15205)\n-----------------------------------------\n` : '') +
+                `Thank you for doing business with Viral Print Media!\n` +
+                `📍 Chandkheda, Ahmedabad`
+
+              window.open(`https://wa.me/${targetMob}?text=${encodeURIComponent(text)}`, '_blank')
             }}
-            title="Send Invoice Summary via WhatsApp"
+            title="Send Complete Bill & Payment Details via WhatsApp"
           >
             <MessageCircle size={15} />
-            <span>WhatsApp</span>
+            <span>Send on WhatsApp</span>
           </button>
           <button
             className="eb-btn-action eb-btn-email"
@@ -1448,13 +1667,14 @@ Main HSN: 9983 (Printing / Advertising)`
                     <table className="pdf-table">
                       <thead>
                         <tr>
-                          <th style={{ width: 40 }}>Sr. No.</th>
+                          <th style={{ width: 36 }}>Sr. No.</th>
                           <th style={{ textAlign: 'left' }}>DESCRIPTION</th>
-                          {billType === 'TAX_INVOICE' && <th style={{ width: 70 }}>HSN</th>}
-                          <th style={{ width: 55 }}>TAX%</th>
-                          <th style={{ width: 55 }}>QTY</th>
-                          <th style={{ width: 85 }}>RATE</th>
-                          <th style={{ width: 100 }}>AMOUNT</th>
+                          {billType === 'TAX_INVOICE' && <th style={{ width: 65 }}>HSN</th>}
+                          <th style={{ width: 45 }}>UNIT</th>
+                          <th style={{ width: 50 }}>QTY</th>
+                          <th style={{ width: 50 }}>TAX%</th>
+                          <th style={{ width: 80 }}>RATE</th>
+                          <th style={{ width: 95 }}>AMOUNT</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1465,8 +1685,9 @@ Main HSN: 9983 (Printing / Advertising)`
                               <td className="center bold">{idx + 1}</td>
                               <td>{item.description || ''}</td>
                               {billType === 'TAX_INVOICE' && <td className="center">{item.hsn || '9983'}</td>}
-                              <td className="center">{gstPct}%</td>
+                              <td className="center">{item.unit || 'pcs'}</td>
                               <td className="center">{item.qty}</td>
+                              <td className="center">{gstPct}%</td>
                               <td className="right">{item.rate ? fmt(parseFloat(item.rate)) : ''}</td>
                               <td className="right bold">{total > 0 ? fmt(total) : ''}</td>
                             </tr>
@@ -1479,6 +1700,7 @@ Main HSN: 9983 (Printing / Advertising)`
                             <td className="center"></td>
                             <td>&nbsp;</td>
                             {billType === 'TAX_INVOICE' && <td></td>}
+                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -1613,9 +1835,10 @@ Main HSN: 9983 (Printing / Advertising)`
                         <tr>
                           <th style={{ width: 45 }}>Sr. No.</th>
                           <th style={{ textAlign: 'left' }}>DESCRIPTION</th>
-                          <th style={{ width: 70 }}>QTY</th>
-                          <th style={{ width: 100 }}>RATE</th>
-                          <th style={{ width: 120 }}>AMOUNT</th>
+                          <th style={{ width: 60 }}>UNIT</th>
+                          <th style={{ width: 60 }}>QTY</th>
+                          <th style={{ width: 95 }}>RATE</th>
+                          <th style={{ width: 110 }}>AMOUNT</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1625,6 +1848,7 @@ Main HSN: 9983 (Printing / Advertising)`
                             <tr key={item.id}>
                               <td className="center bold">{idx + 1}</td>
                               <td>{item.description || ''}</td>
+                              <td className="center">{item.unit || 'pcs'}</td>
                               <td className="center">{item.qty}</td>
                               <td className="right">{item.rate ? fmt(parseFloat(item.rate)) : ''}</td>
                               <td className="right bold">{total > 0 ? fmt(total) : ''}</td>
@@ -1636,6 +1860,7 @@ Main HSN: 9983 (Printing / Advertising)`
                           <tr key={`blank-est-${i}`}>
                             <td className="center"></td>
                             <td>&nbsp;</td>
+                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -1656,13 +1881,41 @@ Main HSN: 9983 (Printing / Advertising)`
                         Remain Amount: <strong>₹{fmt(remainNum)}</strong>
                       </div>
                     </div>
+
+                    {/* ── DEDICATED UPI PAYMENT & QR CODE BAR FOR ESTIMATE BILL ── */}
+                    {billType === 'ESTIMATE' && (
+                      <div style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '8px 12px', borderBottom: '1.5px solid #000000', background: '#FAFAFA'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <img
+                            src={manojMehtaQrBase64}
+                            alt="Scan to Pay QR Code"
+                            style={{ width: 80, height: 80, objectFit: 'contain', border: '1.5px solid #000', padding: 2, background: '#fff', borderRadius: 4 }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 800, fontSize: 11, color: '#000' }}>SCAN TO PAY VIA GOOGLE PAY / BHIM UPI</div>
+                            <div style={{ fontSize: 10, color: '#000', marginTop: 2 }}>Account Name: <strong>Manoj Mehta</strong></div>
+                            <div style={{ fontSize: 10, color: '#000' }}>Mobile No: <strong>+91 98980 15205</strong></div>
+                            <div style={{ fontSize: 10, color: '#000', fontWeight: 800, fontFamily: 'monospace', marginTop: 2 }}>
+                              UPI ID: 9898015205@okbizaxis
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right', fontSize: 9.5, color: '#000' }}>
+                          Accepted Apps:<br />
+                          <span style={{ fontWeight: 800, fontSize: 10.5 }}>GPay • Paytm • PhonePe • BHIM</span>
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
 
                 {/* ── TERMS & CONDITIONS + SIGNATURE FOOTER ── */}
                 <div className="pdf-terms-sig-row">
                   <div className="pdf-terms-col">
-                    <div className="pdf-terms-title">TERMS & CONDITIONS :</div>
+                    <div className="pdf-terms-title">TERMS &amp; CONDITIONS :</div>
                     <ul className="pdf-terms-list">
                       <li>Goods once sold will not be accepted.</li>
                       <li>Subject to Ahmedabad Jurisdiction.</li>
@@ -1727,7 +1980,7 @@ Main HSN: 9983 (Printing / Advertising)`
                     <tr>
                       <th style={{ width: 30 }}>#</th>
                       <th style={{ minWidth: 220 }}>Description & Product Search</th>
-                      {billType === 'TAX_INVOICE' && <th style={{ width: 75 }}>HSN</th>}
+                      <th style={{ width: 80 }}>HSN / SAC</th>
                       <th style={{ width: 80 }}>Unit</th>
                       <th style={{ width: 70 }}>Qty</th>
                       <th style={{ width: 100 }}>Rate (₹)</th>
@@ -1740,26 +1993,26 @@ Main HSN: 9983 (Printing / Advertising)`
                     {items.map((item, idx) => {
                       const { total } = calcRow(item)
                       const matches = getProductMatches(item.description)
-                      const showDropdown = activeItemSearchId === item.id && matches.length > 0
+                      const showDropdown = activeModalSearchId === item.id && matches.length > 0
 
                       return (
-                        <tr key={item.id}>
+                        <tr key={item.id} style={{ position: 'relative', zIndex: showDropdown ? 1000 : 1 }}>
                           <td style={{ textAlign: 'center', fontSize: '0.78rem', fontWeight: 700, color: '#94A3B8' }}>{idx + 1}</td>
-                          <td style={{ position: 'relative' }}>
+                          <td style={{ position: 'relative', zIndex: showDropdown ? 1001 : 1 }}>
                             <input
                               placeholder="Type item description or search product..."
                               value={item.description}
                               onChange={e => {
                                 updateItem(item.id, 'description', e.target.value)
-                                setActiveItemSearchId(item.id)
+                                setActiveModalSearchId(item.id)
                                 setActiveItemSearchIndex(0)
                               }}
                               onFocus={() => {
-                                setActiveItemSearchId(item.id)
+                                setActiveModalSearchId(item.id)
                                 setActiveItemSearchIndex(0)
                               }}
                               onKeyDown={e => handleItemKeyDown(e, item.id, matches)}
-                              onBlur={() => setTimeout(() => setActiveItemSearchId(null), 250)}
+                              onBlur={() => setTimeout(() => setActiveModalSearchId(null), 250)}
                               style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
                             />
 
@@ -1772,6 +2025,7 @@ Main HSN: 9983 (Printing / Advertising)`
                                 </div>
                                 {matches.map((p, pIdx) => {
                                   const isSelected = activeItemSearchIndex === pIdx
+                                  const hsnVal = p.hsn || (p as any).hsn_code || '9983'
                                   return (
                                     <div
                                       key={p.id}
@@ -1784,13 +2038,13 @@ Main HSN: 9983 (Printing / Advertising)`
                                     >
                                       <div style={{ flex: 1, minWidth: 0 }}>
                                         <div className="eb-product-title">
-                                          <Package size={13} style={{ color: '#736efe', flexShrink: 0 }} />
+                                          <Package size={12} style={{ color: '#736efe', flexShrink: 0 }} />
                                           <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
                                         </div>
                                         <div className="eb-product-meta">
-                                          {p.hsn && <span>HSN: {p.hsn}</span>}
+                                          <span>HSN: {hsnVal}</span>
                                           {billType !== 'ESTIMATE' && p.gst_rate !== undefined && (
-                                            <span style={{ color: '#10B981', fontWeight: 700 }}>{p.gst_rate}% GST</span>
+                                            <span style={{ color: '#10B981', fontWeight: 700, marginLeft: 6 }}>{p.gst_rate}% GST</span>
                                           )}
                                         </div>
                                       </div>
@@ -1803,19 +2057,20 @@ Main HSN: 9983 (Printing / Advertising)`
                               </div>
                             )}
                           </td>
-                          {billType === 'TAX_INVOICE' && (
-                            <td>
-                              <input
-                                placeholder="9983"
-                                value={item.hsn}
-                                onChange={e => updateItem(item.id, 'hsn', e.target.value)}
-                              />
-                            </td>
-                          )}
                           <td>
-                            <select value={item.unit} onChange={e => updateItem(item.id, 'unit', e.target.value)}>
-                              {UNITS.map(u => <option key={u}>{u}</option>)}
-                            </select>
+                            <input
+                              placeholder="9983"
+                              value={item.hsn}
+                              onChange={e => updateItem(item.id, 'hsn', e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              list="vpm-unit-list"
+                              placeholder="pcs"
+                              value={item.unit}
+                              onChange={e => updateItem(item.id, 'unit', e.target.value)}
+                            />
                           </td>
                           <td>
                             <input
@@ -1933,12 +2188,18 @@ Main HSN: 9983 (Printing / Advertising)`
       {/* ═══════════ MODAL 3: OFFICIAL GOVT E-WAY BILL GENERATOR POP-UP ═══════════ */}
       {isEwayModalOpen && (
         <div className="vpm-modal-backdrop" onClick={() => setIsEwayModalOpen(false)}>
-          <div className="vpm-modal-card" style={{ maxWidth: 760 }} onClick={e => e.stopPropagation()}>
+          <div className="vpm-modal-card" style={{ maxWidth: 820, width: '95%' }} onClick={e => e.stopPropagation()}>
             
             {/* Modal Header */}
-            <div className="vpm-modal-header" style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#fff' }}>
-              <div className="vpm-modal-title" style={{ color: '#38bdf8', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Truck size={20} /> Official Govt GST E-Way Bill Generator (NIC v1.0.0421)
+            <div className="vpm-modal-header" style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#fff', borderBottom: '1px solid #334155' }}>
+              <div>
+                <div className="vpm-modal-title" style={{ color: '#38bdf8', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.05rem', fontWeight: 800 }}>
+                  <Truck size={22} style={{ color: '#00D2FF' }} /> Official Govt GST E-Way Bill Preparation Tool
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: 2, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span>NIC Schema Version: <strong>v1.0.0421</strong></span>
+                  <span style={{ color: '#10B981', fontWeight: 700 }}>✓ Excel Prep Tool Compatible (EWB_Preparation_Tool_08122025)</span>
+                </div>
               </div>
               <button className="vpm-modal-close-btn" style={{ color: '#94a3b8' }} onClick={() => setIsEwayModalOpen(false)}>
                 <X size={18} />
@@ -1946,81 +2207,183 @@ Main HSN: 9983 (Printing / Advertising)`
             </div>
 
             {/* Modal Body */}
-            <div className="vpm-modal-body" style={{ padding: 20 }}>
+            <div className="vpm-modal-body" style={{ padding: 20, maxHeight: '78vh', overflowY: 'auto' }}>
               
-              {/* Threshold Warning / Info Banner */}
-              {roundedGrand < 50000 && (
-                <div style={{ padding: '10px 14px', borderRadius: 8, background: '#fffbebf0', border: '1px solid #fde68a', color: '#92400e', fontSize: '0.8rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <ShieldCheck size={16} /> Note: Under GST Law, E-Way bills are compulsory for goods exceeding ₹50,000. (Current Invoice Total: ₹{fmt(roundedGrand)}). You can still generate & export for transport dispatch.
-                </div>
-              )}
+              {/* Mandatory Threshold Banner */}
+              <div style={{ padding: '10px 14px', borderRadius: 10, background: roundedGrand >= 50000 ? 'rgba(16,185,129,0.1)' : '#fffbebf0', border: roundedGrand >= 50000 ? '1px solid #10B981' : '1px solid #fde68a', color: roundedGrand >= 50000 ? '#065F46' : '#92400e', fontSize: '0.8rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ShieldCheck size={18} style={{ color: roundedGrand >= 50000 ? '#10B981' : '#D97706', flexShrink: 0 }} />
+                <span>
+                  {roundedGrand >= 50000 ? (
+                    <strong>Mandatory E-Way Bill Required: Invoice total is ₹{fmt(roundedGrand)} (Exceeds ₹50,000 threshold under GST Law).</strong>
+                  ) : (
+                    <span>Note: E-Way bills are compulsory for goods exceeding ₹50,000. (Current Invoice Total: ₹{fmt(roundedGrand)}). You can still generate & export for transport dispatch.</span>
+                  )}
+                </span>
+              </div>
 
-              {/* Summary Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 18 }}>
-                <div style={{ padding: 12, background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block' }}>Document / Invoice No.</span>
-                  <strong style={{ fontSize: '0.92rem', color: '#1E293B' }}>{billNo}</strong>
+              {/* Document Overview Header */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
+                <div style={{ padding: 10, background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#64748B', display: 'block' }}>Document / Invoice No.</span>
+                  <strong style={{ fontSize: '0.9rem', color: '#1E293B' }}>{billNo}</strong>
                 </div>
-                <div style={{ padding: 12, background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block' }}>Supplier GSTIN (From)</span>
-                  <strong style={{ fontSize: '0.92rem', color: '#10B981' }}>{company.gstNo}</strong>
+                <div style={{ padding: 10, background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#64748B', display: 'block' }}>Supplier GSTIN (From)</span>
+                  <strong style={{ fontSize: '0.9rem', color: '#10B981' }}>{company.gstNo}</strong>
                 </div>
-                <div style={{ padding: 12, background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block' }}>Recipient GSTIN (To)</span>
-                  <strong style={{ fontSize: '0.92rem', color: '#3B82F6' }}>{custGst || 'URP (Unregistered)'}</strong>
+                <div style={{ padding: 10, background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#64748B', display: 'block' }}>Recipient GSTIN (To)</span>
+                  <strong style={{ fontSize: '0.9rem', color: '#3B82F6' }}>{custGst || 'URP (Unregistered)'}</strong>
                 </div>
               </div>
 
-              {/* E-Way Transport Inputs Form */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, marginBottom: 18 }}>
+              {/* Supply & Document Classification */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
                 <div>
-                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Dispatch Pincode (From)</label>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Supply Type</label>
+                  <select
+                    value={ewaySupplyType}
+                    onChange={e => setEwaySupplyType(e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                  >
+                    <option value="O">O - Outward Supply</option>
+                    <option value="I">I - Inward Supply</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Sub Supply Type</label>
+                  <select
+                    value={ewaySubSupplyType}
+                    onChange={e => setEwaySubSupplyType(e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                  >
+                    <option value="1">1 - Supply</option>
+                    <option value="2">2 - Import</option>
+                    <option value="3">3 - Export</option>
+                    <option value="7">7 - Job Work</option>
+                    <option value="8">8 - SKD/CKD</option>
+                    <option value="12">12 - Others</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Document Type</label>
+                  <select
+                    value={ewayDocType}
+                    onChange={e => setEwayDocType(e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                  >
+                    <option value="INV">INV - Tax Invoice</option>
+                    <option value="CHL">CHL - Delivery Challan</option>
+                    <option value="BIL">BIL - Bill of Supply</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* E-Way Transport & Pincodes Form */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Dispatch Pincode (From)</label>
                   <input
                     value={ewayFromPincode}
                     onChange={e => setEwayFromPincode(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 600 }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem', fontWeight: 600 }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Destination Pincode (To)</label>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Destination Pincode (To)</label>
                   <input
                     value={ewayToPincode}
                     onChange={e => setEwayToPincode(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 600 }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem', fontWeight: 600 }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Vehicle Number</label>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Transport Mode</label>
+                  <select
+                    value={ewayTransMode}
+                    onChange={e => setEwayTransMode(e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                  >
+                    <option value="1">1 - Road</option>
+                    <option value="2">2 - Rail</option>
+                    <option value="3">3 - Air</option>
+                    <option value="4">4 - Ship</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Vehicle Registration Number</label>
                   <input
                     placeholder="e.g. GJ01AB1234"
                     value={vehicleNo}
                     onChange={e => setVehicleNo(e.target.value.toUpperCase())}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 700 }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 800, color: '#0F172A' }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Approx Distance (in Km)</label>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Vehicle Type</label>
+                  <select
+                    value={ewayVehicleType}
+                    onChange={e => setEwayVehicleType(e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                  >
+                    <option value="R">R - Regular Cargo</option>
+                    <option value="O">O - Over Dimensional Cargo (ODC)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Approx Transport Distance (in KM)</label>
                   <input
                     placeholder="e.g. 25"
                     value={distanceKm}
                     onChange={e => setDistanceKm(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.85rem', fontWeight: 600 }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem', fontWeight: 600 }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>Transporter Name</label>
+                  <input
+                    placeholder="e.g. Gujarat Logistics Ltd"
+                    value={transporterName}
+                    onChange={e => setTransporterName(e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>L.R. / Airway / B.L. Doc No.</label>
+                  <input
+                    placeholder="e.g. LR-98421"
+                    value={ewayTransDocNo}
+                    onChange={e => setEwayTransDocNo(e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>L.R. / Transport Doc Date</label>
+                  <input
+                    type="date"
+                    value={ewayTransDocDate}
+                    onChange={e => setEwayTransDocDate(e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
                   />
                 </div>
               </div>
 
-              {/* Taxable & Invoice Financial Breakdown */}
-              <div style={{ padding: '12px 16px', background: '#F1F5F9', borderRadius: 8, fontSize: '0.82rem', marginBottom: 18 }}>
+              {/* Taxable & Invoice Financial Breakdown Card */}
+              <div style={{ padding: '12px 16px', background: '#F1F5F9', borderRadius: 10, fontSize: '0.82rem', marginBottom: 18, border: '1px solid #E2E8F0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span>Total Taxable Value:</span>
+                  <span>Total Taxable Goods Value:</span>
                   <strong>₹{fmt(subtotal)}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span>CGST (9%) + SGST (9%):</span>
                   <strong>₹{fmt(cgst + sgst)}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem', color: '#0F172A', fontWeight: 800, borderTop: '1px solid #CBD5E1', paddingTop: 6 }}>
-                  <span>Total Invoice Value:</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#0F172A', fontWeight: 800, borderTop: '1px solid #CBD5E1', paddingTop: 6 }}>
+                  <span>Total Invoice Value (Inc. Tax):</span>
                   <span style={{ color: '#10B981' }}>₹{fmt(roundedGrand)}</span>
                 </div>
               </div>
@@ -2029,9 +2392,17 @@ Main HSN: 9983 (Printing / Advertising)`
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                 <button
                   onClick={copyGovtEwayJson}
-                  style={{ padding: '9px 16px', borderRadius: 8, border: '1px solid #CBD5E1', background: '#fff', color: ewayJsonCopied ? '#10B981' : '#334155', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                  style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid #CBD5E1', background: '#fff', color: ewayJsonCopied ? '#10B981' : '#334155', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                 >
                   <Copy size={15} /> {ewayJsonCopied ? 'Copied NIC JSON!' : 'Copy JSON Payload'}
+                </button>
+
+                <button
+                  onClick={downloadGovtEwayExcelSheet}
+                  style={{ padding: '9px 16px', borderRadius: 8, border: '1px solid #10B981', background: 'rgba(16,185,129,0.1)', color: '#059669', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                  title="Export Excel Sheet in format of EWB_Preparation_Tool_08122025.xlsm"
+                >
+                  <FileSpreadsheet size={15} /> Export EWB Excel Sheet (.xlsx)
                 </button>
 
                 <button
@@ -2116,6 +2487,68 @@ Main HSN: 9983 (Printing / Advertising)`
                     </div>
                   ))
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════ MODAL 5: CATALOG QUICK PRODUCT PICKER MODAL ═══════════ */}
+      {showCatalogPickerModal && (
+        <div className="vpm-modal-backdrop" onClick={() => setShowCatalogPickerModal(false)}>
+          <div className="vpm-modal-card" style={{ maxWidth: 760, width: '95%' }} onClick={e => e.stopPropagation()}>
+            <div className="vpm-modal-header" style={{ background: 'linear-gradient(135deg, #10B981, #059669)', color: '#fff' }}>
+              <div className="vpm-modal-title" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff' }}>
+                <Package size={20} /> Select Product from Catalog
+              </div>
+              <button className="vpm-modal-close-btn" style={{ color: '#fff' }} onClick={() => setShowCatalogPickerModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="vpm-modal-body" style={{ padding: 20 }}>
+              <div style={{ position: 'relative', marginBottom: 14 }}>
+                <Search size={16} style={{ position: 'absolute', left: 12, top: 12, color: '#94A3B8' }} />
+                <input
+                  type="text"
+                  placeholder="Search catalog products by name, HSN, unit, rate..."
+                  value={catalogSearchQuery}
+                  onChange={e => setCatalogSearchQuery(e.target.value)}
+                  style={{ width: '100%', padding: '9px 12px 9px 36px', borderRadius: 10, border: '1.5px solid #CBD5E1', fontSize: '0.86rem' }}
+                />
+              </div>
+
+              <div style={{ maxHeight: 380, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
+                {productList.filter(p => !catalogSearchQuery.trim() || p.name.toLowerCase().includes(catalogSearchQuery.toLowerCase()) || (p.hsn && p.hsn.includes(catalogSearchQuery))).map(prod => (
+                  <div
+                    key={prod.id}
+                    onClick={() => addProductFromCatalogPicker(prod)}
+                    style={{
+                      padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E2E8F0', background: '#F8FAFC',
+                      cursor: 'pointer', transition: 'all 0.2s ease', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.transform = 'translateY(0)' }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#1E293B', marginBottom: 4 }}>
+                        {prod.name}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748B', display: 'flex', gap: 8 }}>
+                        <span>HSN: {prod.hsn || '9983'}</span>
+                        <span>Unit: {prod.unit || 'pcs'}</span>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#10B981' }}>
+                        ₹{prod.price}
+                      </span>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#736efe', background: 'rgba(115,110,254,0.1)', padding: '2px 8px', borderRadius: 6 }}>
+                        + Add to Bill
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

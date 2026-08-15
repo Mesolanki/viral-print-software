@@ -11,6 +11,7 @@ import PurchaseManagement from './components/PurchaseManagement'
 import PaymentEntryModule from './components/PaymentEntryModule'
 import GstReportModule from './components/GstReportModule'
 import EwayBillModule from './components/EwayBillModule'
+import DailyExpenseModule from './components/DailyExpenseModule'
 import BackupModule from './components/BackupModule'
 import { BillHistoryModule } from './components/BillHistoryModule'
 import { Invoice } from './services/dataService'
@@ -90,6 +91,8 @@ function DashboardView({
         />
       ) : activeTab === 'eway_bill' ? (
         <EwayBillModule theme={theme} />
+      ) : activeTab === 'daily_expenses' ? (
+        <DailyExpenseModule theme={theme} />
       ) : activeTab === 'payments' ? (
         <PaymentEntryModule theme={theme} />
       ) : activeTab === 'customers' ? (

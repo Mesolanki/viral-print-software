@@ -441,7 +441,7 @@
 }
 
 .modal-dark .modal-content {
-  background: linear-gradient(160deg, #0e1326 0%, #080a14 100%) !important;
+  background: #151C2C !important;
   border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.85), 0 0 50px rgba(115,110,254,0.12) !important;
   color: #f8fafc !important;

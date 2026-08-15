@@ -29,6 +29,7 @@ import {
   PlusCircle,
   Box
 } from 'lucide-react'
+import { DataService } from '../services/dataService'
 import './ProductManagement.css'
 
 // ── Constants ─────────────────────────────────────────────────────
@@ -43,17 +44,25 @@ const GST_OPTIONS = [0, 5, 12, 18, 28]
 
 const UNIT_OPTIONS = [
   'pcs',
+  'roll',
   'sqft',
   'sqmt',
   'meter',
+  'feet',
+  'inch',
   'kg',
-  'gram',
   'litre',
-  'set',
-  'roll',
   'sheet',
+  'packet',
+  'ream',
+  'box',
+  'set',
+  'nos',
   'bundle',
-  'nos'
+  'job',
+  'carton',
+  'hr',
+  'Other'
 ]
 
 // ── Types ──────────────────────────────────────────────────────────
@@ -73,6 +82,7 @@ export interface Product {
   unit: string
   price: number | string
   gst_rate: number | string
+  hsn_code?: string | null
   description?: string | null
   createdAt?: string
 }
@@ -141,6 +151,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
   const [pUnit, setPUnit] = useState('pcs')
   const [pPrice, setPPrice] = useState('')
   const [pGst, setPGst] = useState<number>(18)
+  const [pHsn, setPHsn] = useState('9983')
   const [pDesc, setPDesc] = useState('')
   const [pSubmitting, setPSubmitting] = useState(false)
 
@@ -208,6 +219,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
     setPUnit('pcs')
     setPPrice('')
     setPGst(18)
+    setPHsn('9983')
     setPDesc('')
     setError(null)
     setShowProductModal(true)
@@ -220,6 +232,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
     setPUnit(p.unit)
     setPPrice(String(Number(p.price)))
     setPGst(Number(p.gst_rate))
+    setPHsn(p.hsn_code || '9983')
     setPDesc(p.description || '')
     setError(null)
     setShowProductModal(true)
@@ -244,6 +257,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
       unit: pUnit,
       price: Number(pPrice),
       gst_rate: pGst,
+      hsn_code: pHsn.trim() || '9983',
       description: pDesc.trim() || null
     }
 
@@ -260,6 +274,16 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
           ? { ...editingProduct, ...payload, category: catObj ? { id: catObj.id, name: catObj.name } : editingProduct.category }
           : { ...editingProduct, ...payload, category: catObj ? { id: catObj.id, name: catObj.name } : editingProduct.category }
         setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? updated : p)))
+        DataService.saveProduct({
+          id: updated.id,
+          name: updated.name,
+          category: updated.category?.name || 'General',
+          unit: updated.unit,
+          price: Number(updated.price),
+          gst_rate: Number(updated.gst_rate),
+          hsn_code: updated.hsn_code || '9983',
+          description: updated.description || ''
+        })
         showToast(`Product "${updated.name}" updated successfully!`)
       } else {
         const res = await fetch(`${API_BASE_URL}/products`, {
@@ -282,6 +306,16 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
           }
         }
         setProducts((prev) => [newProduct, ...prev])
+        DataService.saveProduct({
+          id: newProduct.id,
+          name: newProduct.name,
+          category: newProduct.category?.name || 'General',
+          unit: newProduct.unit,
+          price: Number(newProduct.price),
+          gst_rate: Number(newProduct.gst_rate),
+          hsn_code: newProduct.hsn_code || '9983',
+          description: newProduct.description || ''
+        })
         showToast(`Product "${newProduct.name}" created successfully!`)
       }
       setShowProductModal(false)
@@ -296,6 +330,16 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
       } else {
         setProducts((prev) => [localProduct, ...prev])
       }
+      DataService.saveProduct({
+        id: localProduct.id,
+        name: localProduct.name,
+        category: localProduct.category?.name || 'General',
+        unit: localProduct.unit,
+        price: Number(localProduct.price),
+        gst_rate: Number(localProduct.gst_rate),
+        hsn_code: localProduct.hsn_code || '9983',
+        description: localProduct.description || ''
+      })
       showToast(`Product "${localProduct.name}" saved locally.`)
       setShowProductModal(false)
     } finally {
@@ -645,6 +689,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                         <th className="ps-4 py-3">#</th>
                         <th className="py-3">Product Name</th>
                         <th className="py-3">Category</th>
+                        <th className="py-3">HSN Code</th>
                         <th className="py-3">Unit</th>
                         <th className="py-3">Base Price</th>
                         <th className="py-3">GST Rate</th>
@@ -684,6 +729,11 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                               <span className={`prd-cat-badge ${getCatColor(categories.findIndex((c) => c.id === p.category_id))}`}>
                                 <Tag size={11} className="me-1" />
                                 {p.category?.name || '—'}
+                              </span>
+                            </td>
+                            <td className="py-3">
+                              <span className="vpm-badge-bill vpm-badge-bill-tax px-2 py-1" style={{ fontSize: '0.72rem' }}>
+                                {p.hsn_code || '9983'}
                               </span>
                             </td>
                             <td className="py-3">
@@ -807,6 +857,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
         centered
         size="lg"
         className={`vpm-modal ${isDark ? 'modal-dark' : 'modal-light'}`}
+        contentClassName={isDark ? 'modal-content modal-dark' : 'modal-content modal-light'}
       >
         <Modal.Header className="vpm-modal-header d-flex align-items-center justify-content-between">
           <Modal.Title className="vpm-modal-title mb-0">
@@ -870,19 +921,51 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                 </Form.Group>
               </Col>
 
+              {/* HSN Code */}
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="vpm-form-label">
+                    HSN / SAC Code
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    className="vpm-form-input"
+                    placeholder="e.g. 9983 or 4911"
+                    value={pHsn}
+                    onChange={(e) => setPHsn(e.target.value)}
+                  />
+                </Form.Group>
+              </Col>
+
               {/* Unit */}
               <Col md={6}>
                 <Form.Group>
                   <Form.Label className="vpm-form-label">Unit of Measure</Form.Label>
                   <Form.Select
                     className="vpm-form-input"
-                    value={pUnit}
-                    onChange={(e) => setPUnit(e.target.value)}
+                    value={UNIT_OPTIONS.includes(pUnit) ? pUnit : 'Other'}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (val === 'Other') {
+                        setPUnit('Custom')
+                      } else {
+                        setPUnit(val)
+                      }
+                    }}
                   >
                     {UNIT_OPTIONS.map((u) => (
                       <option key={u} value={u}>{u}</option>
                     ))}
                   </Form.Select>
+                  {(!UNIT_OPTIONS.includes(pUnit) || pUnit === 'Other' || pUnit === 'Custom') && (
+                    <Form.Control
+                      type="text"
+                      className="vpm-form-input mt-2"
+                      placeholder="Type custom unit..."
+                      value={pUnit === 'Other' ? '' : pUnit}
+                      onChange={(e) => setPUnit(e.target.value)}
+                    />
+                  )}
                 </Form.Group>
               </Col>
 
@@ -992,6 +1075,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
         centered
         size="sm"
         className={`vpm-modal ${isDark ? 'modal-dark' : 'modal-light'}`}
+        contentClassName={isDark ? 'modal-content modal-dark' : 'modal-content modal-light'}
       >
         <Modal.Header className="vpm-modal-header d-flex align-items-center justify-content-between">
           <Modal.Title className="vpm-modal-title mb-0">

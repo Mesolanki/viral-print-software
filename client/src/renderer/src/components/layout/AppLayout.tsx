@@ -10,6 +10,7 @@ export type ActiveTabType =
   | 'estimate'
   | 'history'
   | 'eway_bill'
+  | 'daily_expenses'
   | 'payments'
   | 'customers'
   | 'purchases'
