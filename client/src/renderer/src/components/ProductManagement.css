@@ -455,17 +455,25 @@
 }
 
 .vpm-modal-header {
-  padding: 16px 20px !important;
-  border-bottom: 1.5px solid rgba(255, 255, 255, 0.08) !important;
-  background: transparent !important;
+  padding: 18px 24px !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+  background: linear-gradient(135deg, #736EFE 0%, #00D2FF 100%) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
+  color: #FFFFFF !important;
 }
 
 .modal-light .vpm-modal-header {
-  border-bottom: 1.5px solid #f1f5f9 !important;
-  background: linear-gradient(135deg, rgba(115, 110, 254, 0.05) 0%, rgba(0, 210, 255, 0.02) 100%) !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+  background: linear-gradient(135deg, #736EFE 0%, #00D2FF 100%) !important;
+}
+
+.vpm-modal-title,
+.vpm-modal-header .vpm-modal-title,
+.vpm-modal-header .vpm-modal-title * {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
 }
 
 .vpm-modal-title {
