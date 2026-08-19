@@ -393,12 +393,12 @@ export const PurchaseManagement: React.FC<PurchaseManagementProps> = ({ theme })
     <div className={`vpm-pur-module ${isDark ? 'theme-dark' : 'theme-light'}`}>
       
       {/* ── Top Header Banner ──────────────────────────────────────── */}
-      <div className="vpm-pur-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div className="d-flex align-items-center gap-3">
+      <div className="vpm-pur-header">
+        <div className="vpm-pur-header-left">
           <div className="vpm-pur-icon-box">
             <ShoppingCart size={22} />
           </div>
-          <div>
+          <div className="vpm-pur-header-text">
             <h3 className="fw-extrabold m-0 text-gradient-title">Purchase & Supplier Management</h3>
             <p className="text-muted small m-0 fw-medium">
               Maintain raw material stock purchases, paper rolls, flex vinyl media, supplier ledgers, and payments.
@@ -406,28 +406,28 @@ export const PurchaseManagement: React.FC<PurchaseManagementProps> = ({ theme })
           </div>
         </div>
 
-        <div className="d-flex gap-2 flex-wrap">
+        <div className="vpm-pur-header-actions">
           <button
             type="button"
             className="vpm-btn-pur-action vpm-btn-pur-sec"
             onClick={() => DataService.exportAllDataToExcel()}
             title="Export all records to Excel (.xlsx)"
           >
-            <FileSpreadsheet size={15} /> Excel Export
+            <FileSpreadsheet size={15} /> <span>Excel Export</span>
           </button>
           <button
             type="button"
             className="vpm-btn-pur-action vpm-btn-pur-sec"
             onClick={openNewSupplierModal}
           >
-            <UserCheck size={16} /> Add Supplier
+            <UserCheck size={16} /> <span>Add Supplier</span>
           </button>
           <button
             type="button"
             className="vpm-btn-pur-action vpm-btn-add-pur"
             onClick={openNewPurchaseModal}
           >
-            <Plus size={16} /> New Purchase Entry
+            <Plus size={16} /> <span>New Purchase Entry</span>
           </button>
         </div>
       </div>
@@ -595,7 +595,11 @@ export const PurchaseManagement: React.FC<PurchaseManagementProps> = ({ theme })
                           <span className="vpm-amount-paid">₹{pur.paid_amount.toLocaleString('en-IN')}</span>
                         </td>
                         <td className="text-end">
-                          <span className="vpm-amount-balance">₹{pur.balance_amount.toLocaleString('en-IN')}</span>
+                          {pur.balance_amount > 0 ? (
+                            <span className="vpm-amount-balance">₹{pur.balance_amount.toLocaleString('en-IN')}</span>
+                          ) : (
+                            <span className="vpm-amount-balance-zero">₹0</span>
+                          )}
                         </td>
                         <td className="text-center">
                           {pur.status === 'PAID' && (
@@ -801,298 +805,298 @@ export const PurchaseManagement: React.FC<PurchaseManagementProps> = ({ theme })
         size="lg"
         contentClassName={isDark ? 'vpm-modal-content theme-dark' : 'vpm-modal-content theme-light'}
       >
-        <div className="vpm-modal-header-pro d-flex justify-content-between align-items-center">
-              <div className="d-flex align-items-center gap-2">
-                <div className="vpm-pur-icon-box" style={{ width: 34, height: 34, borderRadius: 10 }}>
-                  <ShoppingCart size={18} />
-                </div>
-                <h5 className="fw-extrabold m-0">
-                  {editingPurchaseId ? 'Edit Raw Material Purchase Entry' : 'Record Raw Material / Stock Purchase'}
-                </h5>
-              </div>
-              <button type="button" className="btn-close btn-close-white" onClick={() => setShowPurchaseModal(false)} />
+        <div className="vpm-modal-header-pro">
+          <div className="d-flex align-items-center gap-2">
+            <div className="vpm-pur-icon-box" style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255, 255, 255, 0.2)', boxShadow: 'none' }}>
+              <ShoppingCart size={18} />
+            </div>
+            <h5 className="fw-extrabold m-0 text-white">
+              {editingPurchaseId ? 'Edit Raw Material Purchase Entry' : 'Record Raw Material / Stock Purchase'}
+            </h5>
+          </div>
+          <button type="button" className="btn-close btn-close-white" onClick={() => setShowPurchaseModal(false)} />
+        </div>
+
+        <Form onSubmit={handleSavePurchase}>
+          <Modal.Body className="p-4">
+            <Row className="g-3 mb-3">
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-bold small">Purchase Bill No.</Form.Label>
+                  <Form.Control
+                    required
+                    type="text"
+                    value={purchaseNo}
+                    onChange={(e) => setPurchaseNo(e.target.value)}
+                    className="vpm-pur-search-input"
+                    style={{ paddingLeft: '14px', fontWeight: 700 }}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={5}>
+                <Form.Group>
+                  <Form.Label className="fw-bold small">Supplier Business Name *</Form.Label>
+                  <Form.Control
+                    required
+                    type="text"
+                    placeholder="Select or type vendor name"
+                    value={supplierName}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setSupplierName(val)
+                      const matched = suppliers.find(s => s.name.toLowerCase() === val.toLowerCase())
+                      if (matched) {
+                        setSupplierMobile(matched.mobile || '')
+                        setSupplierGstin(matched.gst_no || '')
+                      }
+                    }}
+                    className="vpm-pur-search-input"
+                    style={{ paddingLeft: '14px' }}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={3}>
+                <Form.Group>
+                  <Form.Label className="fw-bold small">Purchase Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={purchaseDate}
+                    onChange={(e) => setPurchaseDate(e.target.value)}
+                    className="vpm-pur-search-input"
+                    style={{ paddingLeft: '14px' }}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-bold small">Supplier Mobile No.</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="9XXXXXXXXX"
+                    value={supplierMobile}
+                    onChange={(e) => setSupplierMobile(e.target.value)}
+                    className="vpm-pur-search-input"
+                    style={{ paddingLeft: '14px' }}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-bold small">Supplier GSTIN</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="e.g. 24DDDDD3333D4Z8"
+                    value={supplierGstin}
+                    onChange={(e) => setSupplierGstin(e.target.value.toUpperCase())}
+                    className="vpm-pur-search-input"
+                    style={{ paddingLeft: '14px', textTransform: 'uppercase' }}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <div className="d-flex justify-content-between align-items-center mb-2 mt-3">
+              <h6 className="fw-extrabold m-0 text-primary">Itemized Raw Materials & Media Stock</h6>
+              <button
+                type="button"
+                className="vpm-btn-pur-action vpm-btn-pur-sec"
+                style={{ padding: '4px 12px', height: '32px', fontSize: '0.76rem' }}
+                onClick={() => setShowQuickProductModal(true)}
+              >
+                <Plus size={14} /> Add Product to Catalog
+              </button>
             </div>
 
-            <Form onSubmit={handleSavePurchase}>
-              <Modal.Body className="p-4">
-                <Row className="g-3 mb-3">
-                  <Col md={4}>
-                    <Form.Group>
-                      <Form.Label className="fw-bold small">Purchase Bill No.</Form.Label>
-                      <Form.Control
-                        required
-                        type="text"
-                        value={purchaseNo}
-                        onChange={(e) => setPurchaseNo(e.target.value)}
-                        className="vpm-pur-search-input"
-                        style={{ paddingLeft: '14px', fontWeight: 700 }}
-                      />
-                    </Form.Group>
-                  </Col>
+            {/* Item Column Header Row */}
+            <Row className="g-2 fw-bold text-muted small mb-1 px-1" style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <Col md={4}>Material / Product Description</Col>
+              <Col md={2}>Unit</Col>
+              <Col md={2}>Qty</Col>
+              <Col md={2}>Rate (₹)</Col>
+              <Col md={2}>Total (₹)</Col>
+            </Row>
 
-                  <Col md={5}>
-                    <Form.Group>
-                      <Form.Label className="fw-bold small">Supplier Business Name *</Form.Label>
-                      <Form.Control
-                        required
-                        type="text"
-                        placeholder="Select or type vendor name"
-                        value={supplierName}
-                        onChange={(e) => {
-                          const val = e.target.value
-                          setSupplierName(val)
-                          const matched = suppliers.find(s => s.name.toLowerCase() === val.toLowerCase())
-                          if (matched) {
-                            setSupplierMobile(matched.mobile || '')
-                            setSupplierGstin(matched.gst_no || '')
-                          }
-                        }}
-                        className="vpm-pur-search-input"
-                        style={{ paddingLeft: '14px' }}
-                      />
-                    </Form.Group>
-                  </Col>
+            {items.map((item, idx) => (
+              <Row key={idx} className="g-2 align-items-center mb-2">
+                <Col md={4} style={{ position: 'relative' }}>
+                  <Form.Control
+                    placeholder="Material description (e.g. Star Flex Roll)"
+                    value={item.product_name}
+                    onChange={(e) => {
+                      handleItemChange(idx, 'product_name', e.target.value)
+                      setActiveSearchRowIndex(idx)
+                    }}
+                    onFocus={() => setActiveSearchRowIndex(idx)}
+                    onBlur={() => setTimeout(() => setActiveSearchRowIndex(null), 250)}
+                    className="vpm-pur-search-input"
+                    style={{ paddingLeft: '14px' }}
+                  />
 
-                  <Col md={3}>
-                    <Form.Group>
-                      <Form.Label className="fw-bold small">Purchase Date</Form.Label>
-                      <Form.Control
-                        type="date"
-                        value={purchaseDate}
-                        onChange={(e) => setPurchaseDate(e.target.value)}
-                        className="vpm-pur-search-input"
-                        style={{ paddingLeft: '14px' }}
-                      />
-                    </Form.Group>
-                  </Col>
-
-                  <Col md={6}>
-                    <Form.Group>
-                      <Form.Label className="fw-bold small">Supplier Mobile No.</Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder="9XXXXXXXXX"
-                        value={supplierMobile}
-                        onChange={(e) => setSupplierMobile(e.target.value)}
-                        className="vpm-pur-search-input"
-                        style={{ paddingLeft: '14px' }}
-                      />
-                    </Form.Group>
-                  </Col>
-
-                  <Col md={6}>
-                    <Form.Group>
-                      <Form.Label className="fw-bold small">Supplier GSTIN</Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder="e.g. 24DDDDD3333D4Z8"
-                        value={supplierGstin}
-                        onChange={(e) => setSupplierGstin(e.target.value.toUpperCase())}
-                        className="vpm-pur-search-input"
-                        style={{ paddingLeft: '14px', textTransform: 'uppercase' }}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <div className="d-flex justify-content-between align-items-center mb-2 mt-3">
-                  <h6 className="fw-extrabold m-0 text-primary">Itemized Raw Materials & Media Stock</h6>
-                  <button
-                    type="button"
-                    className="vpm-btn-pur-action vpm-btn-pur-sec"
-                    style={{ padding: '4px 10px', fontSize: '0.72rem' }}
-                    onClick={() => setShowQuickProductModal(true)}
-                  >
-                    <Plus size={13} /> Add Product to Catalog
-                  </button>
-                </div>
-
-                {/* Explicit Item Column Header Row */}
-                <Row className="g-2 fw-bold text-muted small mb-1 px-1" style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  <Col md={4}>Material / Product Description</Col>
-                  <Col md={2}>Unit</Col>
-                  <Col md={2}>Qty</Col>
-                  <Col md={2}>Rate (₹)</Col>
-                  <Col md={1}>Total</Col>
-                  <Col md={1} className="text-center"></Col>
-                </Row>
-
-                {items.map((item, idx) => (
-                  <Row key={idx} className="g-2 align-items-center mb-2">
-                    <Col md={4} style={{ position: 'relative' }}>
-                      <Form.Control
-                        placeholder="Material description (e.g. Star Flex Roll)"
-                        value={item.product_name}
-                        onChange={(e) => {
-                          handleItemChange(idx, 'product_name', e.target.value)
-                          setActiveSearchRowIndex(idx)
-                        }}
-                        onFocus={() => setActiveSearchRowIndex(idx)}
-                        onBlur={() => setTimeout(() => setActiveSearchRowIndex(null), 250)}
-                        className="vpm-pur-search-input"
-                        style={{ paddingLeft: '14px' }}
-                      />
-
-                      {/* Product Catalog Autocomplete Menu */}
-                      {activeSearchRowIndex === idx && getProductMatches(item.product_name).length > 0 && (
-                        <div className="eb-product-autocomplete-menu" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1050 }}>
-                          <div className="eb-product-autocomplete-header">
-                            <span>Catalog Suggestions</span>
-                          </div>
-                          {getProductMatches(item.product_name).map((p) => (
-                            <div
-                              key={p.id}
-                              className="eb-product-autocomplete-item"
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                selectProductForPurchaseRow(idx, p)
-                              }}
-                            >
-                              <div>
-                                <strong className="eb-product-title">{p.name}</strong>
-                                <span className="eb-product-meta" style={{ display: 'block', fontSize: '0.7rem' }}>{p.category || 'Product'}</span>
-                              </div>
-                              <span className="eb-product-price-tag">₹{p.price}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </Col>
-
-                    <Col md={2}>
-                      <Form.Select
-                        value={UNITS.includes(item.unit || 'pcs') ? (item.unit || 'pcs') : 'Other'}
-                        onChange={(e) => {
-                          const val = e.target.value
-                          if (val === 'Other') {
-                            handleItemChange(idx, 'unit', 'Custom')
-                          } else {
-                            handleItemChange(idx, 'unit', val)
-                          }
-                        }}
-                        className="vpm-pur-search-input"
-                        style={{ paddingLeft: '8px' }}
-                      >
-                        {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-                      </Form.Select>
-                      {(!UNITS.includes(item.unit || 'pcs') || item.unit === 'Other' || item.unit === 'Custom') && (
-                        <Form.Control
-                          placeholder="Type unit..."
-                          value={item.unit === 'Other' ? '' : item.unit}
-                          onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
-                          className="vpm-pur-search-input mt-1"
-                          style={{ paddingLeft: '8px', fontSize: '0.74rem' }}
-                        />
-                      )}
-                    </Col>
-
-                    <Col md={2}>
-                      <Form.Control
-                        type="number" min="0" step="0.01"
-                        placeholder="Qty"
-                        value={item.qty}
-                        onChange={(e) => handleItemChange(idx, 'qty', e.target.value)}
-                        className="vpm-pur-search-input"
-                        style={{ paddingLeft: '14px' }}
-                      />
-                    </Col>
-
-                    <Col md={2}>
-                      <Form.Control
-                        type="number" min="0" step="0.01"
-                        placeholder="Rate ₹"
-                        value={item.rate}
-                        onChange={(e) => handleItemChange(idx, 'rate', e.target.value)}
-                        className="vpm-pur-search-input"
-                        style={{ paddingLeft: '14px' }}
-                      />
-                    </Col>
-
-                    <Col md={1}>
-                      <Form.Control
-                        readOnly
-                        value={`₹${item.amount}`}
-                        className="vpm-pur-search-input bg-light-subtle"
-                        style={{ paddingLeft: '6px', fontSize: '0.78rem', fontWeight: 700 }}
-                      />
-                    </Col>
-
-                    <Col md={1} className="text-center">
-                      {items.length > 1 && (
-                        <button
-                          type="button"
-                          className="vpm-act-btn vpm-act-btn-delete"
-                          onClick={() => handleRemoveItemRow(idx)}
+                  {/* Product Catalog Autocomplete Menu */}
+                  {activeSearchRowIndex === idx && getProductMatches(item.product_name).length > 0 && (
+                    <div className="eb-product-autocomplete-menu" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1050 }}>
+                      <div className="eb-product-autocomplete-header">
+                        <span>Catalog Suggestions</span>
+                      </div>
+                      {getProductMatches(item.product_name).map((p) => (
+                        <div
+                          key={p.id}
+                          className="eb-product-autocomplete-item"
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            selectProductForPurchaseRow(idx, p)
+                          }}
                         >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </Col>
-                  </Row>
-                ))}
-
-                <button
-                  type="button"
-                  className="vpm-btn-pur-action vpm-btn-pur-sec mt-2"
-                  onClick={handleAddItemRow}
-                >
-                  <Plus size={14} /> Add Another Material Line
-                </button>
-
-                <Row className="g-3 mt-3">
-                  <Col md={6}>
-                    <Form.Group>
-                      <Form.Label className="fw-bold small">Notes / Internal Remarks</Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={2}
-                        placeholder="Delivery notes, transport details, batch numbers..."
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        className="vpm-pur-search-input"
-                        style={{ paddingLeft: '14px', height: 'auto' }}
-                      />
-                    </Form.Group>
-                  </Col>
-
-                  <Col md={6}>
-                    <div className="vpm-invoice-preview-box p-3 rounded-3" style={{ background: isDark ? 'rgba(255,255,255,0.05)' : '#F8FAFC', border: '1px solid var(--pur-border)' }}>
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <span className="fw-bold small text-muted">Total Bill Amount:</span>
-                        <h4 className="fw-extrabold text-primary m-0">₹{totalBillAmount.toLocaleString('en-IN')}</h4>
-                      </div>
-
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <span className="fw-bold small text-muted">Amount Paid Now (₹):</span>
-                        <Form.Control
-                          type="number" min="0" step="0.01"
-                          style={{ width: 130, padding: '4px 8px', fontSize: '0.85rem', fontWeight: 700, textAlign: 'right' }}
-                          value={paidAmount}
-                          onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
-                        />
-                      </div>
-
-                      <div className="d-flex justify-content-between align-items-center border-top pt-2">
-                        <span className="fw-bold small text-muted">Remaining Balance (Payable):</span>
-                        <strong className="text-danger fw-extrabold" style={{ fontSize: '1rem' }}>
-                          ₹{Math.max(0, totalBillAmount - paidAmount).toLocaleString('en-IN')}
-                        </strong>
-                      </div>
+                          <div>
+                            <strong className="eb-product-title">{p.name}</strong>
+                            <span className="eb-product-meta" style={{ display: 'block', fontSize: '0.7rem' }}>{p.category || 'Product'}</span>
+                          </div>
+                          <span className="eb-product-price-tag">₹{p.price}</span>
+                        </div>
+                      ))}
                     </div>
-                  </Col>
-                </Row>
+                  )}
+                </Col>
 
-              </Modal.Body>
+                <Col md={2}>
+                  <Form.Select
+                    value={UNITS.includes(item.unit || 'pcs') ? (item.unit || 'pcs') : 'Other'}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (val === 'Other') {
+                        handleItemChange(idx, 'unit', 'Custom')
+                      } else {
+                        handleItemChange(idx, 'unit', val)
+                      }
+                    }}
+                    className="vpm-pur-search-input"
+                    style={{ paddingLeft: '8px' }}
+                  >
+                    {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                  </Form.Select>
+                  {(!UNITS.includes(item.unit || 'pcs') || item.unit === 'Other' || item.unit === 'Custom') && (
+                    <Form.Control
+                      placeholder="Type unit..."
+                      value={item.unit === 'Other' ? '' : item.unit}
+                      onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
+                      className="vpm-pur-search-input mt-1"
+                      style={{ paddingLeft: '8px', fontSize: '0.74rem' }}
+                    />
+                  )}
+                </Col>
 
-              <div className="p-3 bg-light-subtle d-flex justify-content-end gap-2 border-top">
-                <button type="button" className="vpm-tab-btn-pro" onClick={() => setShowPurchaseModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="vpm-btn-pur-action vpm-btn-add-pur" style={{ padding: '8px 24px' }}>
-                  Save Purchase Entry
-                </button>
-              </div>
-            </Form>
+                <Col md={2}>
+                  <Form.Control
+                    type="number" min="0" step="0.01"
+                    placeholder="Qty"
+                    value={item.qty}
+                    onChange={(e) => handleItemChange(idx, 'qty', e.target.value)}
+                    className="vpm-pur-search-input"
+                    style={{ paddingLeft: '12px', textAlign: 'center' }}
+                  />
+                </Col>
+
+                <Col md={2}>
+                  <Form.Control
+                    type="number" min="0" step="0.01"
+                    placeholder="Rate ₹"
+                    value={item.rate}
+                    onChange={(e) => handleItemChange(idx, 'rate', e.target.value)}
+                    className="vpm-pur-search-input"
+                    style={{ paddingLeft: '12px', textAlign: 'right' }}
+                  />
+                </Col>
+
+                <Col md={2} className="d-flex align-items-center gap-1">
+                  <Form.Control
+                    readOnly
+                    value={`₹${(item.amount || 0).toLocaleString('en-IN')}`}
+                    className="vpm-pur-search-input bg-light-subtle"
+                    style={{ paddingLeft: '8px', fontSize: '0.84rem', fontWeight: 800, textAlign: 'right', color: '#736EFE' }}
+                  />
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      className="vpm-act-btn vpm-act-btn-delete"
+                      style={{ flexShrink: 0 }}
+                      onClick={() => handleRemoveItemRow(idx)}
+                      title="Remove line"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </Col>
+              </Row>
+            ))}
+
+            <button
+              type="button"
+              className="vpm-btn-pur-action vpm-btn-pur-sec mt-2"
+              style={{ height: '36px', fontSize: '0.8rem' }}
+              onClick={handleAddItemRow}
+            >
+              <Plus size={14} /> Add Another Material Line
+            </button>
+
+            <Row className="g-3 mt-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-bold small">Notes / Internal Remarks</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    placeholder="Delivery notes, transport details, batch numbers..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="vpm-pur-search-input"
+                    style={{ paddingLeft: '14px', height: 'auto', paddingTop: '10px' }}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <div className="vpm-invoice-preview-box p-3 rounded-3" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : '#F8FAFC', border: '1px solid var(--pur-border)' }}>
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <span className="fw-bold small text-muted">Total Bill Amount:</span>
+                    <h4 className="fw-extrabold text-primary m-0" style={{ fontFamily: 'Inter, sans-serif' }}>₹{totalBillAmount.toLocaleString('en-IN')}</h4>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <span className="fw-bold small text-muted">Amount Paid Now (₹):</span>
+                    <Form.Control
+                      type="number" min="0" step="0.01"
+                      className="vpm-pur-search-input"
+                      style={{ width: 140, height: 38, padding: '0 12px', fontSize: '0.9rem', fontWeight: 800, textAlign: 'right' }}
+                      value={paidAmount}
+                      onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center border-top pt-2">
+                    <span className="fw-bold small text-muted">Remaining Balance (Payable):</span>
+                    <strong className="text-danger fw-extrabold" style={{ fontSize: '1.05rem', fontFamily: 'Inter, sans-serif' }}>
+                      ₹{Math.max(0, totalBillAmount - paidAmount).toLocaleString('en-IN')}
+                    </strong>
+                  </div>
+                </div>
+              </Col>
+            </Row>
+
+          </Modal.Body>
+
+          <div className="p-3 d-flex justify-content-end gap-2 border-top" style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#F8FAFC' }}>
+            <button type="button" className="vpm-btn-pur-action vpm-btn-pur-sec" onClick={() => setShowPurchaseModal(false)}>
+              Cancel
+            </button>
+            <button type="submit" className="vpm-btn-pur-action vpm-btn-add-pur" style={{ padding: '0 24px' }}>
+              Save Purchase Entry
+            </button>
+          </div>
+        </Form>
       </Modal>
 
       {/* ══════════════════════════════════════════════════════════════
