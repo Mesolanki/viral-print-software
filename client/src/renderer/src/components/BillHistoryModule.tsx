@@ -349,12 +349,26 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
                       {/* WHATSAPP SHARE */}
                       <button
                         onClick={() => {
-                          const text = `*VIRAL PRINT MEDIA - ${inv.type}*\nInvoice No: ${inv.invoice_number}\nCustomer: ${inv.customer_name}\nGrand Total: ₹${inv.grand_total}\nDate: ${inv.date}\n\nThank you for doing business with Viral Print Media!`
+                          handlePrintModal(inv)
+                          setTimeout(() => {
+                            window.print()
+                          }, 300)
                           const mob = (inv.customer_mobile || '').replace(/\D/g, '')
-                          window.open(`https://wa.me/${mob}?text=${encodeURIComponent(text)}`, '_blank')
+                          const targetMob = mob.length === 10 ? '91' + mob : mob
+                          const text = `📄 *VIRAL PRINT MEDIA - ${inv.type}*\n` +
+                            `-----------------------------------------\n` +
+                            `*Invoice No:* ${inv.invoice_number}\n` +
+                            `*Customer:* ${inv.customer_name}\n` +
+                            `*Grand Total:* ₹${inv.grand_total}\n` +
+                            `*Date:* ${inv.date}\n` +
+                            `-----------------------------------------\n` +
+                            `📎 *Invoice PDF generated & downloaded.* Please attach the downloaded PDF invoice file here.\n` +
+                            `-----------------------------------------\n` +
+                            `Thank you for doing business with Viral Print Media!`
+                          window.open(`https://wa.me/${targetMob}?text=${encodeURIComponent(text)}`, '_blank')
                         }}
                         className="action-btn action-wa"
-                        title="Share via WhatsApp"
+                        title="Download PDF & Share via WhatsApp"
                       >
                         <MessageSquare size={14} />
                       </button>

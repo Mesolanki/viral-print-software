@@ -1474,6 +1474,14 @@ Main HSN: 9983 (Printing / Advertising)`
           <button
             className="eb-btn-action eb-btn-whatsapp"
             onClick={() => {
+              // 1. Save customer & invoice and trigger PDF download / print
+              if (custName.trim()) {
+                saveCustomerToDb()
+              }
+              saveCurrentInvoiceToDb()
+              handlePrint()
+
+              // 2. Prepare WhatsApp Target Mobile & Message
               let targetMob = custMobile ? custMobile.replace(/\D/g, '') : ''
               if (!targetMob || targetMob.length < 10) {
                 const input = window.prompt('Enter customer 10-digit mobile number to send WhatsApp bill:', targetMob || '')
@@ -1489,7 +1497,7 @@ Main HSN: 9983 (Printing / Advertising)`
                 return `${i + 1}. *${it.description || 'Printing Services'}*\n   Qty: ${it.qty || 1} ${it.unit || 'pcs'} @ ₹${it.rate} = ₹${fmt(total)}`
               }).join('\n')
 
-              const text = `*VIRAL PRINT MEDIA* - *${formatTitle.toUpperCase()}*\n` +
+              const text = `📄 *VIRAL PRINT MEDIA* - *${formatTitle.toUpperCase()}*\n` +
                 `-----------------------------------------\n` +
                 `*Bill No:* ${billNo}\n` +
                 `*Date:* ${billDate}\n` +
@@ -1500,13 +1508,15 @@ Main HSN: 9983 (Printing / Advertising)`
                 `*Total Amount:* ₹${fmt(roundedGrand)}\n` +
                 (billType === 'ESTIMATE' ? `*Advance Paid:* ₹${fmt(advanceNum)}\n*Balance Due:* ₹${fmt(remainNum)}\n` : '') +
                 `-----------------------------------------\n` +
+                `📎 *Invoice PDF document generated & downloaded.* Please attach the downloaded PDF invoice file here.\n` +
+                `-----------------------------------------\n` +
                 (billType === 'ESTIMATE' ? `*PAY VIA GOOGLE PAY / BHIM UPI:*\n*UPI ID:* 9898015205@okbizaxis\n*Name:* Manoj Mehta (+91 98980 15205)\n-----------------------------------------\n` : '') +
                 `Thank you for doing business with Viral Print Media!\n` +
                 `📍 Chandkheda, Ahmedabad`
 
               window.open(`https://wa.me/${targetMob}?text=${encodeURIComponent(text)}`, '_blank')
             }}
-            title="Send Complete Bill & Payment Details via WhatsApp"
+            title="Download PDF Invoice & Send Details via WhatsApp"
           >
             <MessageCircle size={15} />
             <span>Send on WhatsApp</span>
@@ -1514,11 +1524,19 @@ Main HSN: 9983 (Printing / Advertising)`
           <button
             className="eb-btn-action eb-btn-email"
             onClick={() => {
-              const subject = `Invoice ${billNo} from Viral Print Media`
-              const body = `Dear ${custName || 'Customer'},\n\nPlease find the details for ${formatTitle} ${billNo}.\nGrand Total: ₹${roundedGrand}\n\nViral Print Media\nAhmedabad, Gujarat`
+              // 1. Save customer & invoice and trigger PDF download / print
+              if (custName.trim()) {
+                saveCustomerToDb()
+              }
+              saveCurrentInvoiceToDb()
+              handlePrint()
+
+              // 2. Prepare Email Subject & Body
+              const subject = `${formatTitle} #${billNo} - Viral Print Media`
+              const body = `Dear ${custName || 'Valued Customer'},\n\nPlease find attached the ${formatTitle} PDF document for Invoice #${billNo}.\n\nInvoice Summary:\nBill No: ${billNo}\nDate: ${billDate}\nGrand Total: ₹${fmt(roundedGrand)}\n\n📎 Note: Your Invoice PDF document has been automatically generated and downloaded. Please attach the downloaded PDF file to this email.\n\nThank you for choosing Viral Print Media!\n\nViral Print Media\n📍 Chandkheda, Ahmedabad\n📞 +91 99799 63632`
               window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
             }}
-            title="Send Invoice Summary via Email"
+            title="Download PDF Invoice & Send Summary via Email"
           >
             <Mail size={15} />
             <span>Email</span>
