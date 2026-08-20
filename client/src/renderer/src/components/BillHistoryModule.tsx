@@ -104,11 +104,28 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
   }
 
   const triggerModalDownloadPdf = async () => {
-    const element = document.getElementById('printable-bill')
-    if (!element) {
+    const sourceEl = document.getElementById('printable-bill')
+    if (!sourceEl) {
       window.print()
       return
     }
+
+    const tempWrapper = document.createElement('div')
+    tempWrapper.style.position = 'absolute'
+    tempWrapper.style.left = '-9999px'
+    tempWrapper.style.top = '0px'
+    tempWrapper.style.width = '794px'
+    tempWrapper.style.background = '#ffffff'
+    tempWrapper.style.zIndex = '-99999'
+
+    const clone = sourceEl.cloneNode(true) as HTMLElement
+    clone.style.transform = 'none'
+    clone.style.margin = '0'
+    clone.style.boxShadow = 'none'
+    clone.style.width = '794px'
+
+    tempWrapper.appendChild(clone)
+    document.body.appendChild(tempWrapper)
 
     try {
       const cleanCustName = (previewInvoice?.customer_name || 'Customer').replace(/[^a-zA-Z0-9]/g, '_')
@@ -122,10 +139,14 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
       }
 
-      await html2pdf().set(opt).from(element).save()
+      await html2pdf().set(opt).from(clone).save()
     } catch (e: any) {
       console.warn('html2pdf generation error, using fallback:', e)
       window.print()
+    } finally {
+      if (document.body.contains(tempWrapper)) {
+        document.body.removeChild(tempWrapper)
+      }
     }
   }
 

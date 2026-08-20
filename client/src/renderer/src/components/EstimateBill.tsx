@@ -871,13 +871,31 @@ Main HSN: 9983 (Printing / Advertising)`
     }
     saveCurrentInvoiceToDb()
 
-    const element = document.getElementById('printable-bill')
-    if (!element) {
+    const sourceEl = document.getElementById('printable-bill')
+    if (!sourceEl) {
       window.print()
       return
     }
 
-    setSaveInvoiceMsg('⏳ Generating & Downloading PDF Document...')
+    setSaveInvoiceMsg('⏳ Generating & Downloading Invoice PDF...')
+
+    // Create a clean un-scaled offscreen wrapper for 100% accurate A4 PDF rendering
+    const tempWrapper = document.createElement('div')
+    tempWrapper.style.position = 'absolute'
+    tempWrapper.style.left = '-9999px'
+    tempWrapper.style.top = '0px'
+    tempWrapper.style.width = '794px' // Standard A4 width at 96 DPI
+    tempWrapper.style.background = '#ffffff'
+    tempWrapper.style.zIndex = '-99999'
+
+    const clone = sourceEl.cloneNode(true) as HTMLElement
+    clone.style.transform = 'none'
+    clone.style.margin = '0'
+    clone.style.boxShadow = 'none'
+    clone.style.width = '794px'
+
+    tempWrapper.appendChild(clone)
+    document.body.appendChild(tempWrapper)
 
     try {
       const cleanCustName = (custName || 'Customer').replace(/[^a-zA-Z0-9]/g, '_')
@@ -891,13 +909,17 @@ Main HSN: 9983 (Printing / Advertising)`
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
       }
 
-      await html2pdf().set(opt).from(element).save()
+      await html2pdf().set(opt).from(clone).save()
 
       setSaveInvoiceMsg(`✅ Invoice PDF (${fileName}) downloaded!`)
       setTimeout(() => setSaveInvoiceMsg(null), 3500)
     } catch (e: any) {
       console.warn('html2pdf generation error, using fallback:', e)
       window.print()
+    } finally {
+      if (document.body.contains(tempWrapper)) {
+        document.body.removeChild(tempWrapper)
+      }
     }
   }, [custName, billType, billNo, saveCustomerToDb, saveCurrentInvoiceToDb])
 
@@ -1519,12 +1541,9 @@ Main HSN: 9983 (Printing / Advertising)`
           </button>
           <button
             className="eb-btn-action eb-btn-whatsapp"
-            onClick={() => {
-              // 1. Save customer & invoice quietly to DB
-              if (custName.trim()) {
-                saveCustomerToDb()
-              }
-              saveCurrentInvoiceToDb()
+            onClick={async () => {
+              // 1. Auto-download PDF invoice document
+              await handleDownloadPdf()
 
               // 2. Prepare WhatsApp Target Mobile & Message
               let targetMob = custMobile ? custMobile.replace(/\D/g, '') : ''
@@ -1553,32 +1572,31 @@ Main HSN: 9983 (Printing / Advertising)`
                 `*Total Amount:* ₹${fmt(roundedGrand)}\n` +
                 (billType === 'ESTIMATE' ? `*Advance Paid:* ₹${fmt(advanceNum)}\n*Balance Due:* ₹${fmt(remainNum)}\n` : '') +
                 `-----------------------------------------\n` +
+                `📎 *Invoice PDF generated & downloaded to your device.* Please attach the downloaded PDF invoice file here.\n` +
+                `-----------------------------------------\n` +
                 (billType === 'ESTIMATE' ? `*PAY VIA GOOGLE PAY / BHIM UPI:*\n*UPI ID:* 9898015205@okbizaxis\n*Name:* Manoj Mehta (+91 98980 15205)\n-----------------------------------------\n` : '') +
                 `Thank you for doing business with Viral Print Media!\n` +
                 `📍 Chandkheda, Ahmedabad`
 
               window.open(`https://wa.me/${targetMob}?text=${encodeURIComponent(text)}`, '_blank')
             }}
-            title="Send Complete Bill & Payment Details via WhatsApp"
+            title="Download PDF Invoice & Send Details via WhatsApp"
           >
             <MessageCircle size={15} />
             <span>Send on WhatsApp</span>
           </button>
           <button
             className="eb-btn-action eb-btn-email"
-            onClick={() => {
-              // 1. Save customer & invoice quietly to DB
-              if (custName.trim()) {
-                saveCustomerToDb()
-              }
-              saveCurrentInvoiceToDb()
+            onClick={async () => {
+              // 1. Auto-download PDF invoice document
+              await handleDownloadPdf()
 
               // 2. Prepare Email Subject & Body
               const subject = `${formatTitle} #${billNo} - Viral Print Media`
-              const body = `Dear ${custName || 'Valued Customer'},\n\nPlease find the invoice summary for ${formatTitle} #${billNo}.\n\nInvoice Summary:\nBill No: ${billNo}\nDate: ${billDate}\nGrand Total: ₹${fmt(roundedGrand)}\n\nThank you for choosing Viral Print Media!\n\nViral Print Media\n📍 Chandkheda, Ahmedabad\n📞 +91 99799 63632`
+              const body = `Dear ${custName || 'Valued Customer'},\n\nPlease find attached the ${formatTitle} PDF document for Invoice #${billNo}.\n\nInvoice Summary:\nBill No: ${billNo}\nDate: ${billDate}\nGrand Total: ₹${fmt(roundedGrand)}\n\n📎 Note: Your Invoice PDF document has been automatically generated and downloaded. Please attach the downloaded PDF file to this email.\n\nThank you for choosing Viral Print Media!\n\nViral Print Media\n📍 Chandkheda, Ahmedabad\n📞 +91 99799 63632`
               window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
             }}
-            title="Send Invoice Summary via Email"
+            title="Download PDF Invoice & Send Summary via Email"
           >
             <Mail size={15} />
             <span>Email</span>
