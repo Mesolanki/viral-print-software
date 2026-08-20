@@ -935,7 +935,7 @@ export const PurchaseManagement: React.FC<PurchaseManagementProps> = ({ theme })
 
                       {/* Product Catalog Autocomplete Menu */}
                       {activeSearchRowIndex === idx && getProductMatches(item.product_name).length > 0 && (
-                        <div className="eb-product-autocomplete-menu" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1050 }}>
+                        <div className="eb-product-autocomplete-menu" style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 1050 }}>
                           <div className="eb-product-autocomplete-header">
                             <span>Catalog Suggestions</span>
                           </div>
@@ -948,11 +948,15 @@ export const PurchaseManagement: React.FC<PurchaseManagementProps> = ({ theme })
                                 selectProductForPurchaseRow(idx, p)
                               }}
                             >
-                              <div>
-                                <strong className="eb-product-title">{p.name}</strong>
-                                <span className="eb-product-meta" style={{ display: 'block', fontSize: '0.7rem' }}>{p.category || 'Product'}</span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div className="eb-product-title">
+                                  <span className="eb-product-title-text" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                                </div>
+                                <div className="eb-product-meta">
+                                  <span className="eb-product-hsn-tag">{p.category || 'Product'}</span>
+                                </div>
                               </div>
-                              <span className="eb-product-price-tag">₹{p.price}</span>
+                              <span className="eb-product-price-tag">₹{p.price}{p.unit ? <span className="eb-price-unit"> / {p.unit}</span> : ''}</span>
                             </div>
                           ))}
                         </div>

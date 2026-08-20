@@ -1221,6 +1221,7 @@ Main HSN: 9983 (Printing / Advertising)`
                     const { total } = calcRow(item)
                     const matches = getProductMatches(item.description)
                     const showDropdown = activeInlineSearchId === item.id && matches.length > 0
+                    const openUpward = idx >= 1
 
                     return (
                       <tr key={item.id} style={{ position: 'relative', zIndex: showDropdown ? 1000 : 1 }}>
@@ -1245,10 +1246,24 @@ Main HSN: 9983 (Printing / Advertising)`
 
                           {/* Autocomplete Dropdown */}
                           {showDropdown && (
-                            <div className="eb-product-autocomplete-menu" style={{ position: 'absolute', top: '100%', left: 0, minWidth: 320, zIndex: 99999, boxShadow: '0 14px 40px rgba(0,0,0,0.3)', background: isDark ? '#0f172a' : '#ffffff' }}>
+                            <div
+                              className="eb-product-autocomplete-menu"
+                              style={{
+                                position: 'absolute',
+                                ...(openUpward
+                                  ? { bottom: 'calc(100% + 6px)', top: 'auto' }
+                                  : { top: 'calc(100% + 4px)', bottom: 'auto' }),
+                                left: -38,
+                                minWidth: 460,
+                                maxWidth: 520,
+                                zIndex: 999999,
+                                boxShadow: '0 20px 50px rgba(0,0,0,0.35), 0 0 0 1.5px rgba(115,110,254,0.4)',
+                                background: isDark ? '#0f172a' : '#ffffff'
+                              }}
+                            >
                               <div className="eb-product-autocomplete-header">
                                 <span><Package size={11} style={{ display: 'inline', marginRight: 4 }} /> Catalog Suggestions</span>
-                                <span style={{ fontSize: '0.6rem', opacity: 0.85 }}>↑ ↓ · Enter</span>
+                                <span style={{ fontSize: '0.62rem', opacity: 0.85 }}>↑ ↓ · Enter</span>
                               </div>
                               {matches.map((p, pIdx) => {
                                 const isSelected = activeItemSearchIndex === pIdx
@@ -1265,19 +1280,18 @@ Main HSN: 9983 (Printing / Advertising)`
                                   >
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                       <div className="eb-product-title">
-                                        <Package size={12} style={{ color: '#736efe', flexShrink: 0 }} />
-                                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                                        <Package size={13} style={{ color: '#736efe', flexShrink: 0 }} />
+                                        <span className="eb-product-title-text" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
                                       </div>
                                       <div className="eb-product-meta">
-                                        {p.unit && <span style={{ marginRight: 6 }}>{p.unit}</span>}
-                                        <span style={{ color: '#736efe', fontWeight: 600, marginRight: 6 }}>HSN: {hsnVal}</span>
+                                        <span className="eb-product-hsn-tag">HSN: {hsnVal}</span>
                                         {billType !== 'ESTIMATE' && p.gst_rate !== undefined && (
-                                          <span style={{ color: '#10B981', fontWeight: 700 }}>{p.gst_rate}% GST</span>
+                                          <span className="eb-product-gst-tag">{p.gst_rate}% GST</span>
                                         )}
                                       </div>
                                     </div>
-                                    <div className="eb-product-price-tag" style={{ fontSize: '0.78rem' }}>
-                                      ₹{p.price}
+                                    <div className="eb-product-price-tag">
+                                      ₹{p.price}{p.unit ? <span className="eb-price-unit"> / {p.unit}</span> : ''}
                                     </div>
                                   </div>
                                 )
@@ -2038,18 +2052,18 @@ Main HSN: 9983 (Printing / Advertising)`
                                     >
                                       <div style={{ flex: 1, minWidth: 0 }}>
                                         <div className="eb-product-title">
-                                          <Package size={12} style={{ color: '#736efe', flexShrink: 0 }} />
-                                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                                          <Package size={13} style={{ color: '#736efe', flexShrink: 0 }} />
+                                          <span className="eb-product-title-text" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
                                         </div>
                                         <div className="eb-product-meta">
-                                          <span>HSN: {hsnVal}</span>
+                                          <span className="eb-product-hsn-tag">HSN: {hsnVal}</span>
                                           {billType !== 'ESTIMATE' && p.gst_rate !== undefined && (
-                                            <span style={{ color: '#10B981', fontWeight: 700, marginLeft: 6 }}>{p.gst_rate}% GST</span>
+                                            <span className="eb-product-gst-tag">{p.gst_rate}% GST</span>
                                           )}
                                         </div>
                                       </div>
                                       <div className="eb-product-price-tag">
-                                        ₹{p.price} / {p.unit || 'pcs'}
+                                        ₹{p.price}{p.unit ? <span className="eb-price-unit"> / {p.unit}</span> : ''}
                                       </div>
                                     </div>
                                   )
