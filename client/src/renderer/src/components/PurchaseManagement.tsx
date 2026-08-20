@@ -872,12 +872,13 @@ export const PurchaseManagement: React.FC<PurchaseManagementProps> = ({ theme })
 
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small">Supplier Mobile No.</Form.Label>
+                  <Form.Label className="fw-bold small">Supplier Mobile No. (10 Digits)</Form.Label>
                   <Form.Control
-                    type="text"
-                    placeholder="9XXXXXXXXX"
+                    type="tel"
+                    maxLength={10}
+                    placeholder="10-digit mobile number"
                     value={supplierMobile}
-                    onChange={(e) => setSupplierMobile(e.target.value)}
+                    onChange={(e) => setSupplierMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     className="vpm-pur-search-input"
                     style={{ paddingLeft: '14px' }}
                   />
@@ -1227,13 +1228,17 @@ export const PurchaseManagement: React.FC<PurchaseManagementProps> = ({ theme })
 
                   <Col md={6}>
                     <Form.Group>
-                      <Form.Label className="fw-bold small">Mobile Number *</Form.Label>
+                      <Form.Label className="fw-bold small">Mobile Number (10 Digits) *</Form.Label>
                       <Form.Control
                         required
-                        type="text"
-                        placeholder="Enter contact mobile number"
+                        type="tel"
+                        maxLength={10}
+                        placeholder="Enter 10-digit mobile number"
                         value={supplierForm.mobile || ''}
-                        onChange={(e) => setSupplierForm(prev => ({ ...prev, mobile: e.target.value }))}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '').slice(0, 10)
+                          setSupplierForm(prev => ({ ...prev, mobile: val }))
+                        }}
                         className="vpm-pur-search-input"
                         style={{ paddingLeft: '14px' }}
                       />

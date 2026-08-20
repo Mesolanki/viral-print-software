@@ -279,13 +279,14 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
                   </Col>
                   <Col md={6}>
                     <Form.Group>
-                      <Form.Label className="fw-bold small">Contact Mobile Number *</Form.Label>
+                      <Form.Label className="fw-bold small">Contact Mobile Number (10 Digits) *</Form.Label>
                       <Form.Control
                         required
-                        type="text"
-                        placeholder="Enter mobile number"
+                        type="tel"
+                        maxLength={10}
+                        placeholder="10-digit mobile number"
                         value={editingCustomer?.mobile || ''}
-                        onChange={(e) => setEditingCustomer((prev) => ({ ...prev, mobile: e.target.value }))}
+                        onChange={(e) => setEditingCustomer((prev) => ({ ...prev, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
                         className="vpm-cust-search-input"
                         style={{ paddingLeft: '14px' }}
                       />

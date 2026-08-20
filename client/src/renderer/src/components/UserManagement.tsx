@@ -1104,6 +1104,21 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
                         />
                       </Form.Group>
 
+                      {/* CONTACT PHONE NUMBER */}
+                      <Form.Group>
+                        <Form.Label className="vpm-input-label fs-8 fw-bold text-uppercase">
+                          CONTACT PHONE NUMBER (10 DIGITS)
+                        </Form.Label>
+                        <Form.Control
+                          type="tel"
+                          maxLength={10}
+                          placeholder="e.g. 9876543210"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          className={`vpm-control-input ${isDark ? 'input-dark' : 'input-light'}`}
+                        />
+                      </Form.Group>
+
                       {/* NEW PASSWORD */}
                       <Form.Group>
                         <div className="d-flex justify-content-between align-items-center mb-1">

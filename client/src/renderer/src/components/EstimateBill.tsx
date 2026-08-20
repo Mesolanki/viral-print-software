@@ -1154,11 +1154,13 @@ Main HSN: 9983 (Printing / Advertising)`
                 />
               </div>
               <div className="eb-field" style={{ flex: 1 }}>
-                <label>Mobile No.</label>
+                <label>Mobile No. (10 Digits)</label>
                 <input
-                  placeholder="9XXXXXXXXX"
+                  type="tel"
+                  maxLength={10}
+                  placeholder="10-digit Mobile No."
                   value={custMobile}
-                  onChange={e => setCustMobile(e.target.value)}
+                  onChange={e => setCustMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                 />
               </div>
             </div>
