@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Row, Col, Card, Button, Table, Badge, Form, InputGroup } from 'react-bootstrap'
+import { Row, Col, Button, Badge, Form } from 'react-bootstrap'
 import {
   Truck,
   Search,
@@ -8,9 +8,11 @@ import {
   ExternalLink,
   ShieldCheck,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  FileSpreadsheet
 } from 'lucide-react'
 import { DataService, Invoice } from '../services/dataService'
+import './EwayBillModule.css'
 
 interface EwayBillModuleProps {
   theme: 'dark' | 'light'
@@ -244,154 +246,162 @@ export const EwayBillModule: React.FC<EwayBillModuleProps> = ({ theme }) => {
   )
 
   return (
-    <div className="vpm-eway-module">
-      {/* ── Header ───────────────────────────────────────────── */}
-      <Card className={`border-0 shadow-sm rounded-4 mb-4 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-        <Card.Body className="p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-          <div>
-            <div className="d-flex align-items-center gap-2 mb-1">
-              <Truck className="text-primary" size={24} />
-              <h4 className="fw-bold m-0">Govt GST E-Way Bill Management</h4>
-              <Badge bg="success" className="px-2 py-1">Govt NIC v1.0.0421</Badge>
+    <div className={`vpm-eway-module p-3 p-md-4 ${isDark ? 'theme-dark' : 'theme-light'}`}>
+      {/* ── 1. Hero Header Banner ──────────────────────────────────── */}
+      <div className="vpm-eway-hero mb-4">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          <div className="d-flex align-items-center gap-3">
+            <div className="rounded-3 p-2 bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style={{ width: 44, height: 44 }}>
+              <Truck size={24} />
             </div>
-            <p className="text-muted small m-0">
-              Generate, download, and export official E-Way Bill JSON files for direct upload to ewaybillgst.gov.in
-            </p>
+            <div>
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <h3 className="vpm-eway-hero-title m-0">Govt GST E-Way Bill Management</h3>
+                <Badge bg="success" className="px-2 py-1">Govt NIC v1.0.0421</Badge>
+              </div>
+              <p className="vpm-eway-subtitle m-0">
+                Generate, download, and export official E-Way Bill JSON files for direct upload to ewaybillgst.gov.in
+              </p>
+            </div>
           </div>
 
-          <div className="d-flex gap-2">
+          <div>
             <Button
-              variant="outline-success"
-              className="fw-bold rounded-3 d-flex align-items-center gap-2"
+              className="vpm-btn-secondary-action d-flex align-items-center gap-2"
               onClick={() => window.open('https://ewaybillgst.gov.in', '_blank')}
             >
               <ExternalLink size={16} /> Open ewaybillgst.gov.in
             </Button>
           </div>
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
 
-      {/* ── Main Layout (Left: Form Generator, Right: Bills List) ── */}
+      {/* ── 2. Main Grid Layout ────────────────────────────────────── */}
       <Row className="g-4">
         {/* Left Column: Generator Form & Payload Exporter */}
         <Col lg={7}>
-          <Card className={`border-0 shadow-sm rounded-4 mb-4 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-            <Card.Header className={`p-3 border-0 bg-transparent fw-bold d-flex justify-content-between align-items-center`}>
+          <div className="vpm-eway-card mb-4">
+            <div className="vpm-eway-card-header">
               <span className="d-flex align-items-center gap-2">
                 <ShieldCheck size={18} className="text-primary" />
                 E-Way Transport Entry & JSON Payload Exporter
               </span>
               {selectedInvoice && (
-                <Badge bg="primary" className="font-monospace">
+                <Badge bg="primary" className="font-monospace px-2 py-1">
                   {selectedInvoice.invoice_number}
                 </Badge>
               )}
-            </Card.Header>
+            </div>
 
-            <Card.Body className="p-4">
+            <div className="p-4">
               {selectedInvoice ? (
                 <div>
                   {/* Notice Banner */}
-                  <div className="p-3 rounded-3 mb-3 bg-light border border-info-subtle small d-flex align-items-center gap-2">
-                    <AlertCircle size={16} className="text-info flex-shrink-0" />
+                  <div className="vpm-eway-notice-banner mb-4">
+                    <AlertCircle size={18} className="flex-shrink-0" />
                     <span>
                       Mandatory for movement of goods above ₹50,000 under GST Law.
                     </span>
                   </div>
 
-                  <Row className="g-3 mb-3">
+                  <Row className="g-3 mb-4">
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label className="fw-bold small">Supplier GSTIN (From)</Form.Label>
-                        <Form.Control value={company.gstNo} disabled className="bg-light fw-bold" />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group>
-                        <Form.Label className="fw-bold small">Recipient GSTIN (To)</Form.Label>
-                        <Form.Control value={selectedInvoice.customer_gstin || 'URP (Unregistered)'} disabled className="bg-light fw-bold" />
+                        <Form.Label className="vpm-eway-label">Supplier GSTIN (From)</Form.Label>
+                        <Form.Control value={company.gstNo} disabled className="vpm-eway-input vpm-eway-input-disabled fw-bold" />
                       </Form.Group>
                     </Col>
 
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label className="fw-bold small">Customer Name</Form.Label>
-                        <Form.Control value={selectedInvoice.customer_name} disabled className="bg-light" />
+                        <Form.Label className="vpm-eway-label">Recipient GSTIN (To)</Form.Label>
+                        <Form.Control value={selectedInvoice.customer_gstin || 'URP (Unregistered)'} disabled className="vpm-eway-input vpm-eway-input-disabled fw-bold" />
                       </Form.Group>
                     </Col>
 
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label className="fw-bold small">Invoice Total Amount</Form.Label>
-                        <Form.Control value={`₹${selectedInvoice.grand_total.toLocaleString('en-IN')}`} disabled className="bg-light fw-bold text-success" />
+                        <Form.Label className="vpm-eway-label">Customer Name</Form.Label>
+                        <Form.Control value={selectedInvoice.customer_name} disabled className="vpm-eway-input vpm-eway-input-disabled" />
                       </Form.Group>
                     </Col>
 
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label className="fw-bold small">Dispatch Pincode (From)</Form.Label>
+                        <Form.Label className="vpm-eway-label">Invoice Total Amount</Form.Label>
+                        <Form.Control value={`₹${selectedInvoice.grand_total.toLocaleString('en-IN')}`} disabled className="vpm-eway-input vpm-eway-input-disabled vpm-eway-input-amount" />
+                      </Form.Group>
+                    </Col>
+
+                    <Col md={6}>
+                      <Form.Group>
+                        <Form.Label className="vpm-eway-label">Dispatch Pincode (From)</Form.Label>
                         <Form.Control
                           value={fromPincode}
                           onChange={(e) => setFromPincode(e.target.value)}
                           placeholder="e.g. 382424"
+                          className="vpm-eway-input"
                         />
                       </Form.Group>
                     </Col>
 
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label className="fw-bold small">Destination Pincode (To)</Form.Label>
+                        <Form.Label className="vpm-eway-label">Destination Pincode (To)</Form.Label>
                         <Form.Control
                           value={toPincode}
                           onChange={(e) => setToPincode(e.target.value)}
                           placeholder="e.g. 380054"
+                          className="vpm-eway-input"
                         />
                       </Form.Group>
                     </Col>
 
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label className="fw-bold small">Vehicle Number</Form.Label>
+                        <Form.Label className="vpm-eway-label">Vehicle Number</Form.Label>
                         <Form.Control
                           value={vehicleNo}
                           onChange={(e) => setVehicleNo(e.target.value.toUpperCase())}
                           placeholder="e.g. GJ01AB1234"
-                          className="fw-bold text-uppercase"
+                          className="vpm-eway-input text-uppercase font-monospace"
                         />
                       </Form.Group>
                     </Col>
 
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label className="fw-bold small">Approx Distance (Km)</Form.Label>
+                        <Form.Label className="vpm-eway-label">Approx Distance (Km)</Form.Label>
                         <Form.Control
                           type="number"
                           value={distanceKm}
                           onChange={(e) => setDistanceKm(e.target.value)}
                           placeholder="e.g. 25"
+                          className="vpm-eway-input"
                         />
                       </Form.Group>
                     </Col>
 
                     <Col md={12}>
                       <Form.Group>
-                        <Form.Label className="fw-bold small">Transporter Name / ID</Form.Label>
+                        <Form.Label className="vpm-eway-label">Transporter Name / ID</Form.Label>
                         <Form.Control
                           value={transporter}
                           onChange={(e) => setTransporter(e.target.value)}
                           placeholder="e.g. Gujarat Logistics"
+                          className="vpm-eway-input"
                         />
                       </Form.Group>
                     </Col>
 
                     <Col md={12}>
                       <Form.Group>
-                        <Form.Label className="fw-bold small">Government 12-Digit E-Way Bill No.</Form.Label>
+                        <Form.Label className="vpm-eway-label">Government 12-Digit E-Way Bill No.</Form.Label>
                         <Form.Control
                           value={ewayNo}
                           onChange={(e) => setEwayNo(e.target.value)}
                           placeholder="Enter 12-digit number once generated on Govt portal"
-                          className="fw-bold font-monospace"
+                          className="vpm-eway-input font-monospace"
                           maxLength={12}
                         />
                       </Form.Group>
@@ -399,18 +409,18 @@ export const EwayBillModule: React.FC<EwayBillModuleProps> = ({ theme }) => {
                   </Row>
 
                   {/* Actions Row */}
-                  <div className="d-flex flex-wrap gap-2 justify-content-end pt-2 border-top">
-                    <Button variant="outline-secondary" className="fw-bold d-flex align-items-center gap-1" onClick={saveEwayDetails}>
+                  <div className="d-flex flex-wrap gap-2 justify-content-end pt-3 border-top border-opacity-10">
+                    <Button className="vpm-btn-secondary-action d-flex align-items-center gap-1" onClick={saveEwayDetails}>
                       <CheckCircle2 size={16} /> Save Details
                     </Button>
-                    <Button variant="outline-primary" className="fw-bold d-flex align-items-center gap-1" onClick={copyGovtJson}>
+                    <Button className="vpm-btn-secondary-action d-flex align-items-center gap-1" onClick={copyGovtJson}>
                       <Copy size={16} /> {copiedMsg ? 'Copied NIC JSON!' : 'Copy NIC JSON'}
                     </Button>
-                    <Button variant="outline-success" className="fw-bold d-flex align-items-center gap-1" onClick={downloadGovtExcelSheet} title="Export Excel sheet compatible with EWB_Preparation_Tool_08122025.xlsm">
-                      Export EWB Excel Sheet (.xlsx)
+                    <Button className="vpm-btn-secondary-action d-flex align-items-center gap-1 text-success" onClick={downloadGovtExcelSheet} title="Export Excel sheet compatible with EWB_Preparation_Tool_08122025.xlsm">
+                      <FileSpreadsheet size={16} /> Export Excel (.xlsx)
                     </Button>
-                    <Button variant="success" className="fw-bold d-flex align-items-center gap-2" onClick={downloadGovtJson}>
-                      <FileDown size={18} /> Download Govt JSON (.json)
+                    <Button className="vpm-btn-primary-action d-flex align-items-center gap-2" onClick={downloadGovtJson}>
+                      <FileDown size={18} /> Download Govt JSON
                     </Button>
                   </div>
                 </div>
@@ -419,67 +429,58 @@ export const EwayBillModule: React.FC<EwayBillModuleProps> = ({ theme }) => {
                   Select an invoice from the right table to generate E-Way bill details.
                 </div>
               )}
-            </Card.Body>
-          </Card>
+            </div>
+          </div>
         </Col>
 
         {/* Right Column: Invoices & E-Way Bills List */}
         <Col lg={5}>
-          <Card className={`border-0 shadow-sm rounded-4 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-            <Card.Header className="p-3 border-0 bg-transparent fw-bold d-flex justify-content-between align-items-center">
+          <div className="vpm-eway-card">
+            <div className="vpm-eway-card-header">
               <span>Tax Invoices for E-Way Generation</span>
-              <Badge bg="secondary">{filteredInvoices.length}</Badge>
-            </Card.Header>
+              <Badge bg="secondary" className="px-2 py-1">{filteredInvoices.length}</Badge>
+            </div>
 
-            <Card.Body className="p-3">
-              <InputGroup className="mb-3">
-                <InputGroup.Text className={isDark ? 'bg-slate-800 border-slate-700 text-white' : ''}>
-                  <Search size={16} />
-                </InputGroup.Text>
+            <div className="p-3">
+              <div className="position-relative mb-3">
+                <Search size={16} style={{ position: 'absolute', left: 14, top: 13, color: '#94a3b8', zIndex: 5 }} />
                 <Form.Control
                   placeholder="Search invoice # or customer..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={isDark ? 'bg-slate-800 border-slate-700 text-white' : ''}
+                  className="vpm-eway-search-input"
                 />
-              </InputGroup>
+              </div>
 
               <div style={{ maxHeight: '520px', overflowY: 'auto' }}>
-                <Table hover className={`align-middle m-0 ${isDark ? 'table-dark' : ''}`}>
-                  <tbody>
-                    {filteredInvoices.map((inv) => {
-                      const isSelected = selectedInvoice?.id === inv.id
-                      return (
-                        <tr
-                          key={inv.id}
-                          style={{ cursor: 'pointer' }}
-                          className={isSelected ? 'table-primary' : ''}
-                          onClick={() => handleSelectInvoice(inv)}
-                        >
-                          <td>
-                            <div className="d-flex flex-column">
-                              <span className="fw-bold">{inv.invoice_number}</span>
-                              <span className="small text-muted">{inv.customer_name}</span>
-                            </div>
-                          </td>
-                          <td className="text-end">
-                            <span className="fw-bold text-success d-block">
-                              ₹{inv.grand_total.toLocaleString('en-IN')}
-                            </span>
-                            {inv.eway_bill_no ? (
-                              <Badge bg="success" className="small">E-Way: {inv.eway_bill_no}</Badge>
-                            ) : (
-                              <Badge bg="warning" text="dark" className="small">Ready to Export</Badge>
-                            )}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </Table>
+                {filteredInvoices.map((inv) => {
+                  const isSelected = selectedInvoice?.id === inv.id
+                  return (
+                    <div
+                      key={inv.id}
+                      className={`vpm-invoice-item ${isSelected ? 'active' : ''}`}
+                      onClick={() => handleSelectInvoice(inv)}
+                    >
+                      <div>
+                        <div className="vpm-invoice-no">{inv.invoice_number}</div>
+                        <div className="vpm-invoice-customer">{inv.customer_name}</div>
+                      </div>
+                      <div className="text-end">
+                        <div className="vpm-invoice-amount mb-1">
+                          ₹{inv.grand_total.toLocaleString('en-IN')}
+                        </div>
+                        {inv.eway_bill_no ? (
+                          <Badge bg="success" className="px-2 py-1">E-Way: {inv.eway_bill_no}</Badge>
+                        ) : (
+                          <Badge bg="warning" text="dark" className="px-2 py-1">Ready to Export</Badge>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-            </Card.Body>
-          </Card>
+            </div>
+          </div>
         </Col>
       </Row>
     </div>
@@ -487,3 +488,4 @@ export const EwayBillModule: React.FC<EwayBillModuleProps> = ({ theme }) => {
 }
 
 export default EwayBillModule
+

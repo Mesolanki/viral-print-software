@@ -652,53 +652,66 @@
 }
 
 .vpm-modal-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--eb-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(115,110,254,0.08) 0%, rgba(0,210,255,0.05) 100%);
+  padding: 18px 24px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  background: linear-gradient(135deg, #736EFE 0%, #00D2FF 100%) !important;
+  color: #FFFFFF !important;
   position: relative;
-}
-.vpm-modal-header::after {
-  content: '';
-  position: absolute;
-  bottom: -1px; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(115,110,254,0.4), rgba(0,210,255,0.3), transparent);
-}
-.theme-dark .vpm-modal-header {
-  border-bottom-color: var(--eb-border);
-  background: linear-gradient(135deg, rgba(115,110,254,0.12) 0%, rgba(0,210,255,0.06) 100%);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 
-.vpm-modal-title {
-  font-size: 0.95rem;
+.theme-dark .vpm-modal-header {
+  border-bottom-color: rgba(255, 255, 255, 0.15) !important;
+  background: linear-gradient(135deg, #736EFE 0%, #00D2FF 100%) !important;
+}
+
+.vpm-modal-title,
+.vpm-modal-header .vpm-modal-title {
+  font-size: 0.98rem;
   font-weight: 800;
-  color: #1E293B;
+  color: #FFFFFF !important;
   display: flex;
   align-items: center;
   gap: 8px;
   letter-spacing: 0.2px;
 }
-.theme-dark .vpm-modal-title { color: #F8FAFC; }
+
+.vpm-modal-title *,
+.vpm-modal-header *,
+.theme-dark .vpm-modal-title {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
 
 .vpm-modal-close-btn {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: none !important;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #94A3B8;
+  color: #FFFFFF !important;
   cursor: pointer;
-  padding: 5px 9px;
-  border-radius: var(--eb-radius-xs);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
   transition: all 0.2s ease;
   line-height: 1;
 }
+
+.vpm-modal-close-btn * {
+  color: #FFFFFF !important;
+}
+
 .vpm-modal-close-btn:hover {
-  background: rgba(239,68,68,0.1);
-  color: #EF4444;
-  transform: scale(1.1) rotate(5deg);
+  background: rgba(255, 255, 255, 0.35) !important;
+  color: #FFFFFF !important;
+  transform: scale(1.05);
 }
 
 .vpm-modal-body {

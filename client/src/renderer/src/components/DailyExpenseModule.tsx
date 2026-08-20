@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Row, Col, Card, Button, Table, Badge, Form, InputGroup, Modal } from 'react-bootstrap'
+import { Row, Col, Button, Form, Modal } from 'react-bootstrap'
 import {
   TrendingUp,
   TrendingDown,
@@ -11,10 +11,13 @@ import {
   DollarSign,
   Coffee,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Receipt,
+  Sparkles
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { DataService, type DailyTransaction } from '../services/dataService'
+import './DailyExpenseModule.css'
 
 interface DailyExpenseModuleProps {
   theme: 'dark' | 'light'
@@ -178,307 +181,328 @@ export const DailyExpenseModule: React.FC<DailyExpenseModuleProps> = ({ theme })
   }
 
   return (
-    <div className="vpm-daily-expense-module p-3">
+    <div className={`vpm-daily-expense-module p-3 p-md-4 ${isDark ? 'theme-dark' : 'theme-light'}`}>
       
-      {/* ── Header Bar ───────────────────────────────────────────── */}
-      <Card className={`border-0 shadow-sm rounded-4 mb-4 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-        <Card.Body className="p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-          <div>
-            <div className="d-flex align-items-center gap-2 mb-1">
-              <DollarSign className="text-primary" size={24} />
-              <h4 className="fw-bold m-0">Daily Small Income & Expense Loss Tracker</h4>
-              <Badge bg="primary" className="px-2 py-1">Counter Petty Cash</Badge>
+      {/* ── 1. PRO HERO BANNER ───────────────────────────────────────── */}
+      <div className="vpm-expense-hero mb-4">
+        <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+          <div className="d-flex align-items-start gap-3">
+            <div className="vpm-hero-icon-wrapper mt-1">
+              <DollarSign size={22} />
             </div>
-            <p className="text-muted small m-0">
-              Track daily small cash incomes, paper wastage losses, tea/snacks, ink refills, and net daily shop profit
-            </p>
+            <div>
+              <div className="d-flex align-items-center flex-wrap gap-2 mb-1">
+                <h3 className="vpm-hero-title m-0">Daily Small Income & Expense Loss Tracker</h3>
+                <span className="vpm-badge-petty">Counter Petty Cash</span>
+              </div>
+              <p className="vpm-hero-subtitle m-0">
+                Track counter cash incomes, paper wastage losses, refreshments, refills, and net daily shop margin
+              </p>
+            </div>
           </div>
 
-          <div className="d-flex flex-wrap gap-2">
+          <div className="vpm-hero-action-group">
             <Button
-              variant="success"
-              className="fw-bold rounded-3 d-flex align-items-center gap-2"
+              className="vpm-btn-add-income d-flex align-items-center gap-2"
               onClick={() => openAddModal('INCOME')}
             >
-              <Plus size={16} /> + Add Daily Income
+              <Plus size={16} /> Add Daily Income
             </Button>
             <Button
-              variant="danger"
-              className="fw-bold rounded-3 d-flex align-items-center gap-2"
+              className="vpm-btn-record-expense d-flex align-items-center gap-2"
               onClick={() => openAddModal('EXPENSE')}
             >
-              <Plus size={16} /> + Record Expense / Loss
+              <Plus size={16} /> Record Expense / Loss
             </Button>
             <Button
-              variant="outline-success"
-              className="fw-bold rounded-3 d-flex align-items-center gap-2"
+              className="vpm-btn-hero-glass d-flex align-items-center gap-2"
               onClick={exportToExcel}
             >
               <FileSpreadsheet size={16} /> Export Excel
             </Button>
             <Button
-              variant="outline-secondary"
-              className="fw-bold rounded-3 d-flex align-items-center gap-2"
+              className="vpm-btn-hero-glass d-flex align-items-center gap-2"
               onClick={handlePrint}
             >
-              <Printer size={16} /> Print Report
+              <Printer size={16} /> Print
             </Button>
           </div>
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
 
-      {/* ── 4 KPI Stat Cards ─────────────────────────────────────── */}
-      <Row className="g-3 mb-4">
+
+      {/* ── 2. PRO KPI STAT CARDS ─────────────────────────────────────── */}
+      <Row className="g-3 mb-4 align-items-stretch">
         <Col sm={6} lg={3}>
-          <Card className={`border-0 shadow-sm rounded-4 ${isDark ? 'bg-slate-800 text-white' : 'bg-white'}`}>
-            <Card.Body className="p-3 d-flex justify-content-between align-items-center">
-              <div>
-                <span className="text-muted small font-semibold d-block">Today's Small Income</span>
-                <h3 className="fw-bold text-success m-0 mt-1">₹{todayIncome.toLocaleString('en-IN')}</h3>
-              </div>
-              <div className="rounded-circle p-3 bg-success-subtle text-success">
-                <ArrowUpRight size={24} />
-              </div>
-            </Card.Body>
-          </Card>
+          <div className="vpm-kpi-card kpi-income">
+            <div className="vpm-kpi-content-box">
+              <span className="vpm-kpi-label">Today's Small Income</span>
+              <div className="vpm-kpi-value val-income">₹{todayIncome.toLocaleString('en-IN')}</div>
+              <span className="vpm-kpi-subtag text-success">
+                <ArrowUpRight size={12} /> Counter Incomes
+              </span>
+            </div>
+            <div className="vpm-kpi-icon-bubble bubble-income">
+              <ArrowUpRight size={22} />
+            </div>
+          </div>
         </Col>
 
         <Col sm={6} lg={3}>
-          <Card className={`border-0 shadow-sm rounded-4 ${isDark ? 'bg-slate-800 text-white' : 'bg-white'}`}>
-            <Card.Body className="p-3 d-flex justify-content-between align-items-center">
-              <div>
-                <span className="text-muted small font-semibold d-block">Today's Expenses & Loss</span>
-                <h3 className="fw-bold text-danger m-0 mt-1">₹{todayExpense.toLocaleString('en-IN')}</h3>
-              </div>
-              <div className="rounded-circle p-3 bg-danger-subtle text-danger">
-                <ArrowDownRight size={24} />
-              </div>
-            </Card.Body>
-          </Card>
+          <div className="vpm-kpi-card kpi-expense">
+            <div className="vpm-kpi-content-box">
+              <span className="vpm-kpi-label">Today's Expenses & Loss</span>
+              <div className="vpm-kpi-value val-expense">₹{todayExpense.toLocaleString('en-IN')}</div>
+              <span className="vpm-kpi-subtag text-danger">
+                <ArrowDownRight size={12} /> Tea, Refills & Loss
+              </span>
+            </div>
+            <div className="vpm-kpi-icon-bubble bubble-expense">
+              <ArrowDownRight size={22} />
+            </div>
+          </div>
         </Col>
 
         <Col sm={6} lg={3}>
-          <Card className={`border-0 shadow-sm rounded-4 ${isDark ? 'bg-slate-800 text-white' : 'bg-white'}`}>
-            <Card.Body className="p-3 d-flex justify-content-between align-items-center">
-              <div>
-                <span className="text-muted small font-semibold d-block">Today's Net Margin</span>
-                <h3 className={`fw-bold m-0 mt-1 ${todayNet >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                  ₹{todayNet.toLocaleString('en-IN')}
-                </h3>
+          <div className="vpm-kpi-card kpi-net">
+            <div className="vpm-kpi-content-box">
+              <span className="vpm-kpi-label">Today's Net Margin</span>
+              <div className={`vpm-kpi-value ${todayNet >= 0 ? 'val-net-pos' : 'val-net-neg'}`}>
+                ₹{todayNet.toLocaleString('en-IN')}
               </div>
-              <div className={`rounded-circle p-3 ${todayNet >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                {todayNet >= 0 ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
-              </div>
-            </Card.Body>
-          </Card>
+              <span className={`vpm-kpi-subtag ${todayNet >= 0 ? 'text-info' : 'text-danger'}`}>
+                {todayNet >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />} Net Daily Profit
+              </span>
+            </div>
+            <div className={`vpm-kpi-icon-bubble ${todayNet >= 0 ? 'bubble-net-pos' : 'bubble-net-neg'}`}>
+              {todayNet >= 0 ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
+            </div>
+          </div>
         </Col>
 
         <Col sm={6} lg={3}>
-          <Card className={`border-0 shadow-sm rounded-4 ${isDark ? 'bg-slate-800 text-white' : 'bg-white'}`}>
-            <Card.Body className="p-3 d-flex justify-content-between align-items-center">
-              <div>
-                <span className="text-muted small font-semibold d-block">This Month's Total Expenses</span>
-                <h3 className="fw-bold text-purple-600 m-0 mt-1">₹{monthExpense.toLocaleString('en-IN')}</h3>
-              </div>
-              <div className="rounded-circle p-3 bg-purple-100 text-purple-600">
-                <Coffee size={24} />
-              </div>
-            </Card.Body>
-          </Card>
+          <div className="vpm-kpi-card kpi-month">
+            <div className="vpm-kpi-content-box">
+              <span className="vpm-kpi-label">This Month Expenses</span>
+              <div className="vpm-kpi-value val-month">₹{monthExpense.toLocaleString('en-IN')}</div>
+              <span className="vpm-kpi-subtag text-purple">
+                <Coffee size={12} /> Month Total Outflow
+              </span>
+            </div>
+            <div className="vpm-kpi-icon-bubble bubble-month">
+              <Coffee size={22} />
+            </div>
+          </div>
         </Col>
       </Row>
 
-      {/* ── Main Table Card with Search & Filters ──────────────── */}
-      <Card className={`border-0 shadow-sm rounded-4 ${isDark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
-        <Card.Header className="p-3 border-0 bg-transparent">
+
+      {/* ── 3. MAIN DATA TABLE CARD & FILTERS ─────────────────────────── */}
+      <div className="vpm-table-card">
+        <div className="vpm-control-header">
           <Row className="g-3 align-items-center justify-content-between">
             <Col md={4}>
-              <InputGroup>
-                <InputGroup.Text className={isDark ? 'bg-slate-800 border-slate-700 text-white' : ''}>
-                  <Search size={16} />
-                </InputGroup.Text>
+              <div className="vpm-search-group">
+                <Search size={18} className="vpm-search-icon" />
                 <Form.Control
+                  type="text"
                   placeholder="Search category, notes, amount..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className={isDark ? 'bg-slate-800 border-slate-700 text-white' : ''}
+                  className="vpm-search-input"
                 />
-              </InputGroup>
+              </div>
             </Col>
 
             <Col md={8} className="d-flex flex-wrap gap-2 justify-content-md-end">
               {/* Type Filter Buttons */}
-              <div className="btn-group" role="group">
-                <Button
-                  variant={filterType === 'ALL' ? 'primary' : (isDark ? 'outline-light' : 'outline-secondary')}
-                  size="sm"
+              <div className="vpm-filter-pill-group">
+                <button
+                  type="button"
+                  className={`vpm-filter-pill ${filterType === 'ALL' ? 'active-all' : ''}`}
                   onClick={() => setFilterType('ALL')}
-                  className="fw-bold"
                 >
                   All Types
-                </Button>
-                <Button
-                  variant={filterType === 'INCOME' ? 'success' : (isDark ? 'outline-light' : 'outline-secondary')}
-                  size="sm"
+                </button>
+                <button
+                  type="button"
+                  className={`vpm-filter-pill ${filterType === 'INCOME' ? 'active-income' : ''}`}
                   onClick={() => setFilterType('INCOME')}
-                  className="fw-bold"
                 >
                   Income Only
-                </Button>
-                <Button
-                  variant={filterType === 'EXPENSE' ? 'danger' : (isDark ? 'outline-light' : 'outline-secondary')}
-                  size="sm"
+                </button>
+                <button
+                  type="button"
+                  className={`vpm-filter-pill ${filterType === 'EXPENSE' ? 'active-expense' : ''}`}
                   onClick={() => setFilterType('EXPENSE')}
-                  className="fw-bold"
                 >
                   Expenses Only
-                </Button>
+                </button>
               </div>
 
               {/* Date Filter Buttons */}
-              <div className="btn-group" role="group">
-                <Button
-                  variant={filterDateRange === 'TODAY' ? 'dark' : (isDark ? 'outline-light' : 'outline-secondary')}
-                  size="sm"
+              <div className="vpm-filter-pill-group">
+                <button
+                  type="button"
+                  className={`vpm-filter-pill ${filterDateRange === 'TODAY' ? 'active-date' : ''}`}
                   onClick={() => setFilterDateRange('TODAY')}
-                  className="fw-bold"
                 >
                   Today
-                </Button>
-                <Button
-                  variant={filterDateRange === 'YESTERDAY' ? 'dark' : (isDark ? 'outline-light' : 'outline-secondary')}
-                  size="sm"
+                </button>
+                <button
+                  type="button"
+                  className={`vpm-filter-pill ${filterDateRange === 'YESTERDAY' ? 'active-date' : ''}`}
                   onClick={() => setFilterDateRange('YESTERDAY')}
-                  className="fw-bold"
                 >
                   Yesterday
-                </Button>
-                <Button
-                  variant={filterDateRange === 'MONTH' ? 'dark' : (isDark ? 'outline-light' : 'outline-secondary')}
-                  size="sm"
+                </button>
+                <button
+                  type="button"
+                  className={`vpm-filter-pill ${filterDateRange === 'MONTH' ? 'active-date' : ''}`}
                   onClick={() => setFilterDateRange('MONTH')}
-                  className="fw-bold"
                 >
                   This Month
-                </Button>
-                <Button
-                  variant={filterDateRange === 'ALL' ? 'dark' : (isDark ? 'outline-light' : 'outline-secondary')}
-                  size="sm"
+                </button>
+                <button
+                  type="button"
+                  className={`vpm-filter-pill ${filterDateRange === 'ALL' ? 'active-date' : ''}`}
                   onClick={() => setFilterDateRange('ALL')}
-                  className="fw-bold"
                 >
                   All Dates
-                </Button>
+                </button>
               </div>
             </Col>
           </Row>
-        </Card.Header>
+        </div>
 
-        <Card.Body className="p-0">
-          <div style={{ overflowX: 'auto' }}>
-            <Table hover responsive className={`align-middle m-0 ${isDark ? 'table-dark' : ''}`}>
-              <thead className={isDark ? 'table-slate-800' : 'bg-light'}>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="vpm-custom-table">
+            <thead>
+              <tr>
+                <th style={{ width: 50 }} className="text-center">#</th>
+                <th style={{ width: 135 }}>Date</th>
+                <th style={{ width: 120 }}>Type</th>
+                <th>Category</th>
+                <th>Notes / Description</th>
+                <th style={{ width: 140 }}>Payment Mode</th>
+                <th style={{ width: 150 }} className="text-end">Amount (₹)</th>
+                <th style={{ width: 60 }} className="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredList.length === 0 ? (
                 <tr>
-                  <th style={{ width: 40 }} className="text-center">#</th>
-                  <th style={{ width: 110 }}>Date</th>
-                  <th style={{ width: 100 }}>Type</th>
-                  <th>Category</th>
-                  <th>Notes / Description</th>
-                  <th style={{ width: 110 }}>Payment Mode</th>
-                  <th style={{ width: 130 }} className="text-end">Amount (₹)</th>
-                  <th style={{ width: 50 }} className="text-center">Action</th>
+                  <td colSpan={8}>
+                    <div className="vpm-empty-container">
+                      <div className="vpm-empty-icon">
+                        <Receipt size={32} />
+                      </div>
+                      <h6 className="fw-bold mb-1">No transactions found</h6>
+                      <p className="text-muted small mb-3">
+                        No income or expense entries match your selected date or type filters.
+                      </p>
+                      <Button
+                        size="sm"
+                        className="vpm-btn-add-income border-0"
+                        onClick={() => openAddModal('INCOME')}
+                      >
+                        <Plus size={14} className="me-1" /> Add Entry Now
+                      </Button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredList.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="text-center py-5 text-muted">
-                      No income or expense records found for the selected filters.
+              ) : (
+                filteredList.map((tx, idx) => (
+                  <tr key={tx.id}>
+                    <td className="text-center text-muted small fw-bold">{idx + 1}</td>
+                    <td className="vpm-table-date">{tx.date}</td>
+                    <td>
+                      {tx.type === 'INCOME' ? (
+                        <span className="vpm-badge-type-income">
+                          <TrendingUp size={13} /> INCOME
+                        </span>
+                      ) : (
+                        <span className="vpm-badge-type-expense">
+                          <TrendingDown size={13} /> EXPENSE
+                        </span>
+                      )}
+                    </td>
+                    <td className="fw-bold">{tx.category}</td>
+                    <td className="small text-muted">{tx.notes || '—'}</td>
+                    <td>
+                      <span className={`vpm-badge-mode mode-${(tx.payment_mode || 'CASH').toLowerCase()}`}>
+                        {tx.payment_mode}
+                      </span>
+                    </td>
+                    <td className="text-end">
+                      <span className={tx.type === 'INCOME' ? 'vpm-amount-income' : 'vpm-amount-expense'}>
+                        <span className="vpm-amount-sign">{tx.type === 'INCOME' ? '+' : '-'}</span>
+                        <span className="vpm-amount-num">₹{tx.amount.toLocaleString('en-IN')}</span>
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      <button
+                        type="button"
+                        className="vpm-btn-delete"
+                        onClick={() => handleDeleteTransaction(tx.id)}
+                        title="Delete Transaction"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
-                ) : (
-                  filteredList.map((tx, idx) => (
-                    <tr key={tx.id}>
-                      <td className="text-center text-muted small fw-bold">{idx + 1}</td>
-                      <td className="small font-monospace fw-bold">{tx.date}</td>
-                      <td>
-                        {tx.type === 'INCOME' ? (
-                          <Badge bg="success" className="px-2 py-1">INCOME</Badge>
-                        ) : (
-                          <Badge bg="danger" className="px-2 py-1">EXPENSE</Badge>
-                        )}
-                      </td>
-                      <td className="fw-bold">{tx.category}</td>
-                      <td className="small text-muted">{tx.notes || '—'}</td>
-                      <td>
-                        <Badge bg="secondary" className="px-2 py-1">{tx.payment_mode}</Badge>
-                      </td>
-                      <td className={`text-end fw-bold fs-6 ${tx.type === 'INCOME' ? 'text-success' : 'text-danger'}`}>
-                        {tx.type === 'INCOME' ? '+' : '-'} ₹{tx.amount.toLocaleString('en-IN')}
-                      </td>
-                      <td className="text-center">
-                        <Button
-                          variant="link"
-                          className="text-danger p-0"
-                          onClick={() => handleDeleteTransaction(tx.id)}
-                          title="Delete Transaction"
-                        >
-                          <Trash2 size={15} />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </Table>
-          </div>
-        </Card.Body>
-      </Card>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      {/* ── Add / Edit Transaction Modal ──────────────────────────── */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+      </div>
+
+      {/* ── 4. ADD / EDIT TRANSACTION MODAL ──────────────────────────── */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered contentClassName="vpm-modal-content">
         <Form onSubmit={handleSaveTransaction}>
-          <Modal.Header closeButton className={isDark ? 'bg-slate-900 text-white border-slate-700' : ''}>
-            <Modal.Title className="fw-bold fs-5">
-              {txType === 'INCOME' ? '💰 Record Daily Small Income' : '💸 Record Expense / Loss'}
+          <Modal.Header closeButton className="vpm-modal-header">
+            <Modal.Title className="fw-bold fs-5 d-flex align-items-center gap-2">
+              <Sparkles size={20} className="text-primary" />
+              {txType === 'INCOME' ? 'Record Daily Small Income' : 'Record Expense / Loss'}
             </Modal.Title>
           </Modal.Header>
 
-          <Modal.Body className={isDark ? 'bg-slate-900 text-white' : ''}>
+          <Modal.Body className="p-4">
             {/* Type Switch Buttons */}
-            <div className="d-flex gap-2 mb-3">
-              <Button
+            <div className="vpm-modal-switch-group mb-4">
+              <button
                 type="button"
-                variant={txType === 'INCOME' ? 'success' : 'outline-success'}
-                className="flex-fill fw-bold"
+                className={`vpm-modal-switch-btn ${txType === 'INCOME' ? 'active-income' : ''}`}
                 onClick={() => {
                   setTxType('INCOME')
                   setTxCategory(incomeCategories[0])
                 }}
               >
                 💰 Daily Income
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                variant={txType === 'EXPENSE' ? 'danger' : 'outline-danger'}
-                className="flex-fill fw-bold"
+                className={`vpm-modal-switch-btn ${txType === 'EXPENSE' ? 'active-expense' : ''}`}
                 onClick={() => {
                   setTxType('EXPENSE')
                   setTxCategory(expenseCategories[0])
                 }}
               >
                 💸 Expense / Loss
-              </Button>
+              </button>
             </div>
 
             <Row className="g-3">
               <Col md={12}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small">Category</Form.Label>
+                  <Form.Label className="fw-bold small text-muted">Category</Form.Label>
                   <Form.Select
                     value={txCategory}
                     onChange={e => setTxCategory(e.target.value)}
-                    className={isDark ? 'bg-slate-800 text-white border-slate-700' : ''}
+                    className="vpm-search-input"
+                    style={{ paddingLeft: '16px' }}
                   >
                     {(txType === 'INCOME' ? incomeCategories : expenseCategories).map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -489,7 +513,7 @@ export const DailyExpenseModule: React.FC<DailyExpenseModuleProps> = ({ theme })
 
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small">Amount (₹)</Form.Label>
+                  <Form.Label className="fw-bold small text-muted">Amount (₹)</Form.Label>
                   <Form.Control
                     type="number"
                     step="0.01"
@@ -498,18 +522,20 @@ export const DailyExpenseModule: React.FC<DailyExpenseModuleProps> = ({ theme })
                     value={txAmount}
                     onChange={e => setTxAmount(e.target.value)}
                     required
-                    className={`fw-bold ${isDark ? 'bg-slate-800 text-white border-slate-700' : ''}`}
+                    className="vpm-search-input fw-bold"
+                    style={{ paddingLeft: '16px' }}
                   />
                 </Form.Group>
               </Col>
 
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small">Payment Mode</Form.Label>
+                  <Form.Label className="fw-bold small text-muted">Payment Mode</Form.Label>
                   <Form.Select
                     value={txPaymentMode}
                     onChange={e => setTxPaymentMode(e.target.value as any)}
-                    className={isDark ? 'bg-slate-800 text-white border-slate-700' : ''}
+                    className="vpm-search-input"
+                    style={{ paddingLeft: '16px' }}
                   >
                     <option value="CASH">Cash</option>
                     <option value="UPI">UPI / PhonePe / GPay</option>
@@ -520,38 +546,43 @@ export const DailyExpenseModule: React.FC<DailyExpenseModuleProps> = ({ theme })
 
               <Col md={12}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small">Date</Form.Label>
+                  <Form.Label className="fw-bold small text-muted">Date</Form.Label>
                   <Form.Control
                     type="date"
                     value={txDate}
                     onChange={e => setTxDate(e.target.value)}
                     required
-                    className={isDark ? 'bg-slate-800 text-white border-slate-700' : ''}
+                    className="vpm-search-input"
+                    style={{ paddingLeft: '16px' }}
                   />
                 </Form.Group>
               </Col>
 
               <Col md={12}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small">Notes / Description (Optional)</Form.Label>
+                  <Form.Label className="fw-bold small text-muted">Notes / Description (Optional)</Form.Label>
                   <Form.Control
                     as="textarea"
                     rows={2}
                     placeholder="e.g. Chai for client, 5 sheets Star Flex wasted..."
                     value={txNotes}
                     onChange={e => setTxNotes(e.target.value)}
-                    className={isDark ? 'bg-slate-800 text-white border-slate-700' : ''}
+                    className="vpm-search-input"
+                    style={{ paddingLeft: '16px', height: 'auto' }}
                   />
                 </Form.Group>
               </Col>
             </Row>
           </Modal.Body>
 
-          <Modal.Footer className={isDark ? 'bg-slate-900 border-slate-700' : ''}>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Modal.Footer className="p-3 border-top-0">
+            <Button variant="light" onClick={() => setShowModal(false)} className="rounded-3 px-3">
               Cancel
             </Button>
-            <Button variant={txType === 'INCOME' ? 'success' : 'danger'} type="submit" className="fw-bold">
+            <Button
+              type="submit"
+              className={txType === 'INCOME' ? 'vpm-btn-add-income border-0 ms-2' : 'vpm-btn-record-expense border-0 ms-2'}
+            >
               Save Entry
             </Button>
           </Modal.Footer>

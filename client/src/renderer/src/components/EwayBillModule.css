@@ -1,0 +1,330 @@
+/* =================================================================
+   VIRAL PRINT MEDIA — EwayBillModule.css  ★ ULTRA-PRO DARK & LIGHT MODE ★
+   Official Govt GST E-Way Bill generator with glassmorphism, 
+   depth shadows, glowing input focus, and responsive invoice picker
+   ================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+/* ── ROOT SCOPE ────────────────────────────────────────────────── */
+.vpm-eway-module {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  animation: vpmEwayFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes vpmEwayFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   1. HERO BANNER
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-eway-hero {
+  position: relative;
+  border-radius: 22px;
+  padding: 24px 28px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.theme-dark .vpm-eway-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.vpm-eway-hero-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.theme-dark .vpm-eway-hero-title {
+  color: #ffffff;
+}
+
+.vpm-eway-hero-subtitle {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.theme-dark .vpm-eway-hero-subtitle {
+  color: #94a3b8;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   2. CARDS & CONTAINERS
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-eway-card {
+  border-radius: 22px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.theme-dark .vpm-eway-card {
+  background: #0f172a;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.vpm-eway-card-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.theme-dark .vpm-eway-card-header {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+}
+
+/* Notice Warning Banner */
+.vpm-eway-notice-banner {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  color: #0369a1;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-dark .vpm-eway-notice-banner {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: rgba(6, 182, 212, 0.35);
+  color: #38bdf8;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   3. FORM INPUTS & LABELS
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-eway-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.theme-dark .vpm-eway-label {
+  color: #94a3b8;
+}
+
+.vpm-eway-input {
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+.theme-dark .vpm-eway-input {
+  background: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+.vpm-eway-input:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15) !important;
+  background: #ffffff !important;
+}
+
+.theme-dark .vpm-eway-input:focus {
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.25) !important;
+  background: #1e293b !important;
+}
+
+/* Disabled Input Styling */
+.vpm-eway-input:disabled,
+.vpm-eway-input-disabled {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #e2e8f0 !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+
+.theme-dark .vpm-eway-input:disabled,
+.theme-dark .vpm-eway-input-disabled {
+  background: rgba(30, 41, 59, 0.8) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  opacity: 1 !important;
+}
+
+.vpm-eway-input-amount {
+  color: #059669 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 800 !important;
+}
+
+.theme-dark .vpm-eway-input-amount {
+  color: #34d399 !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   4. INVOICE LIST (RIGHT PANEL)
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-eway-search-input {
+  border-radius: 12px !important;
+  padding-left: 40px !important;
+  height: 42px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #f8fafc !important;
+  font-size: 0.86rem !important;
+}
+
+.theme-dark .vpm-eway-search-input {
+  background: rgba(30, 41, 59, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.vpm-eway-search-input:focus {
+  background: #ffffff !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15) !important;
+}
+
+.theme-dark .vpm-eway-search-input:focus {
+  background: #1e293b !important;
+  border-color: #818cf8 !important;
+}
+
+.vpm-invoice-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-left: 4px solid transparent;
+}
+
+.theme-dark .vpm-invoice-item {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.vpm-invoice-item:hover {
+  background: #f8fafc;
+}
+
+.theme-dark .vpm-invoice-item:hover {
+  background: rgba(30, 41, 59, 0.6);
+}
+
+/* Selected Invoice State */
+.vpm-invoice-item.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%);
+  border-left-color: #6366f1;
+}
+
+.theme-dark .vpm-invoice-item.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(59, 130, 246, 0.2) 100%);
+  border-left-color: #818cf8;
+}
+
+.vpm-invoice-no {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.theme-dark .vpm-invoice-no {
+  color: #ffffff;
+}
+
+.vpm-invoice-customer {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.theme-dark .vpm-invoice-customer {
+  color: #94a3b8;
+}
+
+.vpm-invoice-amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: #059669;
+}
+
+.theme-dark .vpm-invoice-amount {
+  color: #34d399;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   5. BUTTONS & BADGES
+   ════════════════════════════════════════════════════════════════ */
+
+.vpm-btn-primary-action {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+  border: 1px solid rgba(52, 211, 153, 0.4) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  padding: 10px 18px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3) !important;
+  transition: all 0.25s ease !important;
+}
+
+.vpm-btn-primary-action:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45) !important;
+}
+
+.vpm-btn-secondary-action {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+  padding: 9px 16px !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.theme-dark .vpm-btn-secondary-action {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #e2e8f0 !important;
+}
+
+.vpm-btn-secondary-action:hover {
+  background: #f1f5f9 !important;
+  transform: translateY(-2px) !important;
+}
+
+.theme-dark .vpm-btn-secondary-action:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}
