@@ -349,10 +349,6 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
                       {/* WHATSAPP SHARE */}
                       <button
                         onClick={() => {
-                          handlePrintModal(inv)
-                          setTimeout(() => {
-                            window.print()
-                          }, 300)
                           const mob = (inv.customer_mobile || '').replace(/\D/g, '')
                           const targetMob = mob.length === 10 ? '91' + mob : mob
                           const text = `📄 *VIRAL PRINT MEDIA - ${inv.type}*\n` +
@@ -362,13 +358,11 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
                             `*Grand Total:* ₹${inv.grand_total}\n` +
                             `*Date:* ${inv.date}\n` +
                             `-----------------------------------------\n` +
-                            `📎 *Invoice PDF generated & downloaded.* Please attach the downloaded PDF invoice file here.\n` +
-                            `-----------------------------------------\n` +
                             `Thank you for doing business with Viral Print Media!`
                           window.open(`https://wa.me/${targetMob}?text=${encodeURIComponent(text)}`, '_blank')
                         }}
                         className="action-btn action-wa"
-                        title="Download PDF & Share via WhatsApp"
+                        title="Share via WhatsApp"
                       >
                         <MessageSquare size={14} />
                       </button>

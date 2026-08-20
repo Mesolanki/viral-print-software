@@ -1474,12 +1474,11 @@ Main HSN: 9983 (Printing / Advertising)`
           <button
             className="eb-btn-action eb-btn-whatsapp"
             onClick={() => {
-              // 1. Save customer & invoice and trigger PDF download / print
+              // 1. Save customer & invoice quietly to DB
               if (custName.trim()) {
                 saveCustomerToDb()
               }
               saveCurrentInvoiceToDb()
-              handlePrint()
 
               // 2. Prepare WhatsApp Target Mobile & Message
               let targetMob = custMobile ? custMobile.replace(/\D/g, '') : ''
@@ -1508,15 +1507,13 @@ Main HSN: 9983 (Printing / Advertising)`
                 `*Total Amount:* ₹${fmt(roundedGrand)}\n` +
                 (billType === 'ESTIMATE' ? `*Advance Paid:* ₹${fmt(advanceNum)}\n*Balance Due:* ₹${fmt(remainNum)}\n` : '') +
                 `-----------------------------------------\n` +
-                `📎 *Invoice PDF document generated & downloaded.* Please attach the downloaded PDF invoice file here.\n` +
-                `-----------------------------------------\n` +
                 (billType === 'ESTIMATE' ? `*PAY VIA GOOGLE PAY / BHIM UPI:*\n*UPI ID:* 9898015205@okbizaxis\n*Name:* Manoj Mehta (+91 98980 15205)\n-----------------------------------------\n` : '') +
                 `Thank you for doing business with Viral Print Media!\n` +
                 `📍 Chandkheda, Ahmedabad`
 
               window.open(`https://wa.me/${targetMob}?text=${encodeURIComponent(text)}`, '_blank')
             }}
-            title="Download PDF Invoice & Send Details via WhatsApp"
+            title="Send Complete Bill & Payment Details via WhatsApp"
           >
             <MessageCircle size={15} />
             <span>Send on WhatsApp</span>
@@ -1524,19 +1521,18 @@ Main HSN: 9983 (Printing / Advertising)`
           <button
             className="eb-btn-action eb-btn-email"
             onClick={() => {
-              // 1. Save customer & invoice and trigger PDF download / print
+              // 1. Save customer & invoice quietly to DB
               if (custName.trim()) {
                 saveCustomerToDb()
               }
               saveCurrentInvoiceToDb()
-              handlePrint()
 
               // 2. Prepare Email Subject & Body
               const subject = `${formatTitle} #${billNo} - Viral Print Media`
-              const body = `Dear ${custName || 'Valued Customer'},\n\nPlease find attached the ${formatTitle} PDF document for Invoice #${billNo}.\n\nInvoice Summary:\nBill No: ${billNo}\nDate: ${billDate}\nGrand Total: ₹${fmt(roundedGrand)}\n\n📎 Note: Your Invoice PDF document has been automatically generated and downloaded. Please attach the downloaded PDF file to this email.\n\nThank you for choosing Viral Print Media!\n\nViral Print Media\n📍 Chandkheda, Ahmedabad\n📞 +91 99799 63632`
+              const body = `Dear ${custName || 'Valued Customer'},\n\nPlease find the invoice summary for ${formatTitle} #${billNo}.\n\nInvoice Summary:\nBill No: ${billNo}\nDate: ${billDate}\nGrand Total: ₹${fmt(roundedGrand)}\n\nThank you for choosing Viral Print Media!\n\nViral Print Media\n📍 Chandkheda, Ahmedabad\n📞 +91 99799 63632`
               window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
             }}
-            title="Download PDF Invoice & Send Summary via Email"
+            title="Send Invoice Summary via Email"
           >
             <Mail size={15} />
             <span>Email</span>
