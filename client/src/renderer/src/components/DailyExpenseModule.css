@@ -877,3 +877,125 @@
   color: #ffffff !important;
   box-shadow: 0 4px 14px rgba(244, 63, 94, 0.35) !important;
 }
+
+/* ── Pro Modal Form Fields ─────────────────────────────────────── */
+.vpm-form-label {
+  display: block !important;
+  width: 100% !important;
+  font-size: 0.73rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #64748B !important;
+  margin-bottom: 6px !important;
+}
+
+.theme-dark .vpm-form-label {
+  color: #94A3B8 !important;
+}
+
+.vpm-modal-input,
+select.vpm-modal-input,
+input.vpm-modal-input {
+  display: block !important;
+  width: 100% !important;
+  height: 44px !important;
+  padding: 8px 14px !important;
+  border-radius: 12px !important;
+  border: 1.5px solid #CBD5E1 !important;
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.theme-dark .vpm-modal-input,
+.theme-dark select.vpm-modal-input,
+.theme-dark input.vpm-modal-input {
+  background: #0B0F19 !important;
+  color: #F8FAFC !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.vpm-modal-input:focus,
+select.vpm-modal-input:focus {
+  border-color: #6366F1 !important;
+  box-shadow: 0 0 0 3.5px rgba(99, 102, 241, 0.18) !important;
+}
+
+.theme-dark .vpm-modal-input:focus,
+.theme-dark select.vpm-modal-input:focus {
+  border-color: #818CF8 !important;
+  box-shadow: 0 0 0 3.5px rgba(129, 140, 248, 0.25) !important;
+}
+
+/* Textarea input */
+.vpm-modal-textarea,
+textarea.vpm-modal-textarea {
+  display: block !important;
+  width: 100% !important;
+  min-height: 80px !important;
+  height: auto !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  border: 1.5px solid #CBD5E1 !important;
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  outline: none !important;
+  resize: vertical !important;
+  transition: all 0.2s ease !important;
+}
+
+.theme-dark .vpm-modal-textarea,
+.theme-dark textarea.vpm-modal-textarea {
+  background: #0B0F19 !important;
+  color: #F8FAFC !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.vpm-modal-textarea:focus {
+  border-color: #6366F1 !important;
+  box-shadow: 0 0 0 3.5px rgba(99, 102, 241, 0.18) !important;
+}
+
+/* Amount Input Prefix Wrapper */
+.vpm-input-with-prefix {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.vpm-input-prefix {
+  position: absolute;
+  left: 14px;
+  font-weight: 800;
+  color: #6366F1;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.vpm-modal-input.has-prefix {
+  padding-left: 32px !important;
+}
+
+/* Pro Headers */
+.vpm-modal-header-income {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+  color: #ffffff !important;
+  padding: 18px 24px !important;
+  border-bottom: none !important;
+}
+
+.vpm-modal-header-expense {
+  background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%) !important;
+  color: #ffffff !important;
+  padding: 18px 24px !important;
+  border-bottom: none !important;
+}
+

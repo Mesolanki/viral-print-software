@@ -460,14 +460,18 @@ export const DailyExpenseModule: React.FC<DailyExpenseModuleProps> = ({ theme })
       </div>
 
       {/* ── 4. ADD / EDIT TRANSACTION MODAL ──────────────────────────── */}
+      {/* ── 4. ADD / EDIT TRANSACTION MODAL ──────────────────────────── */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered contentClassName="vpm-modal-content">
         <Form onSubmit={handleSaveTransaction}>
-          <Modal.Header closeButton className="vpm-modal-header">
-            <Modal.Title className="fw-bold fs-5 d-flex align-items-center gap-2">
-              <Sparkles size={20} className="text-primary" />
-              {txType === 'INCOME' ? 'Record Daily Small Income' : 'Record Expense / Loss'}
-            </Modal.Title>
-          </Modal.Header>
+          <div className={txType === 'INCOME' ? 'vpm-modal-header-income d-flex justify-content-between align-items-center' : 'vpm-modal-header-expense d-flex justify-content-between align-items-center'}>
+            <div className="d-flex align-items-center gap-2 text-white">
+              <Sparkles size={20} />
+              <h5 className="fw-extrabold m-0 text-white fs-5">
+                {txType === 'INCOME' ? 'Record Daily Small Income' : 'Record Expense / Loss'}
+              </h5>
+            </div>
+            <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)} />
+          </div>
 
           <Modal.Body className="p-4">
             {/* Type Switch Buttons */}
@@ -497,12 +501,11 @@ export const DailyExpenseModule: React.FC<DailyExpenseModuleProps> = ({ theme })
             <Row className="g-3">
               <Col md={12}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small text-muted">Category</Form.Label>
+                  <label className="vpm-form-label">Category</label>
                   <Form.Select
                     value={txCategory}
                     onChange={e => setTxCategory(e.target.value)}
-                    className="vpm-search-input"
-                    style={{ paddingLeft: '16px' }}
+                    className="vpm-modal-input"
                   >
                     {(txType === 'INCOME' ? incomeCategories : expenseCategories).map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -513,29 +516,30 @@ export const DailyExpenseModule: React.FC<DailyExpenseModuleProps> = ({ theme })
 
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small text-muted">Amount (₹)</Form.Label>
-                  <Form.Control
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={txAmount}
-                    onChange={e => setTxAmount(e.target.value)}
-                    required
-                    className="vpm-search-input fw-bold"
-                    style={{ paddingLeft: '16px' }}
-                  />
+                  <label className="vpm-form-label">Amount (₹)</label>
+                  <div className="vpm-input-with-prefix">
+                    <span className="vpm-input-prefix">₹</span>
+                    <Form.Control
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={txAmount}
+                      onChange={e => setTxAmount(e.target.value)}
+                      required
+                      className="vpm-modal-input has-prefix fw-bold"
+                    />
+                  </div>
                 </Form.Group>
               </Col>
 
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small text-muted">Payment Mode</Form.Label>
+                  <label className="vpm-form-label">Payment Mode</label>
                   <Form.Select
                     value={txPaymentMode}
                     onChange={e => setTxPaymentMode(e.target.value as any)}
-                    className="vpm-search-input"
-                    style={{ paddingLeft: '16px' }}
+                    className="vpm-modal-input"
                   >
                     <option value="CASH">Cash</option>
                     <option value="UPI">UPI / PhonePe / GPay</option>
@@ -546,46 +550,50 @@ export const DailyExpenseModule: React.FC<DailyExpenseModuleProps> = ({ theme })
 
               <Col md={12}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small text-muted">Date</Form.Label>
+                  <label className="vpm-form-label">Date</label>
                   <Form.Control
                     type="date"
                     value={txDate}
                     onChange={e => setTxDate(e.target.value)}
                     required
-                    className="vpm-search-input"
-                    style={{ paddingLeft: '16px' }}
+                    className="vpm-modal-input"
                   />
                 </Form.Group>
               </Col>
 
               <Col md={12}>
                 <Form.Group>
-                  <Form.Label className="fw-bold small text-muted">Notes / Description (Optional)</Form.Label>
+                  <label className="vpm-form-label">Notes / Description (Optional)</label>
                   <Form.Control
                     as="textarea"
-                    rows={2}
+                    rows={3}
                     placeholder="e.g. Chai for client, 5 sheets Star Flex wasted..."
                     value={txNotes}
                     onChange={e => setTxNotes(e.target.value)}
-                    className="vpm-search-input"
-                    style={{ paddingLeft: '16px', height: 'auto' }}
+                    className="vpm-modal-textarea"
                   />
                 </Form.Group>
               </Col>
             </Row>
           </Modal.Body>
 
-          <Modal.Footer className="p-3 border-top-0">
-            <Button variant="light" onClick={() => setShowModal(false)} className="rounded-3 px-3">
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className={txType === 'INCOME' ? 'vpm-btn-add-income border-0 ms-2' : 'vpm-btn-record-expense border-0 ms-2'}
+          <div className="p-3 bg-light-subtle d-flex justify-content-end gap-2 border-top">
+            <button
+              type="button"
+              className="vpm-btn-hero-glass"
+              style={{ color: isDark ? '#c4d0e8' : '#475569', background: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9', border: '1px solid #e2e8f0' }}
+              onClick={() => setShowModal(false)}
             >
-              Save Entry
-            </Button>
-          </Modal.Footer>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={txType === 'INCOME' ? 'vpm-btn-add-income' : 'vpm-btn-record-expense'}
+              style={{ padding: '9px 24px' }}
+            >
+              {txType === 'INCOME' ? 'Save Income Entry' : 'Save Expense Entry'}
+            </button>
+          </div>
         </Form>
       </Modal>
 
