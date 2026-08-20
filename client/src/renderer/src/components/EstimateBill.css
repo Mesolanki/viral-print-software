@@ -378,7 +378,7 @@
   background: linear-gradient(135deg, rgba(115,110,254,0.04), rgba(0,210,255,0.02));
   border-top: 1px solid var(--eb-border);
   position: relative;
-  z-index: 1;
+  z-index: 0;
 }
 .theme-dark .eb-totals {
   border-top-color: var(--eb-border);
@@ -1695,10 +1695,12 @@
   justify-content: space-between;
   gap: 12px;
   transition: all 0.15s ease;
+  background: #ffffff;
 }
 
 .theme-dark .eb-product-autocomplete-item {
   border-bottom-color: rgba(255, 255, 255, 0.05);
+  background: #0f172a;
 }
 
 .eb-product-autocomplete-item:last-child {

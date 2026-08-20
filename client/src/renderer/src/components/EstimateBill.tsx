@@ -1201,7 +1201,7 @@ Main HSN: 9983 (Printing / Advertising)`
           <div className="eb-card-body" style={{ padding: 10, overflow: 'visible', position: 'relative' }}>
 
             {/* Inline Items Table with Product Search Autocomplete */}
-            <div className="eb-items-table-wrap" style={{ minHeight: activeInlineSearchId !== null ? 220 : 'auto', overflowY: activeInlineSearchId !== null ? 'visible' : 'auto', overflowX: 'visible', marginBottom: 8, position: 'relative' }}>
+            <div className="eb-items-table-wrap" style={{ minHeight: activeInlineSearchId !== null ? 220 : 'auto', overflowY: activeInlineSearchId !== null ? 'visible' : 'auto', overflowX: 'visible', marginBottom: 8, position: 'relative', zIndex: activeInlineSearchId !== null ? 99999 : 1 }}>
               <table className="eb-items-table" style={{ width: '100%', minWidth: 620 }}>
                 <thead>
                   <tr>
