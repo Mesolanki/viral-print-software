@@ -21,6 +21,7 @@ import {
   Download
 } from 'lucide-react'
 import { DataService, Invoice } from '../services/dataService'
+import html2pdf from 'html2pdf.js'
 import './BillHistoryModule.css'
 
 interface BillHistoryModuleProps {
@@ -103,21 +104,29 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
   }
 
   const triggerModalDownloadPdf = async () => {
-    const defaultFileName = `${previewInvoice?.invoice_number || 'Invoice'}_${previewInvoice?.customer_name || 'Customer'}.pdf`
-    if ((window as any).electron?.ipcRenderer) {
-      try {
-        const res = await (window as any).electron.ipcRenderer.invoke('download-pdf', defaultFileName)
-        if (res?.success) {
-          alert(`✅ PDF Invoice saved to: ${res.filePath}`)
-          return
-        } else if (res?.cancelled) {
-          return
-        }
-      } catch (e) {
-        console.warn('IPC PDF export fallback:', e)
-      }
+    const element = document.getElementById('printable-bill')
+    if (!element) {
+      window.print()
+      return
     }
-    window.print()
+
+    try {
+      const cleanCustName = (previewInvoice?.customer_name || 'Customer').replace(/[^a-zA-Z0-9]/g, '_')
+      const fileName = `ViralPrint_${previewInvoice?.type || 'Invoice'}_${previewInvoice?.invoice_number || 'Bill'}_${cleanCustName}.pdf`
+
+      const opt = {
+        margin:       4,
+        filename:     fileName,
+        image:        { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      }
+
+      await html2pdf().set(opt).from(element).save()
+    } catch (e: any) {
+      console.warn('html2pdf generation error, using fallback:', e)
+      window.print()
+    }
   }
 
   const formatCurrency = (val: number) => {

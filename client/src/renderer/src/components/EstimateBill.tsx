@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import * as XLSX from 'xlsx'
+import html2pdf from 'html2pdf.js'
 import {
   Plus,
   Trash2,
@@ -870,24 +871,35 @@ Main HSN: 9983 (Printing / Advertising)`
     }
     saveCurrentInvoiceToDb()
 
-    const defaultFileName = `${billNo}_${custName || 'Customer'}.pdf`
-
-    if ((window as any).electron?.ipcRenderer) {
-      try {
-        const res = await (window as any).electron.ipcRenderer.invoke('download-pdf', defaultFileName)
-        if (res?.success) {
-          setSaveInvoiceMsg(`✅ PDF Invoice saved: ${res.filePath}`)
-          setTimeout(() => setSaveInvoiceMsg(null), 3500)
-          return
-        } else if (res?.cancelled) {
-          return
-        }
-      } catch (e) {
-        console.warn('IPC PDF export fallback:', e)
-      }
+    const element = document.getElementById('printable-bill')
+    if (!element) {
+      window.print()
+      return
     }
-    window.print()
-  }, [custName, billNo, saveCustomerToDb, saveCurrentInvoiceToDb])
+
+    setSaveInvoiceMsg('⏳ Generating & Downloading PDF Document...')
+
+    try {
+      const cleanCustName = (custName || 'Customer').replace(/[^a-zA-Z0-9]/g, '_')
+      const fileName = `ViralPrint_${billType}_${billNo}_${cleanCustName}.pdf`
+
+      const opt = {
+        margin:       4,
+        filename:     fileName,
+        image:        { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      }
+
+      await html2pdf().set(opt).from(element).save()
+
+      setSaveInvoiceMsg(`✅ Invoice PDF (${fileName}) downloaded!`)
+      setTimeout(() => setSaveInvoiceMsg(null), 3500)
+    } catch (e: any) {
+      console.warn('html2pdf generation error, using fallback:', e)
+      window.print()
+    }
+  }, [custName, billType, billNo, saveCustomerToDb, saveCurrentInvoiceToDb])
 
   // ── Keyboard Shortcuts for Fast Daily Counter Operations ──
   useEffect(() => {

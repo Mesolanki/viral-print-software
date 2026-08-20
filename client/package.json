@@ -25,6 +25,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "axios": "^1.18.1",
     "bootstrap": "^5.3.8",
+    "html2pdf.js": "^0.14.0",
     "lucide-react": "^1.26.0",
     "react-bootstrap": "^2.10.10",
     "react-hot-toast": "^2.6.0",
