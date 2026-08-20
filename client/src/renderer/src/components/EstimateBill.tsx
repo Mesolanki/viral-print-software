@@ -846,14 +846,48 @@ Main HSN: 9983 (Printing / Advertising)`
     return saved
   }
 
-  // ── Print Action ──
+  // ── Print & Save Actions ──
   const handlePrint = useCallback(async () => {
     if (custName.trim()) {
       saveCustomerToDb()
     }
     saveCurrentInvoiceToDb()
+
+    if ((window as any).electron?.ipcRenderer) {
+      try {
+        await (window as any).electron.ipcRenderer.invoke('print-bill')
+        return
+      } catch (e) {
+        console.warn('IPC print error:', e)
+      }
+    }
     window.print()
   }, [custName, saveCustomerToDb, saveCurrentInvoiceToDb])
+
+  const handleDownloadPdf = useCallback(async () => {
+    if (custName.trim()) {
+      saveCustomerToDb()
+    }
+    saveCurrentInvoiceToDb()
+
+    const defaultFileName = `${billNo}_${custName || 'Customer'}.pdf`
+
+    if ((window as any).electron?.ipcRenderer) {
+      try {
+        const res = await (window as any).electron.ipcRenderer.invoke('download-pdf', defaultFileName)
+        if (res?.success) {
+          setSaveInvoiceMsg(`✅ PDF Invoice saved: ${res.filePath}`)
+          setTimeout(() => setSaveInvoiceMsg(null), 3500)
+          return
+        } else if (res?.cancelled) {
+          return
+        }
+      } catch (e) {
+        console.warn('IPC PDF export fallback:', e)
+      }
+    }
+    window.print()
+  }, [custName, billNo, saveCustomerToDb, saveCurrentInvoiceToDb])
 
   // ── Keyboard Shortcuts for Fast Daily Counter Operations ──
   useEffect(() => {
@@ -1467,7 +1501,7 @@ Main HSN: 9983 (Printing / Advertising)`
             <Printer size={15} />
             <span>Print Bill</span>
           </button>
-          <button className="eb-btn-action eb-btn-download" onClick={handlePrint} title="Download & Save Bill as PDF Document">
+          <button className="eb-btn-action eb-btn-download" onClick={handleDownloadPdf} title="Download & Save Bill as PDF Document">
             <Download size={15} />
             <span>Download PDF</span>
           </button>

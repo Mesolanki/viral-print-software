@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join, resolve } from 'path'
 import { fork, ChildProcess } from 'child_process'
 import net from 'net'
@@ -163,6 +163,49 @@ app.whenReady().then(async () => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  // Print Bill IPC Handler
+  ipcMain.handle('print-bill', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return
+    win.webContents.print({
+      silent: false,
+      printBackground: true
+    })
+  })
+
+  // Download PDF IPC Handler
+  ipcMain.handle('download-pdf', async (event, defaultName?: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return { success: false }
+
+    try {
+      const pdfData = await win.webContents.printToPDF({
+        printBackground: true,
+        pageSize: 'A4',
+        margins: {
+          marginType: 'none'
+        }
+      })
+
+      const sanitizeName = (defaultName || 'Invoice.pdf').replace(/[^a-zA-Z0-9_.-]/g, '_')
+
+      const { filePath } = await dialog.showSaveDialog(win, {
+        title: 'Save Invoice PDF Document',
+        defaultPath: sanitizeName,
+        filters: [{ name: 'PDF Documents (*.pdf)', extensions: ['pdf'] }]
+      })
+
+      if (filePath) {
+        fs.writeFileSync(filePath, pdfData)
+        return { success: true, filePath }
+      }
+      return { success: false, cancelled: true }
+    } catch (err: any) {
+      console.error('Error exporting PDF:', err)
+      return { success: false, error: err.message }
+    }
+  })
 
   createWindow()
 

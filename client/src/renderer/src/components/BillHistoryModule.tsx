@@ -17,7 +17,8 @@ import {
   Tag,
   CheckCircle2,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Download
 } from 'lucide-react'
 import { DataService, Invoice } from '../services/dataService'
 import './BillHistoryModule.css'
@@ -89,7 +90,33 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
     setPreviewInvoice(inv)
   }
 
-  const triggerModalPrint = () => {
+  const triggerModalPrint = async () => {
+    if ((window as any).electron?.ipcRenderer) {
+      try {
+        await (window as any).electron.ipcRenderer.invoke('print-bill')
+        return
+      } catch (e) {
+        console.warn('IPC print error:', e)
+      }
+    }
+    window.print()
+  }
+
+  const triggerModalDownloadPdf = async () => {
+    const defaultFileName = `${previewInvoice?.invoice_number || 'Invoice'}_${previewInvoice?.customer_name || 'Customer'}.pdf`
+    if ((window as any).electron?.ipcRenderer) {
+      try {
+        const res = await (window as any).electron.ipcRenderer.invoke('download-pdf', defaultFileName)
+        if (res?.success) {
+          alert(`✅ PDF Invoice saved to: ${res.filePath}`)
+          return
+        } else if (res?.cancelled) {
+          return
+        }
+      } catch (e) {
+        console.warn('IPC PDF export fallback:', e)
+      }
+    }
     window.print()
   }
 
@@ -417,10 +444,16 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
                     <Edit size={14} /> Edit this Bill
                   </button>
                   <button
+                    onClick={triggerModalDownloadPdf}
+                    style={{ background: 'linear-gradient(135deg, #0284c7, #0369a1)', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: 6, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                  >
+                    <Download size={14} /> Download PDF
+                  </button>
+                  <button
                     onClick={triggerModalPrint}
                     style={{ background: 'linear-gradient(135deg, #10B981, #059669)', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: 6, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
                   >
-                    <Printer size={14} /> Print / Save PDF
+                    <Printer size={14} /> Print Bill
                   </button>
                 </div>
               </div>
