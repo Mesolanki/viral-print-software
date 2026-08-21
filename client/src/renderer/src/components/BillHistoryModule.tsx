@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { DataService, Invoice } from '../services/dataService'
 import html2pdf from 'html2pdf.js'
+import viralLogo from '../assets/logo_viral.png'
 import './BillHistoryModule.css'
 
 interface BillHistoryModuleProps {
@@ -500,6 +501,11 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
                   {/* Details Header */}
                   <div className="pdf-header-row" style={{ display: 'flex', borderBottom: '1.5px solid #000' }}>
                     <div className="pdf-company-col" style={{ flex: 1, padding: 8, borderRight: '1.5px solid #000' }}>
+                      <img
+                        src={viralLogo}
+                        alt="Viral Print Media"
+                        style={{ height: 48, maxWidth: 150, objectFit: 'contain', display: 'block', marginBottom: 5 }}
+                      />
                       <div className="pdf-company-title" style={{ fontSize: 16, fontWeight: 800 }}>VIRAL PRINT MEDIA</div>
                       <div className="pdf-company-line" style={{ fontSize: 10 }}>📍 GF-10, 13, 14, Satyamev Arcade, Highway Road, Chandkheda, Ahmedabad 382424</div>
                       <div className="pdf-company-line" style={{ fontSize: 10 }}>📞 99799 63632 | ✉ viralprintmedia@gmail.com</div>

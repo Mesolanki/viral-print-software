@@ -191,6 +191,7 @@
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
+  width: 100%;
 }
 .eb-form-row:last-child { margin-bottom: 0; }
 
@@ -198,6 +199,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
   gap: 4px;
 }
 .eb-field label {
@@ -209,12 +211,19 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .theme-dark .eb-field label { color: #7B90AF; }
 
 .eb-field input,
 .eb-field select,
 .eb-field textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 8px 11px;
   border-radius: var(--eb-radius-sm);
   border: 1.5px solid var(--eb-border-soft);
@@ -1103,34 +1112,47 @@
 /* Terms & Signature Row */
 .pdf-terms-sig-row {
   display: flex;
-  padding: 8px 10px;
-  min-height: 70px;
+  padding: 8px 12px;
+  min-height: 75px;
+  border-top: 1.5px solid #000000;
+  background: #ffffff;
 }
 
 .pdf-terms-col {
   flex: 1;
   font-size: 9.5px;
+  padding-right: 15px;
 }
 
 .pdf-terms-title {
   font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 0.3px;
   margin-bottom: 4px;
+  color: #000000;
+  text-transform: uppercase;
 }
 
 .pdf-terms-list {
   margin: 0;
   padding-left: 14px;
-  line-height: 1.4;
+  line-height: 1.45;
+  color: #111111;
+}
+
+.pdf-terms-list li {
+  margin-bottom: 2px;
 }
 
 .pdf-sig-col {
-  width: 200px;
+  width: 210px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   text-align: right;
   font-size: 10.5px;
   font-weight: 800;
+  color: #000000;
 }
 
 /* Simple Estimate Bottom Summary Bar (Format 3) */
@@ -1146,6 +1168,265 @@
   border-right: 1.5px solid #000000;
 }
 .pdf-simple-summary-cell:last-child { border-right: none; }
+
+/* =================================================================
+   ULTRA PRO PRODUCT AUTOCOMPLETE SUGGESTIONS DROPDOWN MENU
+   ================================================================= */
+.eb-product-autocomplete-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 470px;
+  max-width: 560px;
+  max-height: 330px;
+  overflow-y: auto;
+  border-radius: 16px;
+  padding: 8px;
+  z-index: 9999999 !important;
+  box-shadow: 0 24px 64px -12px rgba(15, 23, 42, 0.35), 0 0 0 1.5px rgba(99, 102, 241, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  animation: vpmDropdownPop 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes vpmDropdownPop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.eb-product-autocomplete-menu::-webkit-scrollbar {
+  width: 5px;
+}
+.eb-product-autocomplete-menu::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.5), rgba(168, 85, 247, 0.5));
+  border-radius: 6px;
+}
+
+.theme-light .eb-product-autocomplete-menu {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid rgba(226, 232, 240, 0.95);
+}
+
+.theme-dark .eb-product-autocomplete-menu {
+  background: rgba(15, 23, 42, 0.96);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+}
+
+/* Header Bar */
+.eb-product-autocomplete-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.70rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 6px;
+}
+
+.theme-light .eb-product-autocomplete-header {
+  color: #4F46E5;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.05));
+  border: 1px solid rgba(99, 102, 241, 0.18);
+}
+
+.theme-dark .eb-product-autocomplete-header {
+  color: #38BDF8;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(99, 102, 241, 0.08));
+  border: 1px solid rgba(56, 189, 248, 0.22);
+}
+
+/* Shortcut KBD styling */
+.eb-product-autocomplete-header kbd {
+  background: linear-gradient(180deg, #FFFFFF, #F1F5F9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 5px;
+  padding: 2px 6px;
+  font-size: 0.64rem;
+  font-family: inherit;
+  font-weight: 800;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  margin: 0 3px;
+  color: #334155;
+}
+.theme-dark .eb-product-autocomplete-header kbd {
+  background: linear-gradient(180deg, #1E293B, #0F172A);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #F1F5F9;
+}
+
+/* Item List Row */
+.eb-product-autocomplete-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 5px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1.5px solid transparent;
+  gap: 12px;
+  position: relative;
+}
+
+.eb-product-autocomplete-item:last-child {
+  margin-bottom: 0;
+}
+
+.theme-light .eb-product-autocomplete-item:hover,
+.theme-light .eb-product-autocomplete-item.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.09), rgba(168, 85, 247, 0.05));
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
+}
+
+.theme-dark .eb-product-autocomplete-item:hover,
+.theme-dark .eb-product-autocomplete-item.active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.10));
+  border-color: rgba(56, 189, 248, 0.4);
+  transform: translateX(4px);
+  box-shadow: 0 4px 18px rgba(56, 189, 248, 0.15);
+}
+
+/* Active indicator strip */
+.eb-product-autocomplete-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12%;
+  bottom: 12%;
+  width: 4px;
+  border-radius: 0 6px 6px 0;
+  background: linear-gradient(180deg, #6366F1, #38BDF8);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.8);
+}
+
+/* Product Icon Badge */
+.eb-product-icon-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.theme-light .eb-product-icon-badge {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(168, 85, 247, 0.10));
+  color: #4F46E5;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+.theme-dark .eb-product-icon-badge {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(99, 102, 241, 0.14));
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.eb-product-autocomplete-item:hover .eb-product-icon-badge,
+.eb-product-autocomplete-item.active .eb-product-icon-badge {
+  transform: scale(1.12) rotate(-3deg);
+}
+
+/* Title & Meta */
+.eb-product-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.86rem;
+  font-weight: 750;
+  letter-spacing: -0.15px;
+}
+
+.theme-light .eb-product-title { color: #0F172A; }
+.theme-dark  .eb-product-title { color: #F8FAFC; }
+
+.eb-product-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.eb-product-hsn-tag {
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(99, 102, 241, 0.10);
+  color: #4338CA;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+.theme-dark .eb-product-hsn-tag {
+  background: rgba(129, 140, 248, 0.15);
+  color: #A5B4FC;
+  border-color: rgba(129, 140, 248, 0.28);
+}
+
+.eb-product-gst-tag {
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+.theme-dark .eb-product-gst-tag {
+  background: rgba(52, 211, 153, 0.16);
+  color: #34D399;
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+/* Price Tag Pill */
+.eb-product-price-tag {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: 0.90rem;
+  font-weight: 850;
+  padding: 5px 13px;
+  border-radius: 10px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.theme-light .eb-product-price-tag {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.10), rgba(168, 85, 247, 0.08));
+  color: #4F46E5;
+  border: 1.5px solid rgba(99, 102, 241, 0.25);
+}
+
+.theme-dark .eb-product-price-tag {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(16, 185, 129, 0.12));
+  color: #38BDF8;
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+}
+
+.eb-product-autocomplete-item:hover .eb-product-price-tag,
+.eb-product-autocomplete-item.active .eb-product-price-tag {
+  transform: scale(1.05);
+}
+
+.eb-price-unit {
+  font-size: 0.72rem;
+  font-weight: 650;
+  opacity: 0.85;
+}
 
 /* ── Item Pills List ─────────────────────────────────────────── */
 .eb-item-pills-list {

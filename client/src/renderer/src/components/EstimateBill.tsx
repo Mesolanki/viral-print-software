@@ -38,6 +38,7 @@ import { useAuth } from '../context/AuthContext'
 import { customersApi, productsApi, type CustomerData } from '../api/apiClient'
 import { getNextInvoiceNumber, DataService, type Invoice } from '../services/dataService'
 import { manojMehtaQrBase64 } from '../assets/manojMehtaQrBase64'
+import viralLogo from '../assets/logo_viral.png'
 import './EstimateBill.css'
 
 // ── GST State Dictionary ──────────────────────────────────────
@@ -77,6 +78,30 @@ interface ProductItem {
   gst_rate: number | string
   hsn?: string
 }
+
+const DEFAULT_PRINTING_PRODUCTS: ProductItem[] = [
+  { id: 9001, name: 'Flex Banner Printing (Normal)', unit: 'sqft', price: 12, gst_rate: 18, hsn: '9983' },
+  { id: 9002, name: 'Star Flex Banner Printing (HD)', unit: 'sqft', price: 18, gst_rate: 18, hsn: '9983' },
+  { id: 9003, name: 'Backlit Board Printing', unit: 'sqft', price: 35, gst_rate: 18, hsn: '9983' },
+  { id: 9004, name: 'Vinyl Sticker Printing (Glossy/Matte)', unit: 'sqft', price: 25, gst_rate: 18, hsn: '9983' },
+  { id: 9005, name: 'Vinyl with Sunboard Printing (3mm/5mm)', unit: 'sqft', price: 55, gst_rate: 18, hsn: '9983' },
+  { id: 9006, name: 'One Way Vision Sticker', unit: 'sqft', price: 35, gst_rate: 18, hsn: '9983' },
+  { id: 9007, name: 'Roll Up Standee (6x3 ft Complete)', unit: 'pcs', price: 1200, gst_rate: 18, hsn: '9983' },
+  { id: 9008, name: 'Canopy Promotion Tent (4x4 ft)', unit: 'pcs', price: 3500, gst_rate: 18, hsn: '9983' },
+  { id: 9009, name: 'Visiting Cards (350 GSM Velvet 1000 Pcs)', unit: 'box', price: 750, gst_rate: 18, hsn: '4911' },
+  { id: 9010, name: 'Visiting Cards (Non-Tearable 1000 Pcs)', unit: 'box', price: 1200, gst_rate: 18, hsn: '4911' },
+  { id: 9011, name: 'Letterhead Printing (A4 100 GSM 500 Pcs)', unit: 'pcs', price: 1500, gst_rate: 18, hsn: '4911' },
+  { id: 9012, name: 'Pamphlet Printing (A4 Glossy 130 GSM 1000 Pcs)', unit: 'pcs', price: 1800, gst_rate: 18, hsn: '4911' },
+  { id: 9013, name: 'Brochure Printing (Tri-fold 170 GSM)', unit: 'pcs', price: 8, gst_rate: 18, hsn: '4911' },
+  { id: 9014, name: 'Bill Book Printing (Duplicate 50 Sets)', unit: 'book', price: 150, gst_rate: 18, hsn: '4820' },
+  { id: 9015, name: 'Estimate Slip Book (Triplicate 50 Sets)', unit: 'book', price: 180, gst_rate: 18, hsn: '4820' },
+  { id: 9016, name: 'Rubber Stamp (Self Inking Dater)', unit: 'pcs', price: 250, gst_rate: 18, hsn: '9611' },
+  { id: 9017, name: 'Lanyard & PVC ID Card Printing', unit: 'pcs', price: 65, gst_rate: 18, hsn: '3926' },
+  { id: 9018, name: 'Custom Photo Mug Printing', unit: 'pcs', price: 150, gst_rate: 18, hsn: '6912' },
+  { id: 9019, name: 'Custom Printed T-Shirt', unit: 'pcs', price: 280, gst_rate: 18, hsn: '6109' },
+  { id: 9020, name: 'Acrylic 3D LED Letter Board', unit: 'sqft', price: 220, gst_rate: 18, hsn: '9405' },
+  { id: 9021, name: 'Neon Sign Board Custom', unit: 'sqft', price: 180, gst_rate: 18, hsn: '9405' },
+]
 
 interface CompanyDetails {
   name: string
@@ -183,6 +208,83 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
   const isDark = theme === 'dark'
   const cls = isDark ? 'theme-dark' : 'theme-light'
 
+  // ── Customizable Footer, UPI, Terms & Signatory Settings ──
+  const [isFooterSettingsOpen, setIsFooterSettingsOpen] = useState(false)
+
+  const [bankName, setBankName]             = useState(() => localStorage.getItem('vpm_bank_name') || 'UCO BANK')
+  const [accountNo, setAccountNo]           = useState(() => localStorage.getItem('vpm_bank_acc') || '28810210000939')
+  const [ifsc, setIfsc]                     = useState(() => localStorage.getItem('vpm_bank_ifsc') || 'UCBA0002881')
+
+  const [upiAccountName, setUpiAccountName] = useState(() => localStorage.getItem('vpm_upi_name') || 'Manoj Mehta')
+  const [upiMobile, setUpiMobile]           = useState(() => localStorage.getItem('vpm_upi_mobile') || '+91 98980 15205')
+  const [upiId, setUpiId]                   = useState(() => localStorage.getItem('vpm_upi_id') || '9898015205@okbizaxis')
+  const [upiApps, setUpiApps]               = useState(() => localStorage.getItem('vpm_upi_apps') || 'GPay • Paytm • PhonePe • BHIM')
+  const [qrCodeImg, setQrCodeImg]           = useState(() => localStorage.getItem('vpm_custom_qr') || manojMehtaQrBase64)
+
+  const [termsList, setTermsList]           = useState<string[]>(() => {
+    const saved = localStorage.getItem('vpm_terms_list')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      } catch {}
+    }
+    return [
+      'Goods once sold will not be accepted.',
+      'Subject to Ahmedabad Jurisdiction.'
+    ]
+  })
+
+  const [signatoryCompany, setSignatoryCompany] = useState(() => localStorage.getItem('vpm_sig_company') || 'For, VIRAL PRINT MEDIA')
+  const [signatoryTitle, setSignatoryTitle]     = useState(() => localStorage.getItem('vpm_sig_title') || 'Authorised Signatory')
+
+  useEffect(() => { localStorage.setItem('vpm_bank_name', bankName) }, [bankName])
+  useEffect(() => { localStorage.setItem('vpm_bank_acc', accountNo) }, [accountNo])
+  useEffect(() => { localStorage.setItem('vpm_bank_ifsc', ifsc) }, [ifsc])
+  useEffect(() => { localStorage.setItem('vpm_upi_name', upiAccountName) }, [upiAccountName])
+  useEffect(() => { localStorage.setItem('vpm_upi_mobile', upiMobile) }, [upiMobile])
+  useEffect(() => { localStorage.setItem('vpm_upi_id', upiId) }, [upiId])
+  useEffect(() => { localStorage.setItem('vpm_upi_apps', upiApps) }, [upiApps])
+  useEffect(() => { localStorage.setItem('vpm_terms_list', JSON.stringify(termsList)) }, [termsList])
+  useEffect(() => { localStorage.setItem('vpm_sig_company', signatoryCompany) }, [signatoryCompany])
+  useEffect(() => { localStorage.setItem('vpm_sig_title', signatoryTitle) }, [signatoryTitle])
+
+  const updateTerm = (index: number, val: string) => {
+    setTermsList(prev => {
+      const copy = [...prev]
+      copy[index] = val
+      return copy
+    })
+  }
+
+  const addTerm = () => {
+    setTermsList(prev => [...prev, ''])
+  }
+
+  const removeTerm = (index: number) => {
+    setTermsList(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string
+        if (base64) {
+          setQrCodeImg(base64)
+          localStorage.setItem('vpm_custom_qr', base64)
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const resetQrCode = () => {
+    setQrCodeImg(manojMehtaQrBase64)
+    localStorage.removeItem('vpm_custom_qr')
+  }
+
   // Company details
   const company: CompanyDetails = {
     ...defaultCompany,
@@ -190,6 +292,9 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
     gstNo: user?.company?.gstNumber || defaultCompany.gstNo,
     address: user?.company?.address || defaultCompany.address,
     phone: user?.company?.phone || defaultCompany.phone,
+    bankName: bankName,
+    accountNo: accountNo,
+    ifsc: ifsc,
   }
 
   // ── State ──
@@ -297,8 +402,7 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
   const [activeModalSearchId, setActiveModalSearchId] = useState<number | null>(null)
   const [activeItemSearchIndex, setActiveItemSearchIndex] = useState<number>(0)
   const [productList, setProductList] = useState<ProductItem[]>(() => {
-    const localProds = DataService.getProducts()
-    return localProds.map(p => ({
+    const localProds = DataService.getProducts().map(p => ({
       id: p.id,
       name: p.name,
       unit: p.unit || 'pcs',
@@ -306,6 +410,15 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
       gst_rate: p.gst_rate || 18,
       hsn: p.hsn_code || '9983'
     }))
+    const map = new Map<string, ProductItem>()
+    localProds.forEach(p => {
+      if (p.name && p.name.trim()) map.set(p.name.trim().toLowerCase(), p)
+    })
+    DEFAULT_PRINTING_PRODUCTS.forEach(p => {
+      const key = p.name.trim().toLowerCase()
+      if (!map.has(key)) map.set(key, p)
+    })
+    return Array.from(map.values())
   })
 
   // Import Estimate Modal State
@@ -321,43 +434,53 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
   // Preview Zoom
   const [zoom, setZoom] = useState(0.9)
 
-  // Load products list from API and DataService on mount
-  useEffect(() => {
-    const loadProducts = async () => {
-      const localProds = DataService.getProducts().map(p => ({
-        id: p.id,
-        name: p.name,
-        unit: p.unit || 'pcs',
-        price: p.price !== undefined ? p.price : 0,
-        gst_rate: p.gst_rate !== undefined ? p.gst_rate : 18,
-        hsn: p.hsn_code || '9983'
-      }))
+  // Load products list from DataService (user real added data first) & API on mount
+  const loadProducts = useCallback(async () => {
+    const localProds = DataService.getProducts().map(p => ({
+      id: p.id,
+      name: p.name,
+      unit: p.unit || 'pcs',
+      price: p.price !== undefined ? p.price : 0,
+      gst_rate: p.gst_rate !== undefined ? p.gst_rate : 18,
+      hsn: p.hsn_code || '9983'
+    }))
 
-      try {
-        const res = await productsApi.getAll(1)
-        const rawData = Array.isArray(res.data) ? res.data : (res.data?.data || [])
-        if (Array.isArray(rawData) && rawData.length > 0) {
-          const apiProds = rawData.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            unit: p.unit || 'pcs',
-            price: p.price !== undefined ? p.price : 0,
-            gst_rate: p.gst_rate !== undefined ? p.gst_rate : 18,
-            hsn: p.hsn_code || p.hsn || '9983'
-          }))
-
-          const existingNames = new Set(apiProds.map(p => p.name.toLowerCase()))
-          const filteredLocal = localProds.filter(p => !existingNames.has(p.name.toLowerCase()))
-          setProductList([...apiProds, ...filteredLocal])
-        } else {
-          setProductList(localProds)
-        }
-      } catch {
-        setProductList(localProds)
+    let apiProds: ProductItem[] = []
+    try {
+      const res = await productsApi.getAll(1)
+      const rawData = Array.isArray(res.data) ? res.data : (res.data?.data || [])
+      if (Array.isArray(rawData) && rawData.length > 0) {
+        apiProds = rawData.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          unit: p.unit || 'pcs',
+          price: p.price !== undefined ? p.price : 0,
+          gst_rate: p.gst_rate !== undefined ? p.gst_rate : 18,
+          hsn: p.hsn_code || p.hsn || '9983'
+        }))
       }
-    }
-    loadProducts()
+    } catch {}
+
+    const map = new Map<string, ProductItem>()
+    // 1. Add real local user-added products FIRST
+    localProds.forEach(p => {
+      if (p.name && p.name.trim()) map.set(p.name.trim().toLowerCase(), p)
+    })
+    // 2. Add API products SECOND
+    apiProds.forEach(p => {
+      if (p.name && p.name.trim()) map.set(p.name.trim().toLowerCase(), p)
+    })
+    // 3. Add default catalog items THIRD if not already present
+    DEFAULT_PRINTING_PRODUCTS.forEach(p => {
+      const key = p.name.trim().toLowerCase()
+      if (!map.has(key)) map.set(key, p)
+    })
+    setProductList(Array.from(map.values()))
   }, [])
+
+  useEffect(() => {
+    loadProducts()
+  }, [loadProducts])
 
   // ── GST Auto-Fetch Function (Company, Owner Name, Phone, Address) ──
   const handleGstChange = async (val: string) => {
@@ -1306,6 +1429,7 @@ Main HSN: 9983 (Printing / Advertising)`
                               setActiveItemSearchIndex(0)
                             }}
                             onFocus={() => {
+                              loadProducts()
                               setActiveInlineSearchId(item.id)
                               setActiveItemSearchIndex(0)
                             }}
@@ -1314,7 +1438,7 @@ Main HSN: 9983 (Printing / Advertising)`
                             style={{ width: '100%', padding: '5px 8px', fontSize: '0.8rem' }}
                           />
 
-                          {/* Autocomplete Dropdown */}
+                           {/* Autocomplete Dropdown */}
                           {showDropdown && (
                             <div
                               className="eb-product-autocomplete-menu"
@@ -1324,16 +1448,18 @@ Main HSN: 9983 (Printing / Advertising)`
                                   ? { bottom: 'calc(100% + 6px)', top: 'auto' }
                                   : { top: 'calc(100% + 4px)', bottom: 'auto' }),
                                 left: -38,
-                                minWidth: 460,
-                                maxWidth: 520,
-                                zIndex: 999999,
-                                boxShadow: '0 20px 50px rgba(0,0,0,0.35), 0 0 0 1.5px rgba(115,110,254,0.4)',
-                                background: isDark ? '#0f172a' : '#ffffff'
+                                minWidth: 470,
+                                maxWidth: 540,
+                                zIndex: 999999
                               }}
                             >
                               <div className="eb-product-autocomplete-header">
-                                <span><Package size={11} style={{ display: 'inline', marginRight: 4 }} /> Catalog Suggestions</span>
-                                <span style={{ fontSize: '0.62rem', opacity: 0.85 }}>↑ ↓ · Enter</span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                  <Package size={12} /> Catalog Suggestions
+                                </span>
+                                <span>
+                                  <kbd>↑</kbd><kbd>↓</kbd> Navigate &nbsp;•&nbsp; <kbd>↵ Enter</kbd> Select
+                                </span>
                               </div>
                               {matches.map((p, pIdx) => {
                                 const isSelected = activeItemSearchIndex === pIdx
@@ -1348,9 +1474,11 @@ Main HSN: 9983 (Printing / Advertising)`
                                     }}
                                     onMouseEnter={() => setActiveItemSearchIndex(pIdx)}
                                   >
+                                    <div className="eb-product-icon-badge">
+                                      <Package size={14} />
+                                    </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                       <div className="eb-product-title">
-                                        <Package size={13} style={{ color: '#736efe', flexShrink: 0 }} />
                                         <span className="eb-product-title-text" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
                                       </div>
                                       <div className="eb-product-meta">
@@ -1529,6 +1657,161 @@ Main HSN: 9983 (Printing / Advertising)`
           </div>
         )}
 
+        {/* ── UPI Payment QR, Terms & Footer Signatory Settings Card ── */}
+        <div className="eb-card" style={{ border: '1.5px solid rgba(115,110,254,0.3)', boxShadow: '0 4px 14px rgba(115,110,254,0.08)' }}>
+          <div className="eb-card-header" style={{ justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setIsFooterSettingsOpen(!isFooterSettingsOpen)}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, color: '#736efe' }}>
+              <ShieldCheck size={16} /> Footer Settings (UPI QR, Terms & Signatory)
+            </span>
+            <button
+              type="button"
+              style={{
+                background: 'linear-gradient(135deg, rgba(115,110,254,0.15), rgba(0,210,255,0.1))',
+                border: '1px solid #736efe', color: '#736efe', padding: '3px 10px', borderRadius: 6,
+                cursor: 'pointer', fontSize: '0.72rem', fontWeight: 800
+              }}
+            >
+              {isFooterSettingsOpen ? 'Close Settings ▲' : 'Edit / Customize Footer ▼'}
+            </button>
+          </div>
+          {isFooterSettingsOpen && (
+            <div className="eb-card-body" style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 10 }}>
+              {/* UPI & QR Code Settings */}
+              <div style={{ background: 'rgba(115,110,254,0.05)', padding: 10, borderRadius: 8, border: '1px solid rgba(115,110,254,0.2)' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.78rem', color: '#736efe', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <MessageCircle size={14} /> UPI Payment Bar Details (Estimate Format)
+                </div>
+                <div className="eb-form-row" style={{ marginBottom: 6 }}>
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>Account Holder Name</label>
+                    <input value={upiAccountName} onChange={e => setUpiAccountName(e.target.value)} placeholder="e.g. Manoj Mehta" />
+                  </div>
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>Mobile Number</label>
+                    <input value={upiMobile} onChange={e => setUpiMobile(e.target.value)} placeholder="e.g. +91 98980 15205" />
+                  </div>
+                </div>
+                <div className="eb-form-row" style={{ marginBottom: 8 }}>
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>UPI ID</label>
+                    <input value={upiId} onChange={e => setUpiId(e.target.value)} placeholder="e.g. 9898015205@okbizaxis" style={{ fontFamily: 'monospace' }} />
+                  </div>
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>Accepted Apps Text</label>
+                    <input value={upiApps} onChange={e => setUpiApps(e.target.value)} placeholder="e.g. GPay • Paytm • PhonePe • BHIM" />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#ffffff', padding: 8, borderRadius: 6, border: '1px dashed rgba(115,110,254,0.3)' }}>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 800, color: '#334155', whiteSpace: 'nowrap' }}>Custom QR Image:</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleQrUpload}
+                    style={{ fontSize: '0.70rem', flex: 1 }}
+                  />
+                  {qrCodeImg !== manojMehtaQrBase64 && (
+                    <button
+                      type="button"
+                      onClick={resetQrCode}
+                      style={{ background: '#EF4444', color: '#fff', border: 'none', padding: '3px 8px', borderRadius: 4, fontSize: '0.68rem', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    >
+                      Reset Default QR
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Dynamic Terms & Conditions Settings */}
+              <div style={{ background: 'rgba(16,185,129,0.05)', padding: 12, borderRadius: 8, border: '1px solid rgba(16,185,129,0.2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.78rem', color: '#10B981', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <FileText size={14} /> Terms &amp; Conditions Lines ({termsList.length})
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addTerm}
+                    style={{
+                      background: 'linear-gradient(135deg, #10B981, #059669)', color: '#ffffff',
+                      border: 'none', padding: '4px 10px', borderRadius: 6, fontSize: '0.72rem',
+                      fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                      boxShadow: '0 2px 6px rgba(16,185,129,0.25)'
+                    }}
+                  >
+                    <Plus size={13} /> Add Term Line
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {termsList.map((term, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748B', minWidth: 20 }}>
+                        {idx + 1}.
+                      </span>
+                      <input
+                        value={term}
+                        onChange={e => updateTerm(idx, e.target.value)}
+                        placeholder={`Condition line ${idx + 1}...`}
+                        style={{ flex: 1, padding: '5px 10px', fontSize: '0.78rem', borderRadius: 6, border: '1px solid rgba(16,185,129,0.3)' }}
+                      />
+                      {termsList.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeTerm(idx)}
+                          style={{
+                            background: 'rgba(239,68,68,0.12)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.3)',
+                            padding: '5px 8px', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center'
+                          }}
+                          title="Remove condition line"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Company Signatory Settings */}
+              <div style={{ background: 'rgba(2,132,199,0.05)', padding: 10, borderRadius: 8, border: '1px solid rgba(2,132,199,0.2)' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.78rem', color: '#0284c7', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <UserCheck size={14} /> Authorised Signatory Header &amp; Title
+                </div>
+                <div className="eb-form-row">
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>Company Line (e.g. For, VIRAL PRINT MEDIA)</label>
+                    <input value={signatoryCompany} onChange={e => setSignatoryCompany(e.target.value)} placeholder="For, VIRAL PRINT MEDIA" />
+                  </div>
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>Signatory Designation Label</label>
+                    <input value={signatoryTitle} onChange={e => setSignatoryTitle(e.target.value)} placeholder="Authorised Signatory" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bank Details Settings */}
+              <div style={{ background: 'rgba(245,158,11,0.05)', padding: 10, borderRadius: 8, border: '1px solid rgba(245,158,11,0.2)' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.78rem', color: '#d97706', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <HardDrive size={14} /> Bank Details (For Tax Invoice &amp; Quotation)
+                </div>
+                <div className="eb-form-row">
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>Bank Name</label>
+                    <input value={bankName} onChange={e => setBankName(e.target.value)} placeholder="e.g. UCO BANK" />
+                  </div>
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>Account No.</label>
+                    <input value={accountNo} onChange={e => setAccountNo(e.target.value)} placeholder="e.g. 28810210000939" />
+                  </div>
+                  <div className="eb-field" style={{ flex: 1 }}>
+                    <label>IFSC Code</label>
+                    <input value={ifsc} onChange={e => setIfsc(e.target.value)} placeholder="e.g. UCBA0002881" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Action Buttons (Print, Save PDF, WhatsApp Share, Email Share, Reset) */}
         <div className="eb-actions">
           <button className="eb-btn-action eb-btn-print" onClick={handlePrint} title="Print Bill directly to printer or save as PDF">
@@ -1667,6 +1950,12 @@ Main HSN: 9983 (Printing / Advertising)`
 
                       {/* Left: Company Details */}
                       <div className="pdf-company-col">
+                        {/* Company Logo */}
+                        <img
+                          src={viralLogo}
+                          alt="Viral Print Media"
+                          style={{ height: 52, maxWidth: 160, objectFit: 'contain', display: 'block', marginBottom: 6 }}
+                        />
                         <div className="pdf-company-title">{company.name}</div>
                         <div className="pdf-company-line">
                           📍 {company.address}
@@ -1883,15 +2172,12 @@ Main HSN: 9983 (Printing / Advertising)`
                   <>
                     <div className="pdf-header-row">
                       <div className="pdf-company-col" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                        {/* Swoosh Logo matching Page 3 */}
-                        <div style={{
-                          width: 70, height: 60, borderRadius: 6,
-                          background: 'linear-gradient(135deg,#736efe,#00D2FF)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#fff', fontWeight: 900, fontSize: 11, textAlign: 'center'
-                        }}>
-                          VIRAL<br/>PRINT
-                        </div>
+                        {/* Company Logo */}
+                        <img
+                          src={viralLogo}
+                          alt="Viral Print Media"
+                          style={{ height: 62, maxWidth: 90, objectFit: 'contain', flexShrink: 0 }}
+                        />
                         <div>
                           <div className="pdf-company-title" style={{ fontSize: 16 }}>{company.name}</div>
                           <div className="pdf-company-line">📍 {company.address}</div>
@@ -1984,22 +2270,22 @@ Main HSN: 9983 (Printing / Advertising)`
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <img
-                            src={manojMehtaQrBase64}
+                            src={qrCodeImg}
                             alt="Scan to Pay QR Code"
                             style={{ width: 80, height: 80, objectFit: 'contain', border: '1.5px solid #000', padding: 2, background: '#fff', borderRadius: 4 }}
                           />
                           <div>
                             <div style={{ fontWeight: 800, fontSize: 11, color: '#000' }}>SCAN TO PAY VIA GOOGLE PAY / BHIM UPI</div>
-                            <div style={{ fontSize: 10, color: '#000', marginTop: 2 }}>Account Name: <strong>Manoj Mehta</strong></div>
-                            <div style={{ fontSize: 10, color: '#000' }}>Mobile No: <strong>+91 98980 15205</strong></div>
+                            <div style={{ fontSize: 10, color: '#000', marginTop: 2 }}>Account Name: <strong>{upiAccountName}</strong></div>
+                            <div style={{ fontSize: 10, color: '#000' }}>Mobile No: <strong>{upiMobile}</strong></div>
                             <div style={{ fontSize: 10, color: '#000', fontWeight: 800, fontFamily: 'monospace', marginTop: 2 }}>
-                              UPI ID: 9898015205@okbizaxis
+                              UPI ID: {upiId}
                             </div>
                           </div>
                         </div>
                         <div style={{ textAlign: 'right', fontSize: 9.5, color: '#000' }}>
                           Accepted Apps:<br />
-                          <span style={{ fontWeight: 800, fontSize: 10.5 }}>GPay • Paytm • PhonePe • BHIM</span>
+                          <span style={{ fontWeight: 800, fontSize: 10.5 }}>{upiApps}</span>
                         </div>
                       </div>
                     )}
@@ -2011,15 +2297,16 @@ Main HSN: 9983 (Printing / Advertising)`
                   <div className="pdf-terms-col">
                     <div className="pdf-terms-title">TERMS &amp; CONDITIONS :</div>
                     <ul className="pdf-terms-list">
-                      <li>Goods once sold will not be accepted.</li>
-                      <li>Subject to Ahmedabad Jurisdiction.</li>
+                      {termsList.filter(t => t.trim().length > 0).map((t, idx) => (
+                        <li key={idx}>{t}</li>
+                      ))}
                     </ul>
                   </div>
 
                   <div className="pdf-sig-col">
-                    <div>For, VIRAL PRINT MEDIA</div>
+                    <div>{signatoryCompany}</div>
                     <div style={{ height: 35 }}></div>
-                    <div style={{ textDecoration: 'overline', paddingTop: 2 }}>Authorised Signatory</div>
+                    <div style={{ textDecoration: 'overline', paddingTop: 2 }}>{signatoryTitle}</div>
                   </div>
                 </div>
 
@@ -2068,7 +2355,7 @@ Main HSN: 9983 (Printing / Advertising)`
                 </button>
               </div>
 
-              <div className="eb-items-table-wrap" style={{ maxHeight: 380, overflowY: 'auto' }}>
+              <div className="eb-items-table-wrap" style={{ minHeight: activeModalSearchId !== null ? 240 : 'auto', maxHeight: 380, overflowY: activeModalSearchId !== null ? 'visible' : 'auto', overflowX: 'visible', position: 'relative', zIndex: activeModalSearchId !== null ? 99999 : 1 }}>
                 <table className="eb-items-table" style={{ width: '100%', minWidth: 700 }}>
                   <thead>
                     <tr>
@@ -2088,6 +2375,7 @@ Main HSN: 9983 (Printing / Advertising)`
                       const { total } = calcRow(item)
                       const matches = getProductMatches(item.description)
                       const showDropdown = activeModalSearchId === item.id && matches.length > 0
+                      const openUpward = idx >= 2
 
                       return (
                         <tr key={item.id} style={{ position: 'relative', zIndex: showDropdown ? 1000 : 1 }}>
@@ -2102,6 +2390,7 @@ Main HSN: 9983 (Printing / Advertising)`
                                 setActiveItemSearchIndex(0)
                               }}
                               onFocus={() => {
+                                loadProducts()
                                 setActiveModalSearchId(item.id)
                                 setActiveItemSearchIndex(0)
                               }}
@@ -2112,10 +2401,26 @@ Main HSN: 9983 (Printing / Advertising)`
 
                             {/* Item Row Product Search Autocomplete Menu */}
                             {showDropdown && (
-                              <div className="eb-product-autocomplete-menu">
+                              <div
+                                className="eb-product-autocomplete-menu"
+                                style={{
+                                  position: 'absolute',
+                                  ...(openUpward
+                                    ? { bottom: 'calc(100% + 6px)', top: 'auto' }
+                                    : { top: 'calc(100% + 4px)', bottom: 'auto' }),
+                                  left: 0,
+                                  minWidth: 460,
+                                  maxWidth: 530,
+                                  zIndex: 9999999
+                                }}
+                              >
                                 <div className="eb-product-autocomplete-header">
-                                  <span><Package size={12} style={{ display: 'inline', marginRight: 4 }} /> Saved Product Catalog Suggestions</span>
-                                  <span style={{ fontSize: '0.62rem', opacity: 0.85 }}>↑ ↓ Navigate · Enter Select</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                    <Package size={12} /> Catalog Suggestions
+                                  </span>
+                                  <span>
+                                    <kbd>↑</kbd><kbd>↓</kbd> Navigate &nbsp;•&nbsp; <kbd>↵ Enter</kbd> Select
+                                  </span>
                                 </div>
                                 {matches.map((p, pIdx) => {
                                   const isSelected = activeItemSearchIndex === pIdx
@@ -2130,9 +2435,11 @@ Main HSN: 9983 (Printing / Advertising)`
                                       }}
                                       onMouseEnter={() => setActiveItemSearchIndex(pIdx)}
                                     >
+                                      <div className="eb-product-icon-badge">
+                                        <Package size={14} />
+                                      </div>
                                       <div style={{ flex: 1, minWidth: 0 }}>
                                         <div className="eb-product-title">
-                                          <Package size={13} style={{ color: '#736efe', flexShrink: 0 }} />
                                           <span className="eb-product-title-text" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
                                         </div>
                                         <div className="eb-product-meta">

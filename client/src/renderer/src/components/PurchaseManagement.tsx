@@ -16,7 +16,8 @@ import {
   Building2,
   CreditCard,
   Mail,
-  MapPin
+  MapPin,
+  Package
 } from 'lucide-react'
 import { DataService, Purchase, Supplier, PurchaseItem } from '../services/dataService'
 import './PurchaseManagement.css'
@@ -941,7 +942,12 @@ export const PurchaseManagement: React.FC<PurchaseManagementProps> = ({ theme })
                       {activeSearchRowIndex === idx && getProductMatches(item.product_name).length > 0 && (
                         <div className="eb-product-autocomplete-menu" style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 1050 }}>
                           <div className="eb-product-autocomplete-header">
-                            <span>Catalog Suggestions</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <Package size={12} /> Catalog Suggestions
+                            </span>
+                            <span>
+                              <kbd>↑</kbd><kbd>↓</kbd> Navigate &nbsp;•&nbsp; <kbd>↵ Enter</kbd> Select
+                            </span>
                           </div>
                           {getProductMatches(item.product_name).map((p) => (
                             <div
@@ -952,12 +958,16 @@ export const PurchaseManagement: React.FC<PurchaseManagementProps> = ({ theme })
                                 selectProductForPurchaseRow(idx, p)
                               }}
                             >
+                              <div className="eb-product-icon-badge">
+                                <Package size={14} />
+                              </div>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div className="eb-product-title">
                                   <span className="eb-product-title-text" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
                                 </div>
                                 <div className="eb-product-meta">
-                                  <span className="eb-product-hsn-tag">{p.category || 'Product'}</span>
+                                  <span className="eb-product-hsn-tag">HSN: {p.hsn_code || p.hsn || '9983'}</span>
+                                  <span className="eb-product-hsn-tag" style={{ background: 'rgba(115, 110, 254, 0.1)', color: '#736EFE' }}>{p.category || 'Product'}</span>
                                 </div>
                               </div>
                               <span className="eb-product-price-tag">₹{p.price}{p.unit ? <span className="eb-price-unit"> / {p.unit}</span> : ''}</span>

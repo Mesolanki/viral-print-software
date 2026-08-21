@@ -195,15 +195,48 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
       )
       if (res.ok) {
         const data = await res.json()
-        setProducts(Array.isArray(data) ? data : SAMPLE_PRODUCTS)
-      } else {
-        setProducts(SAMPLE_PRODUCTS)
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data)
+          data.forEach((p: any) => {
+            DataService.saveProduct({
+              id: p.id,
+              name: p.name,
+              category: p.category?.name || 'General',
+              unit: p.unit || 'pcs',
+              price: Number(p.price) || 0,
+              gst_rate: Number(p.gst_rate) || 18,
+              hsn_code: p.hsn_code || p.hsn || '9983',
+              description: p.description || ''
+            })
+          })
+          setLoading(false)
+          return
+        }
       }
     } catch {
-      setProducts(SAMPLE_PRODUCTS)
-    } finally {
-      setLoading(false)
+      // Fallback to local storage
     }
+
+    const localProds = DataService.getProducts()
+    if (localProds && localProds.length > 0) {
+      setProducts(
+        localProds.map((p) => ({
+          id: p.id,
+          company_id: DEFAULT_COMPANY_ID,
+          category_id: 1,
+          name: p.name,
+          unit: p.unit || 'pcs',
+          price: p.price || 0,
+          gst_rate: p.gst_rate || 18,
+          hsn_code: p.hsn_code || '9983',
+          description: p.description || '',
+          category: { id: 1, name: p.category || 'General' }
+        }))
+      )
+    } else {
+      setProducts(SAMPLE_PRODUCTS)
+    }
+    setLoading(false)
   }
 
   const showToast = (msg: string): void => {
@@ -350,6 +383,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
   const handleDeleteProduct = async (id: number, name: string): Promise<void> => {
     if (!window.confirm(`Delete product "${name}"? This cannot be undone.`)) return
     setProducts((prev) => prev.filter((p) => p.id !== id))
+    DataService.deleteProduct(id)
     showToast(`Product "${name}" deleted.`)
     try {
       await fetch(`${API_BASE_URL}/products/${id}`, {
