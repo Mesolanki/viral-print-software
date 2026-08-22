@@ -422,14 +422,16 @@
 
 /* ── Modal Overrides ──────────────────────────────────────────── */
 .vpm-modal .modal-dialog {
-  max-width: 420px !important;
+  max-width: 540px !important;
   width: 95% !important;
   margin-left: auto !important;
   margin-right: auto !important;
 }
 
-.vpm-modal.modal-lg .modal-dialog {
-  max-width: 820px !important;
+.vpm-modal .modal-dialog.modal-lg,
+.vpm-modal.modal-lg .modal-dialog,
+.modal-lg {
+  max-width: 860px !important;
   width: 95% !important;
 }
 
@@ -439,6 +441,7 @@
   overflow: hidden;
   font-family: 'Inter', system-ui, sans-serif;
 }
+
 
 .modal-dark .modal-content {
   background: #151C2C !important;
