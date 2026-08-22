@@ -84,8 +84,12 @@ export interface Product {
   gst_rate: number | string
   hsn_code?: string | null
   description?: string | null
+  default_height?: number | string | null
+  default_width?: number | string | null
+  dimension_unit?: string | null
   createdAt?: string
 }
+
 
 interface ProductManagementProps {
   theme?: 'dark' | 'light'
