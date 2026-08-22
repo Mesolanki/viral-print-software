@@ -2099,8 +2099,8 @@ Main HSN: 9983 (Printing / Advertising)`
                         })}
 
                         {/* Blank filler lines extending table to bottom */}
-                        {Array.from({ length: fillerCount }).map((_, i) => (
-                          <tr key={`blank-${i}`}>
+                        {Array.from({ length: Math.max(0, 4 - items.length) }).map((_, i) => (
+                          <tr key={`blank-${i}`} className="pdf-blank-row">
                             <td className="center"></td>
                             <td>&nbsp;</td>
                             {billType === 'TAX_INVOICE' && <td></td>}
@@ -2111,6 +2111,7 @@ Main HSN: 9983 (Printing / Advertising)`
                             <td></td>
                           </tr>
                         ))}
+
                       </tbody>
                     </table>
 
@@ -2257,8 +2258,8 @@ Main HSN: 9983 (Printing / Advertising)`
                           )
                         })}
 
-                        {Array.from({ length: fillerCount }).map((_, i) => (
-                          <tr key={`blank-est-${i}`}>
+                        {Array.from({ length: Math.max(0, 4 - items.length) }).map((_, i) => (
+                          <tr key={`blank-est-${i}`} className="pdf-blank-row">
                             <td className="center"></td>
                             <td>&nbsp;</td>
                             <td></td>
@@ -2267,6 +2268,7 @@ Main HSN: 9983 (Printing / Advertising)`
                             <td></td>
                           </tr>
                         ))}
+
                       </tbody>
                     </table>
 

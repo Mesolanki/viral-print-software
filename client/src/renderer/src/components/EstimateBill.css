@@ -838,7 +838,7 @@
 
 .bill-paper {
   width: 794px; /* Exact A4 width at 96 DPI */
-  min-height: 1080px;
+  min-height: 980px;
   background: #ffffff;
   color: #000000;
   font-family: Arial, Helvetica, sans-serif;
@@ -851,6 +851,7 @@
   box-sizing: border-box;
   margin: 0 auto;
 }
+
 
 /* Master Outer Grid Box matching PDF */
 .pdf-grid-box {
@@ -2133,11 +2134,15 @@
     border: none !important;
     width: 100% !important;
     max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
-    page-break-inside: avoid;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -2146,7 +2151,27 @@
     border: 1.5px solid #000000 !important;
     box-shadow: none !important;
     background: #ffffff !important;
-    page-break-inside: avoid;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  /* Hide blank filler lines on print to prevent extra blank pages */
+  .pdf-table tr.pdf-blank-row {
+    display: none !important;
+  }
+
+  /* Prevent row splitting inside individual table rows */
+  .pdf-table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Keep bank details, totals, and signatures together */
+  .pdf-bank-totals-row,
+  .pdf-words-row,
+  .pdf-terms-sig-row {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   /* Force clean black text and crisp borders on print */
@@ -2157,6 +2182,7 @@
 
   @page {
     size: A4 portrait;
-    margin: 8mm;
+    margin: 4mm 6mm;
   }
 }
+
