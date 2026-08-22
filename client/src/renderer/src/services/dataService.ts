@@ -116,35 +116,47 @@ export function getIndianFinancialYear(dateInput?: Date | string): string {
 
 /**
  * Generates official sequential Invoice / Quote / Estimate Number.
- * Tax Invoice: VPM/26-27/0001
- * Quotation: VPM/QT/26-27/0001
- * Estimate: EST/26-27/0001
+ * Tax Invoice: VPM/26-27/73
+ * Quotation: VPM/QT/26-27/72
+ * Estimate: EST/26-27/460
  */
 export function getNextInvoiceNumber(type: 'TAX_INVOICE' | 'QUOTATION' | 'ESTIMATE', dateInput?: Date | string): string {
   const fy = getIndianFinancialYear(dateInput)
   const invoices = DataService.getInvoices()
 
+  // Base starting sequence numbers as requested:
+  // Tax Invoice starts with 73 (VPM/26-27/73)
+  // Quotation starts with 72 (VPM/QT/26-27/72)
+  // Estimate starts with 460 (EST/26-27/460)
+  const startSeq = type === 'TAX_INVOICE' ? 73 : type === 'QUOTATION' ? 72 : 460
   const prefix = type === 'TAX_INVOICE' ? `VPM/${fy}/` : type === 'QUOTATION' ? `VPM/QT/${fy}/` : `EST/${fy}/`
+
   const sameFyInvoices = invoices.filter(i => {
-    if (i.type === type) return true
+    if (!i.invoice_number) return false
+    if (i.type === type && i.invoice_number.includes(`/${fy}/`)) return true
     if (type === 'TAX_INVOICE' && i.invoice_number.startsWith(`VPM/${fy}/`) && !i.invoice_number.includes('/QT/')) return true
-    if (type === 'QUOTATION' && (i.invoice_number.includes('/QT/') || i.invoice_number.startsWith('QT-'))) return true
-    if (type === 'ESTIMATE' && (i.invoice_number.startsWith('EST/') || i.invoice_number.startsWith('EST-'))) return true
+    if (type === 'QUOTATION' && (i.invoice_number.startsWith(`VPM/QT/${fy}/`) || i.invoice_number.includes('/QT/'))) return true
+    if (type === 'ESTIMATE' && (i.invoice_number.startsWith(`EST/${fy}/`) || i.invoice_number.startsWith('EST/'))) return true
     return false
   })
 
-  let nextSeq = 1
+  let nextSeq = startSeq
   if (sameFyInvoices.length > 0) {
     const seqs = sameFyInvoices.map(i => {
-      const numPart = i.invoice_number.split('/').pop() || ''
+      const parts = i.invoice_number.split('/')
+      const numPart = parts[parts.length - 1] || ''
       const match = numPart.match(/\d+/)
       return match ? parseInt(match[0], 10) : 0
     })
-    nextSeq = Math.max(...seqs, 0) + 1
+    const maxSeq = Math.max(...seqs, 0)
+    if (maxSeq >= startSeq) {
+      nextSeq = maxSeq + 1
+    }
   }
 
-  return `${prefix}${String(nextSeq).padStart(4, '0')}`
+  return `${prefix}${nextSeq}`
 }
+
 
 
 export interface PurchaseItem {
