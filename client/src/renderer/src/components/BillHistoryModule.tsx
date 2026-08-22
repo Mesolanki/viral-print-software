@@ -547,6 +547,18 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
                           <td style={{ padding: 6, textAlign: 'right', fontWeight: 700, fontSize: 10 }}>{it.amount}</td>
                         </tr>
                       ))}
+
+                      {Array.from({ length: Math.max(0, 8 - (previewInvoice.items?.length || 0)) }).map((_, i) => (
+                        <tr key={`blank-hist-${i}`} className="pdf-blank-row" style={{ borderBottom: '1px solid #ddd' }}>
+                          <td style={{ padding: 6, borderRight: '1px solid #000', textAlign: 'center', fontSize: 10 }}>&nbsp;</td>
+                          <td style={{ padding: 6, borderRight: '1px solid #000', fontSize: 10 }}>&nbsp;</td>
+                          {previewInvoice.type === 'TAX_INVOICE' && <td style={{ padding: 6, borderRight: '1px solid #000', textAlign: 'center', fontSize: 10 }}>&nbsp;</td>}
+                          <td style={{ padding: 6, borderRight: '1px solid #000', textAlign: 'center', fontSize: 10 }}>&nbsp;</td>
+                          <td style={{ padding: 6, borderRight: '1px solid #000', textAlign: 'right', fontSize: 10 }}>&nbsp;</td>
+                          <td style={{ padding: 6, textAlign: 'right', fontWeight: 700, fontSize: 10 }}>&nbsp;</td>
+                        </tr>
+                      ))}
+
                     </tbody>
                   </table>
 

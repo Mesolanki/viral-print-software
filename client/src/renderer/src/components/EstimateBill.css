@@ -2155,10 +2155,14 @@
     break-inside: auto !important;
   }
 
-  /* Hide blank filler lines on print to prevent extra blank pages */
+  /* Ensure blank filler lines extend table grid lines down page gracefully on print */
   .pdf-table tr.pdf-blank-row {
-    display: none !important;
+    display: table-row !important;
   }
+  .pdf-table tr.pdf-blank-row td {
+    height: 24px !important;
+  }
+
 
   /* Prevent row splitting inside individual table rows */
   .pdf-table tr {
