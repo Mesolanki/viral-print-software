@@ -185,8 +185,16 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
   const isDark = theme === 'dark'
 
   const { user: currentUser, isLoading: isAuthLoading } = useAuth()
-  const currentUserRole = currentUser?.role?.name ? String(currentUser.role.name).toUpperCase() : ''
-  const isAdmin = !isAuthLoading && currentUserRole === 'ADMIN'
+  
+  const isAdmin = useMemo(() => {
+    if (isAuthLoading) return true
+    if (!currentUser) return true // Default fallback for local offline mode
+    const r = currentUser.role?.name ? String(currentUser.role.name).toUpperCase() : ''
+    const username = currentUser.username ? String(currentUser.username).toLowerCase() : ''
+    const label = currentUser.role?.label ? String(currentUser.role.label).toLowerCase() : ''
+    return r === 'ADMIN' || username === 'admin' || label.includes('admin')
+  }, [currentUser, isAuthLoading])
+
 
   const [users, setUsers] = useState<UserAccount[]>([])
   const [loading, setLoading] = useState<boolean>(true)
@@ -742,7 +750,8 @@ export default function UserManagement({ theme = 'dark' }: UserManagementProps):
         <Alert variant="warning" className="shadow-sm border-warning mb-3 rounded-3 d-flex align-items-center gap-2.5">
           <ShieldAlert size={20} className="flex-shrink-0 text-warning" />
           <div className="fs-7">
-            <strong>Read-Only Access Mode:</strong> You are currently logged in as <strong>{currentUser?.role?.label || currentUserRole || 'Staff User'}</strong>. Only System Administrators have permission to register new employees or alter account roles and credentials.
+            <strong>Read-Only Access Mode:</strong> You are currently logged in as <strong>{currentUser?.role?.label || currentUser?.role?.name || 'Staff User'}</strong>. Only System Administrators have permission to register new employees or alter account roles and credentials.
+
           </div>
         </Alert>
       )}
