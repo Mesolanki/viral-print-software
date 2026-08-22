@@ -1081,9 +1081,8 @@ Main HSN: 9983 (Printing / Advertising)`
     return () => window.removeEventListener('keydown', handleGlobalShortcuts)
   }, [saveCurrentInvoiceToDb, handlePrint])
 
-  const MIN_ROWS = billType === 'ESTIMATE' ? 8 : 10
-  const fillerCount = Math.max(0, MIN_ROWS - items.length)
   const formatTitle = billType === 'TAX_INVOICE' ? 'Tax Invoice' : billType === 'QUOTATION' ? 'Quotation' : 'Estimate Bill'
+
   const allSavedInvoices = DataService.getInvoices()
 
   return (
