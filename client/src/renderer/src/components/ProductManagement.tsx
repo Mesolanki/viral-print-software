@@ -1024,28 +1024,6 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                 </Form.Group>
               </Col>
 
-              {/* Price */}
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label className="vpm-form-label">
-                    Base Price (₹) <span className="text-danger">*</span>
-                  </Form.Label>
-                  <InputGroup>
-                    <InputGroup.Text className="vpm-input-addon">₹</InputGroup.Text>
-                    <Form.Control
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      className="vpm-form-input"
-                      placeholder="0.00"
-                      value={pPrice}
-                      onChange={(e) => setPPrice(e.target.value)}
-                      required
-                    />
-                  </InputGroup>
-                </Form.Group>
-              </Col>
-
               {/* GST Rate */}
               <Col md={6}>
                 <Form.Group>
@@ -1065,40 +1043,27 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                 </Form.Group>
               </Col>
 
-              {/* Price Preview */}
-              {pPrice && !isNaN(Number(pPrice)) && (
-                <Col md={12}>
-                  <div className={`prd-price-preview ${isDark ? 'price-preview-dark' : 'price-preview-light'}`}>
-                    <div className="price-preview-row">
-                      <span>Base Price</span>
-                      <span>₹{fmtPrice(Number(pPrice))}</span>
-                    </div>
-                    <div className="price-preview-row">
-                      <span>GST ({pGst}%)</span>
-                      <span>+ ₹{fmtPrice((Number(pPrice) * pGst) / 100)}</span>
-                    </div>
-                    <div className="price-preview-row price-preview-total">
-                      <span>Total (incl. GST)</span>
-                      <span>₹{fmtPrice(Number(pPrice) + (Number(pPrice) * pGst) / 100)}</span>
-                    </div>
-                  </div>
-                </Col>
-              )}
-
-              {/* ── Custom Print Dimensions (Height × Width) ── */}
+              {/* ── Custom Print Dimensions & Rate (Height × Width × Rate) ── */}
               <Col md={12}>
                 <div className={`p-3 rounded-3 my-2 border ${isDark ? 'bg-dark bg-opacity-40 border-secondary border-opacity-50' : 'bg-light border-light-subtle'}`}>
                   <div className="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-opacity-10">
-                    <span className="vpm-form-label mb-0">Custom Print Dimensions (Height × Width)</span>
-                    {modalSqFt > 0 && (
-                      <span className="vpm-gst-badge bg-primary bg-opacity-10 text-primary px-2 py-0.5" style={{ fontSize: '0.70rem' }}>
-                        Area: {modalSqFt.toFixed(2)} Sq.Ft
-                      </span>
-                    )}
+                    <span className="vpm-form-label mb-0 fw-bold text-primary">Print Dimensions & Pricing Rate</span>
+                    <div className="d-flex align-items-center gap-2">
+                      {modalSqFt > 0 && (
+                        <span className="vpm-gst-badge bg-primary bg-opacity-10 text-primary px-2 py-0.5" style={{ fontSize: '0.70rem' }}>
+                          Area: {modalSqFt.toFixed(2)} Sq.Ft
+                        </span>
+                      )}
+                      {pPrice && modalSqFt > 0 && (
+                        <span className="vpm-gst-badge bg-success bg-opacity-10 text-success px-2 py-0.5" style={{ fontSize: '0.70rem' }}>
+                          Subtotal: ₹{(modalSqFt * Number(pPrice)).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <Row className="g-2">
-                    <Col sm={4}>
+                    <Col sm={3}>
                       <Form.Group>
                         <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Height (H)</Form.Label>
                         <Form.Control
@@ -1113,7 +1078,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                       </Form.Group>
                     </Col>
 
-                    <Col sm={4}>
+                    <Col sm={3}>
                       <Form.Group>
                         <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Width (W)</Form.Label>
                         <Form.Control
@@ -1128,7 +1093,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                       </Form.Group>
                     </Col>
 
-                    <Col sm={4}>
+                    <Col sm={3}>
                       <Form.Group>
                         <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Dimension Unit</Form.Label>
                         <Form.Select
@@ -1143,9 +1108,58 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                         </Form.Select>
                       </Form.Group>
                     </Col>
+
+                    <Col sm={3}>
+                      <Form.Group>
+                        <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>
+                          Rate / Price (₹) <span className="text-danger">*</span>
+                        </Form.Label>
+                        <InputGroup>
+                          <InputGroup.Text className="vpm-input-addon px-2" style={{ fontSize: '0.75rem' }}>₹</InputGroup.Text>
+                          <Form.Control
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            className="vpm-form-input"
+                            style={{ fontSize: '0.80rem' }}
+                            placeholder="e.g. 18.00"
+                            value={pPrice}
+                            onChange={(e) => setPPrice(e.target.value)}
+                            required
+                          />
+                        </InputGroup>
+                      </Form.Group>
+                    </Col>
                   </Row>
                 </div>
               </Col>
+
+              {/* Price Preview */}
+              {pPrice && !isNaN(Number(pPrice)) && (
+                <Col md={12}>
+                  <div className={`prd-price-preview ${isDark ? 'price-preview-dark' : 'price-preview-light'}`}>
+                    <div className="price-preview-row">
+                      <span>Unit Rate</span>
+                      <span>₹{fmtPrice(Number(pPrice))} / {pUnit || 'sqft'}</span>
+                    </div>
+                    {modalSqFt > 0 && (
+                      <div className="price-preview-row">
+                        <span>Calculated Area Subtotal ({modalSqFt.toFixed(2)} sqft)</span>
+                        <span>₹{fmtPrice(modalSqFt * Number(pPrice))}</span>
+                      </div>
+                    )}
+                    <div className="price-preview-row">
+                      <span>GST ({pGst}%)</span>
+                      <span>+ ₹{fmtPrice((((modalSqFt > 0 ? modalSqFt * Number(pPrice) : Number(pPrice))) * pGst) / 100)}</span>
+                    </div>
+                    <div className="price-preview-row price-preview-total">
+                      <span>Grand Total (incl. GST)</span>
+                      <span>₹{fmtPrice((modalSqFt > 0 ? modalSqFt * Number(pPrice) : Number(pPrice)) + (((modalSqFt > 0 ? modalSqFt * Number(pPrice) : Number(pPrice))) * pGst) / 100)}</span>
+                    </div>
+                  </div>
+                </Col>
+              )}
+
 
 
               {/* Description */}

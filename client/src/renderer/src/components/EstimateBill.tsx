@@ -592,15 +592,25 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
 
   // ── Add Product from Catalog / Autocomplete ──────────────────
   const selectProductForItemRow = (itemId: number, prod: ProductItem) => {
-    const isSquareUnit = ['sqft', 'sqmtr', 'sqmt'].includes((prod.unit || '').toLowerCase())
+    const defaultW = (prod as any).default_width ? String((prod as any).default_width) : ''
+    const defaultH = (prod as any).default_height ? String((prod as any).default_height) : ''
+    const wNum = parseFloat(defaultW) || 0
+    const hNum = parseFloat(defaultH) || 0
+    const calculatedQty = (wNum > 0 && hNum > 0) ? String(wNum * hNum) : ''
+    const cleanName = prod.name.replace(/\s*\(\d+(\.\d+)?ft\s*x\s*\d+(\.\d+)?ft\)/gi, '')
+    const finalDesc = (wNum > 0 && hNum > 0) ? `${cleanName} (${wNum}ft x ${hNum}ft)` : cleanName
+
     setItems(prev => prev.map(it => it.id === itemId ? {
       ...it,
-      description: prod.name,
+      description: finalDesc,
       hsn: prod.hsn || (prod as any).hsn_code || '9983',
-      unit: prod.unit || 'pcs',
+      unit: prod.unit || 'sqft',
+      width: defaultW,
+      height: defaultH,
+      qty: calculatedQty || it.qty || '1',
       rate: String(prod.price !== undefined ? prod.price : '0'),
       gstPct: String(prod.gst_rate !== undefined ? prod.gst_rate : '18'),
-      showSizeCalc: isSquareUnit
+      showSizeCalc: true
     } : it))
     setActiveInlineSearchId(null)
     setActiveModalSearchId(null)
@@ -608,18 +618,27 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
   }
 
   const addProductFromCatalogPicker = (prod: ProductItem) => {
-    const isSquareUnit = ['sqft', 'sqmtr', 'sqmt'].includes((prod.unit || '').toLowerCase())
+    const defaultW = (prod as any).default_width ? String((prod as any).default_width) : ''
+    const defaultH = (prod as any).default_height ? String((prod as any).default_height) : ''
+    const wNum = parseFloat(defaultW) || 0
+    const hNum = parseFloat(defaultH) || 0
+    const calculatedQty = (wNum > 0 && hNum > 0) ? String(wNum * hNum) : ''
+    const cleanName = prod.name.replace(/\s*\(\d+(\.\d+)?ft\s*x\s*\d+(\.\d+)?ft\)/gi, '')
+    const finalDesc = (wNum > 0 && hNum > 0) ? `${cleanName} (${wNum}ft x ${hNum}ft)` : cleanName
+
     setItems(prev => [
       ...prev,
       {
         id: _itemId++,
-        description: prod.name,
+        description: finalDesc,
         hsn: prod.hsn || (prod as any).hsn_code || '9983',
-        unit: prod.unit || 'pcs',
-        qty: '1',
+        unit: prod.unit || 'sqft',
+        width: defaultW,
+        height: defaultH,
+        qty: calculatedQty || '1',
         rate: String(prod.price !== undefined ? prod.price : '0'),
         gstPct: String(prod.gst_rate !== undefined ? prod.gst_rate : '18'),
-        showSizeCalc: isSquareUnit
+        showSizeCalc: true
       }
     ])
     setShowCatalogPickerModal(false)
@@ -628,7 +647,7 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
   const updateItemDimensions = (itemId: number, wStr: string, hStr: string) => {
     const w = parseFloat(wStr) || 0
     const h = parseFloat(hStr) || 0
-    const calculatedQty = (w > 0 && h > 0) ? (w * h).toString() : ''
+    const calculatedQty = (w > 0 && h > 0) ? String((w * h).toFixed(2)) : ''
     setItems(prev => prev.map(it => {
       if (it.id !== itemId) return it
       const cleanDesc = (it.description || '').replace(/\s*\(\d+(\.\d+)?ft\s*x\s*\d+(\.\d+)?ft\)/gi, '')
@@ -642,6 +661,7 @@ const EstimateBill: React.FC<Props> = ({ theme, formatType = 'TAX_INVOICE', edit
       }
     }))
   }
+
 
   const getProductMatches = (queryStr: string) => {
     const q = (queryStr || '').trim().toLowerCase()
