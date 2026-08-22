@@ -125,20 +125,27 @@ export function getNextInvoiceNumber(type: 'TAX_INVOICE' | 'QUOTATION' | 'ESTIMA
   const invoices = DataService.getInvoices()
 
   const prefix = type === 'TAX_INVOICE' ? `VPM/${fy}/` : type === 'QUOTATION' ? `VPM/QT/${fy}/` : `EST/${fy}/`
-  const sameFyInvoices = invoices.filter(i => i.type === type && i.invoice_number.startsWith(prefix))
+  const sameFyInvoices = invoices.filter(i => {
+    if (i.type === type) return true
+    if (type === 'TAX_INVOICE' && i.invoice_number.startsWith(`VPM/${fy}/`) && !i.invoice_number.includes('/QT/')) return true
+    if (type === 'QUOTATION' && (i.invoice_number.includes('/QT/') || i.invoice_number.startsWith('QT-'))) return true
+    if (type === 'ESTIMATE' && (i.invoice_number.startsWith('EST/') || i.invoice_number.startsWith('EST-'))) return true
+    return false
+  })
 
   let nextSeq = 1
   if (sameFyInvoices.length > 0) {
     const seqs = sameFyInvoices.map(i => {
-      const parts = i.invoice_number.split('/')
-      const numPart = parts[parts.length - 1]
-      return parseInt(numPart, 10) || 0
+      const numPart = i.invoice_number.split('/').pop() || ''
+      const match = numPart.match(/\d+/)
+      return match ? parseInt(match[0], 10) : 0
     })
-    nextSeq = Math.max(...seqs) + 1
+    nextSeq = Math.max(...seqs, 0) + 1
   }
 
   return `${prefix}${String(nextSeq).padStart(4, '0')}`
 }
+
 
 export interface PurchaseItem {
   id?: number
@@ -245,8 +252,17 @@ const INITIAL_SUPPLIERS: Supplier[] = [
   }
 ]
 
-const INITIAL_PRODUCTS: Product[] = (seedData.products || []) as Product[]
+const INITIAL_PRODUCTS: Product[] = [
+  { id: 1, name: 'Star Flex Banner (13 oz)', category: 'Banners & Flex', unit: 'sqft', price: 18, gst_rate: 18, hsn_code: '4911', description: 'Premium 13 oz frontlit star flex banner' },
+  { id: 2, name: 'Eco-Solvent Vinyl Sticker', category: 'Stickers & Labels', unit: 'sqft', price: 45, gst_rate: 18, hsn_code: '4911', description: 'Waterproof high gloss outdoor vinyl sticker' },
+  { id: 3, name: '3D Acrylic Glow Signboard', category: 'Signages & Boards', unit: 'sqft', price: 650, gst_rate: 18, hsn_code: '9405', description: 'LED backlit 3D acrylic channel letters' },
+  { id: 4, name: '350 GSM Velvet Visiting Cards (1000 Pcs)', category: 'Visiting Cards', unit: 'set', price: 450, gst_rate: 12, hsn_code: '4911', description: 'Super velvet soft touch double side printed' },
+  { id: 5, name: 'One-Way Vision Film', category: 'Stickers & Labels', unit: 'sqft', price: 55, gst_rate: 18, hsn_code: '4911', description: 'Perforated window vinyl film for glass' },
+  { id: 6, name: 'Roll-up Standee (6x3 Feet)', category: 'Display Standees', unit: 'pcs', price: 1250, gst_rate: 18, hsn_code: '4911', description: 'Aluminum base roll up standee with flex banner' },
+  { id: 7, name: 'Foamsheet Board Printing (5mm)', category: 'Signages & Boards', unit: 'sqft', price: 75, gst_rate: 18, hsn_code: '4911', description: 'Direct UV printing on 5mm PVC foamsheet' }
+]
 const INITIAL_INVOICES: Invoice[] = (seedData.invoices || []) as Invoice[]
+
 
 
 const INITIAL_PURCHASES: Purchase[] = [
@@ -387,10 +403,17 @@ function getStoredItem<T>(key: string, initialDefault: T): T {
       return initialDefault
     }
     const parsed = JSON.parse(raw) as T
-    if (Array.isArray(parsed) && Array.isArray(initialDefault) && initialDefault.length > parsed.length + 10) {
+    // Reset products to clean standard printing list if holding old unformatted items
+    if (key === STORAGE_KEYS.PRODUCTS && Array.isArray(parsed) && parsed.length > 100) {
       localStorage.setItem(key, JSON.stringify(initialDefault))
       return initialDefault as unknown as T
     }
+    if (Array.isArray(parsed) && Array.isArray(initialDefault) && initialDefault.length > parsed.length) {
+      localStorage.setItem(key, JSON.stringify(initialDefault))
+      return initialDefault as unknown as T
+    }
+
+
     return parsed
 
   } catch (err) {

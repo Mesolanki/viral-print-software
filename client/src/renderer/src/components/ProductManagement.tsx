@@ -107,12 +107,16 @@ const fmtPrice = (v: number | string): string => {
 
 // ── Sample Data (fallback) ─────────────────────────────────────────
 const SAMPLE_CATEGORIES: Category[] = [
-  { id: 1, company_id: 1, name: 'Banners & Flex', createdAt: new Date().toISOString() },
-  { id: 2, company_id: 1, name: 'Visiting Cards', createdAt: new Date().toISOString() },
-  { id: 3, company_id: 1, name: 'Stickers & Labels', createdAt: new Date().toISOString() },
-  { id: 4, company_id: 1, name: 'Brochures & Flyers', createdAt: new Date().toISOString() },
-  { id: 5, company_id: 1, name: 'Canvas Prints', createdAt: new Date().toISOString() }
+  { id: 1, company_id: 1, name: 'General', createdAt: new Date().toISOString() },
+  { id: 2, company_id: 1, name: 'Flex Printing', createdAt: new Date().toISOString() },
+  { id: 3, company_id: 1, name: 'Banners & Flex', createdAt: new Date().toISOString() },
+  { id: 4, company_id: 1, name: 'Stickers & Vinyl', createdAt: new Date().toISOString() },
+  { id: 5, company_id: 1, name: 'Signages & Glow Boards', createdAt: new Date().toISOString() },
+  { id: 6, company_id: 1, name: 'Visiting Cards & Offset', createdAt: new Date().toISOString() },
+  { id: 7, company_id: 1, name: 'Display Standees', createdAt: new Date().toISOString() },
+  { id: 8, company_id: 1, name: 'Printing Services', createdAt: new Date().toISOString() }
 ]
+
 
 const SAMPLE_PRODUCTS: Product[] = [
   { id: 1, company_id: 1, category_id: 1, category: { id: 1, name: 'Banners & Flex' }, name: 'Star Flex Banner (1mm)', unit: 'sqft', price: 35, gst_rate: 18, description: 'Premium 1mm star flex, outdoor quality' },
@@ -203,75 +207,54 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
 
   const fetchCategories = async (): Promise<void> => {
     setCatsLoading(true)
-    try {
-      const res = await fetch(`${API_BASE_URL}/categories?company_id=${DEFAULT_COMPANY_ID}`, {
-        headers: getAuthHeaders()
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setCategories(Array.isArray(data) ? data : SAMPLE_CATEGORIES)
-      } else {
-        setCategories(SAMPLE_CATEGORIES)
-      }
-    } catch {
-      setCategories(SAMPLE_CATEGORIES)
-    } finally {
-      setCatsLoading(false)
-    }
+    const localProds = DataService.getProducts()
+    const extractedCats = Array.from(new Set(localProds.map((p) => p.category).filter(Boolean)))
+    
+    const catNames = new Set<string>([
+      ...SAMPLE_CATEGORIES.map((c) => c.name),
+      ...extractedCats
+    ])
+
+    const catList: Category[] = Array.from(catNames).map((name, idx) => ({
+      id: idx + 1,
+      company_id: DEFAULT_COMPANY_ID,
+      name,
+      createdAt: new Date().toISOString()
+    }))
+
+    setCategories(catList)
+    setCatsLoading(false)
   }
+
+
 
   const fetchProducts = async (): Promise<void> => {
     setLoading(true)
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/products?company_id=${DEFAULT_COMPANY_ID}`,
-        { headers: getAuthHeaders() }
-      )
-      if (res.ok) {
-        const data = await res.json()
-        if (Array.isArray(data) && data.length > 0) {
-          setProducts(data)
-          data.forEach((p: any) => {
-            DataService.saveProduct({
-              id: p.id,
-              name: p.name,
-              category: p.category?.name || 'General',
-              unit: p.unit || 'pcs',
-              price: Number(p.price) || 0,
-              gst_rate: Number(p.gst_rate) || 18,
-              hsn_code: p.hsn_code || p.hsn || '9983',
-              description: p.description || ''
-            })
-          })
-          setLoading(false)
-          return
-        }
-      }
-    } catch {
-      // Fallback to local storage
-    }
-
     const localProds = DataService.getProducts()
     if (localProds && localProds.length > 0) {
       setProducts(
-        localProds.map((p) => ({
-          id: p.id,
-          company_id: DEFAULT_COMPANY_ID,
-          category_id: 1,
-          name: p.name,
-          unit: p.unit || 'pcs',
-          price: p.price || 0,
-          gst_rate: p.gst_rate || 18,
-          hsn_code: p.hsn_code || '9983',
-          description: p.description || '',
-          category: { id: 1, name: p.category || 'General' }
-        }))
+        localProds.map((p, idx) => {
+          const catName = p.category || 'General'
+          return {
+            id: p.id || idx + 1,
+            company_id: DEFAULT_COMPANY_ID,
+            category_id: idx + 1,
+            name: p.name,
+            unit: p.unit || 'pcs',
+            price: Number(p.price) || 0,
+            gst_rate: Number(p.gst_rate) || 18,
+            hsn_code: p.hsn_code || '4911',
+            description: p.description || '',
+            category: { id: idx + 1, name: catName }
+          }
+        })
       )
     } else {
       setProducts(SAMPLE_PRODUCTS)
     }
     setLoading(false)
   }
+
 
   const showToast = (msg: string): void => {
     setSuccessMsg(msg)
