@@ -6,8 +6,14 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios'
 
 // ── Constants ────────────────────────────────────────────────
-const BASE_URL = 'http://localhost:5000/api'
+const API_HOST =
+  typeof window !== 'undefined' && window.location?.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    ? window.location.hostname
+    : (typeof localStorage !== 'undefined' && localStorage.getItem('vpm_server_ip')) || 'localhost'
+
+const BASE_URL = `http://${API_HOST}:5000/api`
 const TOKEN_KEY = 'vpm_auth_token'
+
 
 // ── Axios Instance ───────────────────────────────────────────
 const apiClient = axios.create({
