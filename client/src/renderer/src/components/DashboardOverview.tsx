@@ -377,34 +377,53 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onN
     ]
   }, [invoices])
 
-  // ── 4. Top Product Categories Breakdown ────────────────────────
+  // ── 4. Top Product Categories Breakdown from BAK Database Invoices ──
   const categoryBreakdown = useMemo(() => {
-    const catMap: Record<string, number> = {
-      'Star Flex Banner': 0,
-      'Vinyl & Sticker': 0,
-      'Acrylic Signage': 0,
-      'Visiting Cards': 0,
-      'Offset Brochures': 0
+    const catTotals: Record<string, number> = {
+      'Star Flex & Banners': 0,
+      'Vinyl & Stickers': 0,
+      'Glow Signboard & Acrylic': 0,
+      'Visiting Cards & Stationeries': 0,
+      'Brochures, Catalogues & Pamphlets': 0,
+      'Display Standees & Canopies': 0,
+      'General Printing Services': 0
     }
 
     invoices.forEach((inv) => {
       inv.items?.forEach((item) => {
-        const desc = item.description.toLowerCase()
-        if (desc.includes('flex')) catMap['Star Flex Banner'] += item.amount
-        else if (desc.includes('vinyl') || desc.includes('sticker')) catMap['Vinyl & Sticker'] += item.amount
-        else if (desc.includes('acrylic') || desc.includes('glow')) catMap['Acrylic Signage'] += item.amount
-        else if (desc.includes('card') || desc.includes('visiting')) catMap['Visiting Cards'] += item.amount
-        else catMap['Offset Brochures'] += item.amount
+        const desc = (item.description || '').toLowerCase()
+        const amt = item.amount || 0
+
+        if (desc.includes('flex') || desc.includes('banner') || desc.includes('hoarding')) {
+          catTotals['Star Flex & Banners'] += amt
+        } else if (desc.includes('vinyl') || desc.includes('sticker') || desc.includes('label') || desc.includes('one way')) {
+          catTotals['Vinyl & Stickers'] += amt
+        } else if (desc.includes('acrylic') || desc.includes('glow') || desc.includes('led') || desc.includes('board') || desc.includes('sign')) {
+          catTotals['Glow Signboard & Acrylic'] += amt
+        } else if (desc.includes('card') || desc.includes('visiting') || desc.includes('letterhead') || desc.includes('envelope') || desc.includes('bill book')) {
+          catTotals['Visiting Cards & Stationeries'] += amt
+        } else if (desc.includes('standee') || desc.includes('canopy') || desc.includes('display')) {
+          catTotals['Display Standees & Canopies'] += amt
+        } else if (desc.includes('brochure') || desc.includes('catalog') || desc.includes('book') || desc.includes('pamphlet') || desc.includes('leaflet')) {
+          catTotals['Brochures, Catalogues & Pamphlets'] += amt
+        } else {
+          catTotals['General Printing Services'] += amt
+        }
       })
     })
 
-    const grand = Object.values(catMap).reduce((a, b) => a + b, 0) || 1
-    return Object.entries(catMap).map(([name, amount]) => ({
-      name,
-      amount,
-      percentage: Math.min(100, Math.round((amount / grand) * 100))
-    }))
+    const grand = Object.values(catTotals).reduce((a, b) => a + b, 0) || 1
+
+    return Object.entries(catTotals)
+      .map(([name, amount]) => ({
+        name,
+        amount,
+        percentage: Math.min(100, Math.round((amount / grand) * 100))
+      }))
+      .filter((item) => item.amount > 0)
+      .sort((a, b) => b.amount - a.amount)
   }, [invoices])
+
 
   // ── 5. Search & Filtered Invoices Table Data ───────────────────
   const filteredInvoices = useMemo(() => {
