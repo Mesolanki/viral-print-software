@@ -482,8 +482,9 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onN
               <div>
                 <h2 className="vpm-hero-title my-0">Business Performance Dashboard</h2>
                 <p className="vpm-hero-subtitle m-0">
-                  Real-time Financial Diagnostics & Operations Command Center
+                  {isAdmin ? 'System Admin Diagnostics & Financial Command Center' : 'Sales & Operations Performance Dashboard'}
                 </p>
+
               </div>
             </div>
           </div>
