@@ -160,10 +160,11 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
   const [pSubmitting, setPSubmitting] = useState(false)
 
   // ── Height × Width (H × W) Dimension Calculator States for Product Modal ──
-  const [mHeight, setMHeight] = useState<string>('10')
+  const [mHeight, setMHeight] = useState<string>('6')
   const [mWidth, setMWidth] = useState<string>('3')
   const [mUnit, setMUnit] = useState<'ft' | 'in' | 'm'>('ft')
   const [mQty, setMQty] = useState<string>('1')
+  const [mRate, setMRate] = useState<string>('18')
 
   // ── Modal H × W Calculation Memo ────────────────────────────────
   const modalCalcResult = useMemo(() => {
@@ -174,22 +175,23 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
     if (mUnit === 'in') sqft = (h * w) / 144
     if (mUnit === 'm') sqft = h * w * 10.7639
 
-    const rate = parseFloat(pPrice) || 0
+    const activeRate = mRate !== '' ? parseFloat(mRate) || 0 : parseFloat(pPrice) || 0
     const gstPct = Number(pGst) || 18
 
-    const subtotal = sqft * rate * q
+    const subtotal = sqft * activeRate * q
     const gstAmt = (subtotal * gstPct) / 100
     const total = subtotal + gstAmt
 
     return {
       sqft,
-      rate,
+      rate: activeRate,
       gstPct,
       subtotal,
       gstAmt,
       total
     }
-  }, [mHeight, mWidth, mUnit, mQty, pPrice, pGst])
+  }, [mHeight, mWidth, mUnit, mQty, mRate, pPrice, pGst])
+
 
 
 
@@ -266,8 +268,11 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
     setEditingProduct(null)
     setPName('')
     setPCategory(categories[0]?.id?.toString() || '')
-    setPUnit('pcs')
+    setPUnit('sqft')
     setPPrice('')
+    setMRate('18')
+    setMHeight('6')
+    setMWidth('3')
     setPGst(18)
     setPHsn('9983')
     setPDesc('')
@@ -281,12 +286,16 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
     setPCategory(p.category_id.toString())
     setPUnit(p.unit)
     setPPrice(String(Number(p.price)))
+    setMRate(String(Number(p.price) || 18))
+    setMHeight('6')
+    setMWidth('3')
     setPGst(Number(p.gst_rate))
     setPHsn(p.hsn_code || '9983')
     setPDesc(p.description || '')
     setError(null)
     setShowProductModal(true)
   }
+
 
   const handleSaveProduct = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
@@ -1101,7 +1110,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                   </div>
 
                   <Row className="g-2 align-items-end">
-                    <Col sm={3}>
+                    <Col sm={3} md={2.4}>
                       <Form.Group>
                         <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Height (H)</Form.Label>
                         <Form.Control
@@ -1117,7 +1126,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                       </Form.Group>
                     </Col>
 
-                    <Col sm={3}>
+                    <Col sm={3} md={2.4}>
                       <Form.Group>
                         <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Width (W)</Form.Label>
                         <Form.Control
@@ -1133,7 +1142,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                       </Form.Group>
                     </Col>
 
-                    <Col sm={3}>
+                    <Col sm={3} md={2.4}>
                       <Form.Group>
                         <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Unit</Form.Label>
                         <Form.Select
@@ -1149,7 +1158,23 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                       </Form.Group>
                     </Col>
 
-                    <Col sm={3}>
+                    <Col sm={3} md={2.4}>
+                      <Form.Group>
+                        <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Rate (₹/sqft)</Form.Label>
+                        <Form.Control
+                          type="number"
+                          min={0}
+                          step="0.1"
+                          className="vpm-form-input"
+                          style={{ fontSize: '0.80rem' }}
+                          placeholder="e.g. 18"
+                          value={mRate}
+                          onChange={(e) => setMRate(e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+
+                    <Col sm={3} md={2.4}>
                       <Form.Group>
                         <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Qty</Form.Label>
                         <Form.Control
@@ -1172,12 +1197,41 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                         <div className="fw-extrabold text-success my-1" style={{ fontSize: '1.35rem' }}>
                           ₹{modalCalcResult.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
-                        <div className="text-muted" style={{ fontSize: '0.68rem' }}>
-                          ₹{modalCalcResult.rate.toFixed(2)}/sqft + {modalCalcResult.gstPct}% GST (₹{modalCalcResult.gstAmt.toFixed(2)})
+                        <div className="text-muted mb-2" style={{ fontSize: '0.68rem' }}>
+                          ₹{modalCalcResult.rate.toFixed(2)}/sqft × {modalCalcResult.sqft.toFixed(2)} sqft = ₹{modalCalcResult.subtotal.toFixed(2)} (+ {modalCalcResult.gstPct}% GST: ₹{modalCalcResult.gstAmt.toFixed(2)})
+                        </div>
+
+                        <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-success rounded-2 py-1 px-2.5 fw-bold"
+                            style={{ fontSize: '0.72rem' }}
+                            onClick={() => {
+                              setPPrice(String(modalCalcResult.rate))
+                              setPUnit('sqft')
+                            }}
+                            title="Set Sq.Ft Rate as Product Base Price"
+                          >
+                            ⚡ Set Sq.Ft Rate (₹{modalCalcResult.rate}) as Base Price
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-success text-white rounded-2 py-1 px-2.5 fw-bold"
+                            style={{ fontSize: '0.72rem' }}
+                            onClick={() => {
+                              setPPrice(String(modalCalcResult.subtotal.toFixed(2)))
+                              setPUnit('sqft')
+                            }}
+                            title="Set Calculated Total as Product Base Price"
+                          >
+                            ✨ Set Total Calculated Price (₹{modalCalcResult.subtotal.toFixed(2)}) as Base Price
+                          </button>
                         </div>
                       </div>
                     </Col>
                   </Row>
+
                 </div>
               </Col>
 
