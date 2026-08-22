@@ -106,6 +106,49 @@
   transform: scale(0.96);
 }
 
+/* ── Metric Stat Cards ────────────────────────────────────────── */
+.vpm-cust-stat-card {
+  padding: 12px 16px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-light .vpm-cust-stat-card {
+  background: #ffffff;
+  border-color: #E2E8F0 !important;
+}
+
+.theme-dark .vpm-cust-stat-card {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+.vpm-cust-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08) !important;
+}
+
+.vpm-cust-stat-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vpm-cust-stat-icon-ring {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+
 /* ── Pro Search Bar ────────────────────────────────────────────── */
 .vpm-cust-search-bar {
   border-radius: 14px !important;

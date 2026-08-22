@@ -24,6 +24,43 @@ interface CustomerManagementProps {
   theme: 'dark' | 'light'
 }
 
+// ── Helper to split concatenated location names from raw BAK data ──
+function formatCustomerDisplayName(rawName: string, rawAddress?: string): { name: string; address: string } {
+  if (!rawName) return { name: 'Walk-in Customer', address: rawAddress || 'Chandkheda, Ahmedabad' }
+  let n = rawName.trim()
+  let addr = (rawAddress || '').trim()
+
+  const LOCATIONS = [
+    'Chandkheda', 'Ahmedabad', 'Gota', 'Sabarmati', 'Gandhinagar',
+    'Alfa square', 'Mansarovar Road', 'Nakshatra Mall', 'Orange Mall',
+    'Sun Heights', 'New Chandkheda', 'Jantanagar', 'Chankheda', 'Tp 44, Chandkheda'
+  ]
+
+  for (const loc of LOCATIONS) {
+    if (n.endsWith(loc) && n.length > loc.length + 2) {
+      if (!addr || addr === 'Chandkheda, Ahmedabad' || addr === loc) {
+        addr = `${loc}, Ahmedabad`
+      }
+      n = n.slice(0, -loc.length).trim()
+      break
+    }
+  }
+
+  n = n.replace(/[,;.-]+$/, '').trim()
+  if (!addr) addr = 'Chandkheda, Ahmedabad'
+
+  return { name: n || rawName, address: addr }
+}
+
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+  'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)',
+  'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+  'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+  'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
+  'linear-gradient(135deg, #14b8a6 0%, #0284c7 100%)'
+]
+
 const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
@@ -98,35 +135,33 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!editingCustomer || !editingCustomer.name) return
-    DataService.saveCustomer(editingCustomer)
-    setShowModal(false)
+    if (!editingCustomer?.name) return
+    DataService.saveCustomer(editingCustomer as Customer)
     loadData()
+    setShowModal(false)
   }
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
+    if (window.confirm('Are you sure you want to delete this customer record?')) {
       DataService.deleteCustomer(id)
       loadData()
     }
   }
 
-  // ── Dynamic Filter & Sorting Computation ───────────────────────
+  // ── Filtered & Sorted Customer List ─────────────────────────────
   const filteredCustomers = useMemo(() => {
     return customers
       .filter((c) => {
-        // 1. GST Filter
         const hasGst = !!(c.gst_no && c.gst_no.trim().length > 0)
+        const due = Number(c.outstanding_balance) || 0
+
         if (gstFilter === 'GST' && !hasGst) return false
         if (gstFilter === 'NON_GST' && hasGst) return false
 
-        // 2. Outstanding Balance Filter
-        const balance = Number(c.outstanding_balance) || 0
-        if (dueFilter === 'DUE_ONLY' && balance <= 0) return false
-        if (dueFilter === 'HIGH_DUE' && balance < 5000) return false
-        if (dueFilter === 'ZERO_DUE' && balance > 0) return false
+        if (dueFilter === 'DUE_ONLY' && due <= 0) return false
+        if (dueFilter === 'HIGH_DUE' && due < 5000) return false
+        if (dueFilter === 'ZERO_DUE' && due > 0) return false
 
-        // 3. Search Query Filter
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim()
           const matchName = c.name.toLowerCase().includes(q)
@@ -198,51 +233,51 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
         </button>
       </div>
 
-      {/* ── Metric Summary Cards for Filtered Selection ────────── */}
+      {/* ── Metric Summary Cards ────────────────────────────── */}
       <Row className="g-2 w-100 mx-0 my-1">
-        <Col lg={3} sm={6} className="px-1">
-          <div className="p-2.5 rounded-3 border bg-body-tertiary d-flex align-items-center justify-content-between shadow-sm">
+        <Col xl={3} md={6} className="px-1">
+          <div className="vpm-cust-stat-card border shadow-sm">
             <div>
-              <span className="text-muted fw-bold d-block" style={{ fontSize: '0.68rem', textTransform: 'uppercase' }}>Filtered Accounts</span>
-              <h5 className="fw-extrabold m-0">{metrics.totalCount}</h5>
+              <span className="vpm-cust-stat-label text-muted">Filtered Accounts</span>
+              <h4 className="fw-extrabold m-0 text-primary">{metrics.totalCount.toLocaleString('en-IN')}</h4>
             </div>
-            <div className="p-2 rounded-circle bg-primary bg-opacity-10 text-primary">
+            <div className="vpm-cust-stat-icon-ring bg-primary bg-opacity-10 text-primary">
               <UserCheck size={18} />
             </div>
           </div>
         </Col>
 
-        <Col lg={3} sm={6} className="px-1">
-          <div className="p-2.5 rounded-3 border bg-body-tertiary d-flex align-items-center justify-content-between shadow-sm">
+        <Col xl={3} md={6} className="px-1">
+          <div className="vpm-cust-stat-card border shadow-sm">
             <div>
-              <span className="text-muted fw-bold d-block" style={{ fontSize: '0.68rem', textTransform: 'uppercase' }}>GST Registered</span>
-              <h5 className="fw-extrabold text-info m-0">{metrics.gstCount}</h5>
+              <span className="vpm-cust-stat-label text-muted">GST Registered</span>
+              <h4 className="fw-extrabold text-info m-0">{metrics.gstCount.toLocaleString('en-IN')}</h4>
             </div>
-            <div className="p-2 rounded-circle bg-info bg-opacity-10 text-info">
+            <div className="vpm-cust-stat-icon-ring bg-info bg-opacity-10 text-info">
               <Building2 size={18} />
             </div>
           </div>
         </Col>
 
-        <Col lg={3} sm={6} className="px-1">
-          <div className="p-2.5 rounded-3 border bg-body-tertiary d-flex align-items-center justify-content-between shadow-sm">
+        <Col xl={3} md={6} className="px-1">
+          <div className="vpm-cust-stat-card border shadow-sm">
             <div>
-              <span className="text-muted fw-bold d-block" style={{ fontSize: '0.68rem', textTransform: 'uppercase' }}>Non-GST / Retail</span>
-              <h5 className="fw-extrabold text-warning m-0">{metrics.nonGstCount}</h5>
+              <span className="vpm-cust-stat-label text-muted">Non-GST / Retail</span>
+              <h4 className="fw-extrabold text-warning m-0">{metrics.nonGstCount.toLocaleString('en-IN')}</h4>
             </div>
-            <div className="p-2 rounded-circle bg-warning bg-opacity-10 text-warning">
+            <div className="vpm-cust-stat-icon-ring bg-warning bg-opacity-10 text-warning">
               <UserX size={18} />
             </div>
           </div>
         </Col>
 
-        <Col lg={3} sm={6} className="px-1">
-          <div className="p-2.5 rounded-3 border bg-body-tertiary d-flex align-items-center justify-content-between shadow-sm">
+        <Col xl={3} md={6} className="px-1">
+          <div className="vpm-cust-stat-card border shadow-sm">
             <div>
-              <span className="text-muted fw-bold d-block" style={{ fontSize: '0.68rem', textTransform: 'uppercase' }}>Filtered Dues</span>
-              <h5 className="fw-extrabold text-danger m-0">₹{metrics.totalDues.toLocaleString('en-IN')}</h5>
+              <span className="vpm-cust-stat-label text-muted">Filtered Dues</span>
+              <h4 className="fw-extrabold text-danger m-0">₹{metrics.totalDues.toLocaleString('en-IN')}</h4>
             </div>
-            <div className="p-2 rounded-circle bg-danger bg-opacity-10 text-danger">
+            <div className="vpm-cust-stat-icon-ring bg-danger bg-opacity-10 text-danger">
               <IndianRupee size={18} />
             </div>
           </div>
@@ -252,8 +287,7 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
       {/* ── Comprehensive Filter Toolbar ───────────────────────── */}
       <div className="vpm-cust-search-bar">
         <Row className="g-2 align-items-center w-100 mx-0">
-          {/* Search Input */}
-          <Col xl={4} lg={4} md={12} className="px-1">
+          <Col lg={4} md={5} className="px-1">
             <div className="vpm-cust-search-wrap">
               <Search size={16} className="vpm-cust-search-icon" />
               <input
@@ -276,8 +310,7 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
             </div>
           </Col>
 
-          {/* GST Status Filter */}
-          <Col xl={2.5} lg={2.5} sm={6} className="px-1">
+          <Col lg={3} md={3} sm={4} className="px-1">
             <Form.Select
               className="vpm-cust-search-input"
               style={{ paddingLeft: '12px' }}
@@ -290,8 +323,7 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
             </Form.Select>
           </Col>
 
-          {/* Outstanding Due Filter */}
-          <Col xl={2.5} lg={2.5} sm={6} className="px-1">
+          <Col lg={3} md={4} sm={4} className="px-1">
             <Form.Select
               className="vpm-cust-search-input"
               style={{ paddingLeft: '12px' }}
@@ -305,8 +337,7 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
             </Form.Select>
           </Col>
 
-          {/* Sort By Selector */}
-          <Col xl={2} lg={2} sm={8} className="px-1">
+          <Col lg={2} md={12} sm={4} className="px-1 d-flex gap-1">
             <Form.Select
               className="vpm-cust-search-input"
               style={{ paddingLeft: '12px' }}
@@ -318,24 +349,22 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
               <option value="due_asc">⬆️ Lowest Dues</option>
               <option value="newest">🆕 Newest Customers</option>
             </Form.Select>
-          </Col>
 
-          {/* Reset Filters */}
-          {isFiltered && (
-            <Col xl={1} lg={1} sm={4} className="px-1 text-end">
+            {isFiltered && (
               <button
                 type="button"
-                className="btn btn-sm btn-outline-secondary w-100 rounded-3 py-1.5 fw-bold"
+                className="btn btn-sm btn-outline-secondary rounded-3 py-1.5 px-3 fw-bold flex-shrink-0"
                 onClick={resetFilters}
                 title="Reset Filters"
                 style={{ fontSize: '0.75rem' }}
               >
                 Reset
               </button>
-            </Col>
-          )}
+            )}
+          </Col>
         </Row>
       </div>
+
 
       {/* ── Customers List Table ──────────────────────────────── */}
       <div className="vpm-cust-table-card">
@@ -360,86 +389,99 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
                   </td>
                 </tr>
               ) : (
-                filteredCustomers.map((cust) => (
-                  <tr key={cust.id}>
-                    <td className="text-start">
-                      <div className="vpm-cust-name-cell">
-                        <div className="vpm-cust-avatar">
-                          {cust.name
-                            .split(' ')
-                            .map((w) => w[0])
-                            .slice(0, 2)
-                            .join('')
-                            .toUpperCase()}
+                filteredCustomers.map((cust, idx) => {
+                  const { name: cleanName, address: cleanAddress } = formatCustomerDisplayName(cust.name, cust.billing_address)
+                  const gradient = AVATAR_GRADIENTS[(cust.id || idx) % AVATAR_GRADIENTS.length]
+                  const initials = cleanName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'C'
+                  const due = Number(cust.outstanding_balance) || 0
+                  const hasGst = !!(cust.gst_no && cust.gst_no.trim().length > 0)
+
+                  return (
+                    <tr key={cust.id || idx}>
+                      <td className="text-start">
+                        <div className="vpm-cust-name-cell">
+                          <div className="vpm-cust-avatar" style={{ background: gradient }}>
+                            {initials}
+                          </div>
+                          <div className="vpm-cust-info-box">
+                            <span className="vpm-cust-title">{cleanName}</span>
+                            <span className="vpm-cust-date">Added {cust.created_at || '2026-01-01'}</span>
+                          </div>
                         </div>
-                        <div className="vpm-cust-info-box">
-                          <span className="vpm-cust-title">{cust.name}</span>
-                          <span className="vpm-cust-date">Added {cust.created_at}</span>
+                      </td>
+                      <td className="text-start">
+                        <div className="d-flex flex-column gap-1">
+                          <span className="vpm-contact-pill">
+                            <Phone size={12} className="text-primary" /> {cust.mobile || 'N/A'}
+                          </span>
+                          {cust.email && (
+                            <span className="vpm-contact-pill text-muted">
+                              <Mail size={12} /> {cust.email}
+                            </span>
+                          )}
                         </div>
-                      </div>
-                    </td>
-                    <td className="text-start">
-                      <div className="d-flex flex-column gap-1">
-                        <span className="vpm-contact-pill">
-                          <Phone size={12} className="text-primary" /> {cust.mobile || 'N/A'}
-                        </span>
-                        {cust.email && (
-                          <span className="vpm-contact-pill text-muted">
-                            <Mail size={12} /> {cust.email}
+                      </td>
+                      <td className="text-center">
+                        {hasGst ? (
+                          <span className="vpm-gst-badge">
+                            <Building2 size={11} className="me-1" />
+                            {cust.gst_no}
+                          </span>
+                        ) : (
+                          <span className="vpm-gst-nongst-tag px-2 py-1 bg-secondary bg-opacity-10 text-secondary rounded-2">
+                            Non-GST
                           </span>
                         )}
-                      </div>
-                    </td>
-                    <td className="text-center">
-                      {cust.gst_no ? (
-                        <span className="vpm-gst-badge">{cust.gst_no}</span>
-                      ) : (
-                        <span className="vpm-gst-nongst-tag">Non-GST</span>
-                      )}
-                    </td>
-                    <td className="text-start">
-                      <span className="vpm-contact-pill text-truncate d-inline-block" style={{ maxWidth: '220px' }}>
-                        <MapPin size={12} className="me-1 text-primary" />
-                        {cust.billing_address || 'Not specified'}
-                      </span>
-                    </td>
-                    <td className="text-end">
-                      {cust.outstanding_balance > 0 ? (
-                        <span className="vpm-amount-balance fw-extrabold text-danger">₹{cust.outstanding_balance.toLocaleString('en-IN')}</span>
-                      ) : (
-                        <span className="vpm-amount-paid fw-bold text-success">₹0</span>
-                      )}
-                    </td>
-                    <td className="text-center">
-                      <div className="vpm-action-group">
-                        <button
-                          type="button"
-                          className="vpm-act-btn vpm-act-btn-ledger"
-                          title="Customer Ledger"
-                          onClick={() => setSelectedLedgerCustomer(cust)}
-                        >
-                          <BookOpen size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className="vpm-act-btn vpm-act-btn-edit"
-                          title="Edit Customer"
-                          onClick={() => handleOpenEdit(cust)}
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className="vpm-act-btn vpm-act-btn-delete"
-                          title="Delete Customer"
-                          onClick={() => handleDelete(cust.id)}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="text-start">
+                        <span className="vpm-contact-pill text-truncate d-inline-block" style={{ maxWidth: '220px' }}>
+                          <MapPin size={12} className="me-1 text-primary" />
+                          {cleanAddress}
+                        </span>
+                      </td>
+                      <td className="text-end">
+                        {due > 0 ? (
+                          <span className="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2.5 py-1.5 fs-7 fw-extrabold">
+                            ₹{due.toLocaleString('en-IN')}
+                          </span>
+                        ) : (
+                          <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1.5 fs-7 fw-bold">
+                            ₹0
+                          </span>
+                        )}
+                      </td>
+                      <td className="text-center">
+                        <div className="vpm-action-group">
+                          <button
+                            type="button"
+                            className="vpm-act-btn vpm-act-btn-ledger"
+                            title="Customer Ledger"
+                            onClick={() => setSelectedLedgerCustomer(cust)}
+                          >
+                            <BookOpen size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className="vpm-act-btn vpm-act-btn-edit"
+                            title="Edit Customer"
+                            onClick={() => handleOpenEdit(cust)}
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className="vpm-act-btn vpm-act-btn-delete"
+                            title="Delete Customer"
+                            onClick={() => handleDelete(cust.id)}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+
               )}
             </tbody>
           </table>
