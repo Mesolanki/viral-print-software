@@ -117,4 +117,12 @@ export const productsApi = {
     apiClient.get('/products', { params: { company_id: companyId, search } }),
 }
 
+// ── Invoices API (Multi-PC Sync) ─────────────────────────────
+export const invoicesApi = {
+  getAll: (type?: string, query?: string) => apiClient.get('/invoices', { params: { type, query } }),
+  save: (invoice: any) => apiClient.post('/invoices', invoice),
+  delete: (id: number) => apiClient.delete(`/invoices/${id}`),
+}
+
 export default apiClient
+

@@ -51,7 +51,15 @@ export const BillHistoryModule: React.FC<BillHistoryModuleProps> = ({
 
   useEffect(() => {
     loadInvoices()
+    const handleUpdate = () => loadInvoices()
+    window.addEventListener('vpm_invoices_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener('vpm_invoices_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
   }, [])
+
 
   // Filter invoices based on user inputs
   const filteredInvoices = invoices.filter((inv) => {

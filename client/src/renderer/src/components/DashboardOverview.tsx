@@ -107,7 +107,15 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onN
 
   useEffect(() => {
     refreshData()
+    const handleUpdate = () => refreshData()
+    window.addEventListener('vpm_invoices_updated', handleUpdate)
+    window.addEventListener('storage', handleUpdate)
+    return () => {
+      window.removeEventListener('vpm_invoices_updated', handleUpdate)
+      window.removeEventListener('storage', handleUpdate)
+    }
   }, [])
+
 
   // Date Strings
   const today = new Date()

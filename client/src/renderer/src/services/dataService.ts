@@ -3,6 +3,8 @@
 // ============================================================
 import * as XLSX from 'xlsx'
 import seedData from './seedData.json'
+import { invoicesApi } from '../api/apiClient'
+
 
 
 export interface Customer {
@@ -576,51 +578,83 @@ export const DataService = {
   getInvoices: (): Invoice[] => getStoredItem<Invoice[]>(STORAGE_KEYS.INVOICES, INITIAL_INVOICES),
   saveInvoice: (invoice: Partial<Invoice>): Invoice => {
     const list = DataService.getInvoices()
+    let savedInvoice: Invoice
+
     if (invoice.id) {
       const idx = list.findIndex(i => i.id === invoice.id)
       if (idx !== -1) {
         list[idx] = { ...list[idx], ...invoice } as Invoice
+        savedInvoice = list[idx]
         setStoredItem(STORAGE_KEYS.INVOICES, list)
-        return list[idx]
+      } else {
+        savedInvoice = invoice as Invoice
       }
+    } else {
+      const targetType = invoice.type || 'TAX_INVOICE'
+      const targetDate = invoice.date || new Date().toISOString().split('T')[0]
+      const generatedNum = getNextInvoiceNumber(targetType, targetDate)
+      savedInvoice = {
+        id: list.length > 0 ? Math.max(...list.map(i => i.id)) + 1 : 1,
+        invoice_number: invoice.invoice_number || generatedNum,
+        type: targetType,
+        date: targetDate,
+        customer_name: invoice.customer_name || 'Walk-in Customer',
+        customer_mobile: invoice.customer_mobile || '',
+        customer_gstin: invoice.customer_gstin || '',
+        customer_address: invoice.customer_address || '',
+        eway_bill_no: invoice.eway_bill_no || '',
+        valid_for: invoice.valid_for || '30 Days',
+        credit_period: invoice.credit_period || '7 Days',
+        sub_total: invoice.sub_total || 0,
+        cgst: invoice.cgst || 0,
+        sgst: invoice.sgst || 0,
+        round_off: invoice.round_off || 0,
+        grand_total: invoice.grand_total || 0,
+        paid_amount: invoice.paid_amount || 0,
+        balance_amount: (invoice.grand_total || 0) - (invoice.paid_amount || 0),
+        status: (invoice.paid_amount || 0) >= (invoice.grand_total || 0) ? 'PAID' : (invoice.paid_amount || 0) > 0 ? 'PARTIALLY_PAID' : 'UNPAID',
+        payment_mode: invoice.payment_mode || 'CASH',
+        items: invoice.items || [],
+        terms: invoice.terms || 'Goods once sold will not be accepted. Subject to Ahmedabad Jurisdiction.',
+        created_at: new Date().toISOString().split('T')[0]
+      }
+      list.unshift(savedInvoice)
+      setStoredItem(STORAGE_KEYS.INVOICES, list)
     }
-    const targetType = invoice.type || 'TAX_INVOICE'
-    const targetDate = invoice.date || new Date().toISOString().split('T')[0]
-    const generatedNum = getNextInvoiceNumber(targetType, targetDate)
-    const newInvoice: Invoice = {
-      id: list.length > 0 ? Math.max(...list.map(i => i.id)) + 1 : 1,
-      invoice_number: invoice.invoice_number || generatedNum,
-      type: targetType,
-      date: targetDate,
-      customer_name: invoice.customer_name || 'Walk-in Customer',
-      customer_mobile: invoice.customer_mobile || '',
-      customer_gstin: invoice.customer_gstin || '',
-      customer_address: invoice.customer_address || '',
-      eway_bill_no: invoice.eway_bill_no || '',
-      valid_for: invoice.valid_for || '30 Days',
-      credit_period: invoice.credit_period || '7 Days',
-      sub_total: invoice.sub_total || 0,
-      cgst: invoice.cgst || 0,
-      sgst: invoice.sgst || 0,
-      round_off: invoice.round_off || 0,
-      grand_total: invoice.grand_total || 0,
-      paid_amount: invoice.paid_amount || 0,
-      balance_amount: (invoice.grand_total || 0) - (invoice.paid_amount || 0),
-      status: (invoice.paid_amount || 0) >= (invoice.grand_total || 0) ? 'PAID' : (invoice.paid_amount || 0) > 0 ? 'PARTIALLY_PAID' : 'UNPAID',
-      payment_mode: invoice.payment_mode || 'CASH',
-      items: invoice.items || [],
-      terms: invoice.terms || 'Goods once sold will not be accepted. Subject to Ahmedabad Jurisdiction.',
-      created_at: new Date().toISOString().split('T')[0]
+
+    DataService.addActivityLog('admin', 'Invoice Saved', 'Invoice Management', `Saved ${savedInvoice.type} ${savedInvoice.invoice_number}`)
+
+    // ── Instant Multi-PC Network Sync ──
+    invoicesApi.save(savedInvoice).catch(() => {})
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        const ch = new BroadcastChannel('vpm_bills_channel')
+        ch.postMessage({ type: 'INVOICES_UPDATED' })
+        ch.close()
+      } catch {}
     }
-    list.unshift(newInvoice)
-    setStoredItem(STORAGE_KEYS.INVOICES, list)
-    DataService.addActivityLog('admin', 'Invoice Created', 'Invoice Management', `Created ${newInvoice.type} ${newInvoice.invoice_number}`)
-    return newInvoice
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('vpm_invoices_updated'))
+    }
+
+    return savedInvoice
   },
   deleteInvoice: (id: number): void => {
     const list = DataService.getInvoices().filter(i => i.id !== id)
     setStoredItem(STORAGE_KEYS.INVOICES, list)
+    invoicesApi.delete(id).catch(() => {})
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        const ch = new BroadcastChannel('vpm_bills_channel')
+        ch.postMessage({ type: 'INVOICES_UPDATED' })
+        ch.close()
+      } catch {}
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('vpm_invoices_updated'))
+    }
   },
+
 
   // Purchases
   getPurchases: (): Purchase[] => getStoredItem<Purchase[]>(STORAGE_KEYS.PURCHASES, INITIAL_PURCHASES),
@@ -1248,4 +1282,57 @@ export const DataService = {
     localStorage.setItem('vpm_daily_transactions', JSON.stringify(list))
   }
 }
+
+// ── Multi-PC Offline LAN Synchroniser ──────────────────────────
+export const syncInvoicesWithServer = async (): Promise<void> => {
+  try {
+    const res = await invoicesApi.getAll()
+    if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
+      const serverInvoices: Invoice[] = res.data.data
+      const localInvoices = DataService.getInvoices()
+
+      const map = new Map<string, Invoice>()
+      serverInvoices.forEach(inv => {
+        if (inv && inv.invoice_number) map.set(inv.invoice_number, inv)
+      })
+      localInvoices.forEach(inv => {
+        if (inv && inv.invoice_number && !map.has(inv.invoice_number)) {
+          map.set(inv.invoice_number, inv)
+        }
+      })
+
+      const merged = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0))
+      setStoredItem(STORAGE_KEYS.INVOICES, merged)
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('vpm_invoices_updated'))
+      }
+    }
+  } catch {
+    // Network offline fallback
+  }
+}
+
+// Global BroadcastChannel Listener across browser tabs & screens
+if (typeof BroadcastChannel !== 'undefined') {
+  try {
+    const ch = new BroadcastChannel('vpm_bills_channel')
+    ch.onmessage = (event) => {
+      if (event.data?.type === 'INVOICES_UPDATED') {
+        syncInvoicesWithServer()
+      }
+    }
+  } catch {}
+}
+
+// 3-second background polling timer across network
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    syncInvoicesWithServer()
+    setInterval(() => {
+      syncInvoicesWithServer()
+    }, 3000)
+  }, 1000)
+}
+
 
