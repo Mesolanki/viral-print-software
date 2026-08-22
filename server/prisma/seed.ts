@@ -211,6 +211,31 @@ async function main() {
     console.log('      ✓ Admin user already exists (updated role/status)');
   }
 
+  // ── 6. Seed restored BAK database records ─────────────────
+  console.log('[6/6] Seeding restored BAK dataset records...');
+  try {
+    const seedData = require('./seedData.json');
+    if (seedData && seedData.customers) {
+      console.log(`      Found ${seedData.customers.length} customers to seed...`);
+      for (const c of seedData.customers.slice(0, 100)) {
+        await prisma.customer.create({
+          data: {
+            company_id: company.id,
+            name: c.name,
+            mobile: c.mobile || '',
+            email: c.email || '',
+            gst_no: c.gst_no || '',
+            billing_address: c.billing_address || '',
+            shipping_address: c.shipping_address || ''
+          }
+        }).catch(() => {});
+      }
+      console.log(`      ✓ Seeded customer records`);
+    }
+  } catch (err) {
+    console.log('      (Skipping extra BAK seed insertion: ', err, ')');
+  }
+
   console.log('\n================================================');
   console.log('  Seeding complete!');
   console.log('  Default login credentials:');
@@ -218,6 +243,7 @@ async function main() {
   console.log('    Password : admin123');
   console.log('  Please change the admin password after first login.');
   console.log('================================================\n');
+
 }
 
 main()

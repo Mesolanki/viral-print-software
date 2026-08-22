@@ -2,6 +2,7 @@
 // Viral Print Media - Data & API Service
 // ============================================================
 import * as XLSX from 'xlsx'
+import seedData from './seedData.json'
 
 
 export interface Customer {
@@ -219,42 +220,9 @@ const STORAGE_KEYS = {
   LOGS: 'vpm_activity_logs'
 }
 
-// Initial Sample Data (Real print shop context for Viral Print Media)
-const INITIAL_CUSTOMERS: Customer[] = [
-  {
-    id: 1,
-    name: 'Apex Infotech Solutions',
-    mobile: '98250 12345',
-    email: 'contact@apexinfotech.com',
-    gst_no: '24AAAAA0000A1Z5',
-    billing_address: '102 Business Center, SG Highway, Ahmedabad 380054',
-    shipping_address: '102 Business Center, SG Highway, Ahmedabad 380054',
-    outstanding_balance: 14500,
-    created_at: '2026-07-15'
-  },
-  {
-    id: 2,
-    name: 'Radhe Krishna Enterprise',
-    mobile: '97123 45678',
-    email: 'info@radhekrishna.co.in',
-    gst_no: '24BBBBB1111B2Z6',
-    billing_address: 'G-12 Commerce House, Ashram Road, Ahmedabad 380009',
-    shipping_address: 'Warehouse Site 4, Changodar, Ahmedabad 382213',
-    outstanding_balance: 6200,
-    created_at: '2026-07-20'
-  },
-  {
-    id: 3,
-    name: 'Satyam Advertising Agency',
-    mobile: '94260 99887',
-    email: 'satyamads.ahd@gmail.com',
-    gst_no: '24CCCCC2222C3Z7',
-    billing_address: '405 Spectrum Tower, CG Road, Ahmedabad 380006',
-    shipping_address: '405 Spectrum Tower, CG Road, Ahmedabad 380006',
-    outstanding_balance: 0,
-    created_at: '2026-07-25'
-  }
-]
+// Restored Data from InvoicePrintDB22-08-2026.bak
+const INITIAL_CUSTOMERS: Customer[] = (seedData.customers || []) as Customer[]
+
 
 const INITIAL_SUPPLIERS: Supplier[] = [
   {
@@ -277,179 +245,9 @@ const INITIAL_SUPPLIERS: Supplier[] = [
   }
 ]
 
-const INITIAL_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: 'Star Flex Banner (13 oz Frontlit)',
-    category: 'Flex Printing',
-    unit: 'sqft',
-    price: 18,
-    gst_rate: 18,
-    hsn_code: '4911',
-    description: 'High resolution digital flex banner printing'
-  },
-  {
-    id: 2,
-    name: 'Vinyl Sticker Printing with Gloss Lamination',
-    category: 'Vinyl & Stickers',
-    unit: 'sqft',
-    price: 45,
-    gst_rate: 18,
-    hsn_code: '3919',
-    description: 'Self-adhesive waterproof vinyl with lamination'
-  },
-  {
-    id: 3,
-    name: 'Visiting Cards (350 GSM Velvet Matte)',
-    category: 'Stationery',
-    unit: 'box',
-    price: 350,
-    gst_rate: 12,
-    hsn_code: '4909',
-    description: 'Premium double sided visiting cards (Box of 100)'
-  },
-  {
-    id: 4,
-    name: 'Acrylic LED Glow Sign Board',
-    category: 'Signages',
-    unit: 'sqft',
-    price: 650,
-    gst_rate: 18,
-    hsn_code: '9405',
-    description: '3D Acrylic cutout letters with Samsung LED modules'
-  },
-  {
-    id: 5,
-    name: 'Brochure Printing (A4 Multi-page)',
-    category: 'Offset Printing',
-    unit: 'pcs',
-    price: 15,
-    gst_rate: 12,
-    hsn_code: '4911',
-    description: '170 GSM Art paper full color catalog printing'
-  }
-]
+const INITIAL_PRODUCTS: Product[] = (seedData.products || []) as Product[]
+const INITIAL_INVOICES: Invoice[] = (seedData.invoices || []) as Invoice[]
 
-const INITIAL_INVOICES: Invoice[] = [
-  {
-    id: 1,
-    invoice_number: 'VPM/26-27/0101',
-    type: 'TAX_INVOICE',
-    date: '2026-08-01',
-    customer_name: 'Apex Infotech Solutions',
-    customer_mobile: '98250 12345',
-    customer_gstin: '24AAAAA0000A1Z5',
-    customer_address: '102 Business Center, SG Highway, Ahmedabad 380054',
-    eway_bill_no: '241098765432',
-    sub_total: 20000,
-    cgst: 1800,
-    sgst: 1800,
-    round_off: 0,
-    grand_total: 23600,
-    paid_amount: 10000,
-    balance_amount: 13600,
-    status: 'PARTIALLY_PAID',
-    payment_mode: 'BANK',
-    items: [
-      {
-        description: 'Star Flex Banner (13 oz Frontlit)',
-        hsn: '4911',
-        tax_percent: 18,
-        qty: 500,
-        rate: 18,
-        amount: 9000
-      },
-      {
-        description: 'Acrylic LED Glow Sign Board',
-        hsn: '9405',
-        tax_percent: 18,
-        qty: 16,
-        rate: 687.5,
-        amount: 11000
-      }
-    ],
-    terms: 'Goods once sold will not be accepted. Subject to Ahmedabad Jurisdiction.',
-    created_at: '2026-08-01'
-  },
-  {
-    id: 2,
-    invoice_number: 'VPM/QT/26-27/0045',
-    type: 'QUOTATION',
-    date: '2026-08-05',
-    customer_name: 'Radhe Krishna Enterprise',
-    customer_mobile: '97123 45678',
-    customer_gstin: '24BBBBB1111B2Z6',
-    customer_address: 'G-12 Commerce House, Ashram Road, Ahmedabad 380009',
-    valid_for: '30 Days',
-    credit_period: '15 Days',
-    sub_total: 15000,
-    cgst: 1350,
-    sgst: 1350,
-    round_off: 0,
-    grand_total: 17700,
-    paid_amount: 0,
-    balance_amount: 17700,
-    status: 'UNPAID',
-    items: [
-      {
-        description: 'Vinyl Sticker Printing with Gloss Lamination',
-        hsn: '3919',
-        tax_percent: 18,
-        qty: 200,
-        rate: 45,
-        amount: 9000
-      },
-      {
-        description: 'Visiting Cards (350 GSM Velvet Matte)',
-        hsn: '4909',
-        tax_percent: 12,
-        qty: 20,
-        rate: 300,
-        amount: 6000
-      }
-    ],
-    terms: '50% Advance with Purchase Order. Delivery within 4 working days.',
-    created_at: '2026-08-05'
-  },
-  {
-    id: 3,
-    invoice_number: 'EST-2026-089',
-    type: 'ESTIMATE',
-    date: '2026-08-06',
-    customer_name: 'Satyam Advertising Agency',
-    customer_mobile: '94260 99887',
-    customer_gstin: '',
-    customer_address: '405 Spectrum Tower, CG Road, Ahmedabad 380006',
-    sub_total: 8500,
-    cgst: 0,
-    sgst: 0,
-    round_off: 0,
-    grand_total: 8500,
-    paid_amount: 8500,
-    balance_amount: 0,
-    status: 'PAID',
-    payment_mode: 'UPI',
-    items: [
-      {
-        description: 'Flex Banners for Local Promotion Event',
-        hsn: '',
-        tax_percent: 0,
-        qty: 350,
-        rate: 20,
-        amount: 7000
-      },
-      {
-        description: 'Standee Frames with Print',
-        hsn: '',
-        tax_percent: 0,
-        qty: 1,
-        rate: 1500,
-        amount: 1500
-      }
-    ],
-    created_at: '2026-08-06'
-  }
-]
 
 const INITIAL_PURCHASES: Purchase[] = [
   {
@@ -588,7 +386,13 @@ function getStoredItem<T>(key: string, initialDefault: T): T {
       localStorage.setItem(key, JSON.stringify(initialDefault))
       return initialDefault
     }
-    return JSON.parse(raw) as T
+    const parsed = JSON.parse(raw) as T
+    if (Array.isArray(parsed) && Array.isArray(initialDefault) && initialDefault.length > parsed.length + 10) {
+      localStorage.setItem(key, JSON.stringify(initialDefault))
+      return initialDefault as unknown as T
+    }
+    return parsed
+
   } catch (err) {
     console.warn(`[DataService] Error reading key ${key}:`, err)
     return initialDefault
@@ -1254,6 +1058,101 @@ export const DataService = {
       counts
     }
   },
+
+  importExcelBackupData: (workbook: XLSX.WorkBook): { success: boolean; message: string; counts: Record<string, number> } => {
+    const counts: Record<string, number> = {}
+
+    // Sheet 1: Invoices & Bills
+    const invoiceSheet = workbook.Sheets['Invoices & Bills'] || workbook.Sheets[workbook.SheetNames[0]]
+    if (invoiceSheet) {
+      const rawRows: any[] = XLSX.utils.sheet_to_json(invoiceSheet)
+      const invoices: Invoice[] = rawRows.map((r, idx) => ({
+        id: idx + 1,
+        invoice_number: String(r['Invoice Number'] || r['InvoiceNo'] || `VPM/26-27/${String(idx + 1).padStart(4, '0')}`),
+        type: r['Type'] || 'TAX_INVOICE',
+        date: String(r['Date'] || new Date().toISOString().split('T')[0]),
+        customer_name: String(r['Customer Name'] || 'Walk-in Customer'),
+        customer_mobile: String(r['Customer Mobile'] || ''),
+        customer_gstin: String(r['Customer GSTIN'] || ''),
+        customer_address: String(r['Billing Address'] || ''),
+        eway_bill_no: String(r['E-Way Bill No'] || ''),
+        sub_total: Number(r['Sub Total (₹)']) || 0,
+        cgst: Number(r['CGST (₹)']) || 0,
+        sgst: Number(r['SGST (₹)']) || 0,
+        round_off: Number(r['Round Off (₹)']) || 0,
+        grand_total: Number(r['Grand Total (₹)']) || 0,
+        paid_amount: Number(r['Paid Amount (₹)']) || 0,
+        balance_amount: Number(r['Balance (₹)']) || 0,
+        status: r['Status'] || 'PAID',
+        payment_mode: r['Payment Mode'] || 'CASH',
+        items: [
+          {
+            description: 'Printing Services',
+            hsn: '4911',
+            qty: 1,
+            rate: Number(r['Sub Total (₹)']) || 0,
+            tax_percent: 18,
+            amount: Number(r['Sub Total (₹)']) || 0
+          }
+        ],
+        created_at: String(r['Date'] || new Date().toISOString().split('T')[0])
+      }))
+      if (invoices.length > 0) {
+        setStoredItem(STORAGE_KEYS.INVOICES, invoices)
+        counts.invoices = invoices.length
+      }
+    }
+
+    // Sheet 3: Customer Directory
+    const custSheet = workbook.Sheets['Customer Directory']
+    if (custSheet) {
+      const rawCusts: any[] = XLSX.utils.sheet_to_json(custSheet)
+      const customers: Customer[] = rawCusts.map((c, idx) => ({
+        id: idx + 1,
+        name: String(c['Customer Name'] || `Customer ${idx + 1}`),
+        mobile: String(c['Mobile'] || ''),
+        email: String(c['Email'] || ''),
+        gst_no: String(c['GSTIN'] || ''),
+        billing_address: String(c['Billing Address'] || ''),
+        shipping_address: String(c['Billing Address'] || ''),
+        outstanding_balance: Number(c['Outstanding Balance (₹)']) || 0,
+        created_at: String(c['Created Date'] || new Date().toISOString().split('T')[0])
+      }))
+      if (customers.length > 0) {
+        setStoredItem(STORAGE_KEYS.CUSTOMERS, customers)
+        counts.customers = customers.length
+      }
+    }
+
+    // Sheet 5: Products & Rates
+    const prodSheet = workbook.Sheets['Products & Rates']
+    if (prodSheet) {
+      const rawProds: any[] = XLSX.utils.sheet_to_json(prodSheet)
+      const products: Product[] = rawProds.map((p, idx) => ({
+        id: idx + 1,
+        name: String(p['Product Name'] || `Product ${idx + 1}`),
+        category: String(p['Category'] || 'General'),
+        unit: String(p['Unit'] || 'pcs'),
+        price: Number(p['Price (₹)']) || 0,
+        gst_rate: Number(p['GST Rate (%)']) || 18,
+        hsn_code: String(p['HSN Code'] || '4911'),
+        description: String(p['Description'] || '')
+      }))
+      if (products.length > 0) {
+        setStoredItem(STORAGE_KEYS.PRODUCTS, products)
+        counts.products = products.length
+      }
+    }
+
+    DataService.addActivityLog('admin', 'Excel Database Restored', 'Backup Module', 'Restored database from Excel backup workbook.')
+
+    return {
+      success: true,
+      message: 'Excel backup successfully restored!',
+      counts
+    }
+  },
+
 
   exportBillsCSV: (): void => {
     const invoices = DataService.getInvoices()

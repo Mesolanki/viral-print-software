@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Row, Col, Alert, Form } from 'react-bootstrap'
 import {
-  HardDrive,
-  Download,
   Upload,
   FileSpreadsheet,
+
   AlertCircle,
   Receipt,
   Users,
@@ -76,34 +75,6 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
     return filteredInvoices.reduce((sum, inv) => sum + (inv.grand_total || 0), 0)
   }, [filteredInvoices])
 
-  // ── Handle Full Backup to Drive (JSON) ────────────────────────────
-  const handleBackupToDrive = async () => {
-    setIsProcessing(true)
-    setStatusAlert(null)
-    try {
-      const result = await DataService.saveBackupToFileDrive()
-      const nowStr = new Date().toLocaleString('en-IN', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-      })
-      localStorage.setItem('vpm_last_backup_timestamp', nowStr)
-      setLastBackupTime(nowStr)
-
-      setStatusAlert({
-        type: 'success',
-        message: `✅ Full JSON Backup successfully saved to your drive as "${result.filename}"!`
-      })
-    } catch (err: any) {
-      if (err.message && err.message.includes('cancelled')) {
-        setStatusAlert({ type: 'info', message: 'Backup save operation was cancelled.' })
-      } else {
-        setStatusAlert({ type: 'danger', message: `❌ Backup failed: ${err.message || 'Unknown error'}` })
-      }
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
   // ── Handle Multi-Sheet Excel Workbook Backup (.xlsx) ───────────────
   const handleBackupToExcel = async () => {
     setIsProcessing(true)
@@ -132,42 +103,31 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
     }
   }
 
-  // ── Handle CSV Export ──────────────────────────────────────────────
-  const handleExportCSV = () => {
-    try {
-      DataService.exportBillsCSV()
-      setStatusAlert({
-        type: 'success',
-        message: '📊 All bill and invoice records exported as CSV for Excel/Drive!'
-      })
-    } catch (err: any) {
-      setStatusAlert({ type: 'danger', message: `Export failed: ${err.message}` })
-    }
-  }
-
-  // ── Handle File Restore ─────────────────────────────────────────────
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ── Handle Excel Workbook Restore (.xlsx) ─────────────────────────
+  const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     const reader = new FileReader()
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
-        const jsonContent = JSON.parse(evt.target?.result as string)
-        const res = DataService.importBackupData(jsonContent)
+        const XLSX = await import('xlsx')
+        const data = new Uint8Array(evt.target?.result as ArrayBuffer)
+        const workbook = XLSX.read(data, { type: 'array' })
+        const res = DataService.importExcelBackupData(workbook)
         loadStats()
         setStatusAlert({
           type: 'success',
-          message: `🎉 System restored! Imported ${res.counts.invoices || 0} invoices, ${res.counts.customers || 0} customers, and ${res.counts.products || 0} products.`
+          message: `🎉 System restored! Imported ${res.counts.invoices || 0} invoices, ${res.counts.customers || 0} customers, and ${res.counts.products || 0} products from Excel.`
         })
       } catch (err: any) {
         setStatusAlert({
           type: 'danger',
-          message: `❌ Failed to restore backup: ${err.message || 'Invalid backup JSON file'}`
+          message: `❌ Failed to restore backup from Excel: ${err.message || 'Invalid Excel file format'}`
         })
       }
     }
-    reader.readAsText(file)
+    reader.readAsArrayBuffer(file)
   }
 
   return (
@@ -176,18 +136,18 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
       <div className="vpm-backup-hero d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div className="d-flex align-items-center gap-3">
           <div className="vpm-backup-icon-box">
-            <HardDrive size={22} />
+            <FileSpreadsheet size={22} />
           </div>
           <div>
             <div className="d-flex align-items-center gap-2 mb-1">
               <span className="vpm-gst-badge" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
-                EXCEL & DRIVE BACKUP SYSTEM
+                EXCEL BACKUP & RESTORE SYSTEM
               </span>
               <span className="small opacity-75 fw-medium">Offline Data Protection</span>
             </div>
-            <h4 className="fw-extrabold m-0 text-gradient-title">Bill Data Excel & Drive Backup System</h4>
+            <h4 className="fw-extrabold m-0 text-gradient-title">Bill Data Excel Backup & Restore System</h4>
             <p className="small opacity-75 m-0 fw-medium">
-              Save complete backups of all Tax Invoices, Quotations, Estimate Bills, Customers, and Ledgers to PC or Drive.
+              Save and restore complete backups of all Tax Invoices, Quotations, Estimate Bills, Customers, and Products using Excel (.xlsx) files.
             </p>
           </div>
         </div>
@@ -202,16 +162,9 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
             {isProcessing ? <RefreshCw className="spin" size={16} /> : <FileSpreadsheet size={16} />}
             Backup to Excel (.xlsx)
           </button>
-          <button
-            type="button"
-            className="vpm-btn-drive-main"
-            onClick={handleBackupToDrive}
-            disabled={isProcessing}
-          >
-            <HardDrive size={16} /> Backup JSON to Drive
-          </button>
         </div>
       </div>
+
 
       {/* ── Status Alert Notification ──────────────────────────────── */}
       {statusAlert && (
@@ -312,8 +265,8 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
         <Col lg={6}>
           <div className="vpm-backup-card p-3">
             <div className="d-flex align-items-center gap-2 mb-2">
-              <HardDrive className="text-primary" size={18} />
-              <h6 className="fw-extrabold m-0">1-Click Backup Options</h6>
+              <FileSpreadsheet className="text-success" size={18} />
+              <h6 className="fw-extrabold m-0">Excel Backup Options</h6>
             </div>
 
             <div className="d-flex flex-column gap-2 mb-2">
@@ -323,62 +276,23 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
                   <FileSpreadsheet className="text-success" size={20} />
                   <div>
                     <span className="fw-bold d-block text-success small">Backup All Data to Excel (.xlsx)</span>
-                    <span className="text-muted" style={{ fontSize: '0.70rem' }}>6 Worksheets: Invoices, Items, Customers, Payments, Rates</span>
+                    <span className="text-muted" style={{ fontSize: '0.70rem' }}>Exports 7 Worksheets: Invoices, Items, Customers, Payments, Products, Purchases, Suppliers</span>
                   </div>
                 </div>
                 <button
                   type="button"
                   className="vpm-btn-excel-main"
-                  style={{ padding: '5px 12px', fontSize: '0.76rem' }}
+                  style={{ padding: '6px 14px', fontSize: '0.78rem' }}
                   onClick={handleBackupToExcel}
                   disabled={isProcessing}
                 >
-                  Export Excel
-                </button>
-              </div>
-
-              {/* JSON Backup Card */}
-              <div className="vpm-backup-option-row">
-                <div className="d-flex align-items-center gap-2">
-                  <Download className="text-primary" size={20} />
-                  <div>
-                    <span className="fw-bold d-block small">Full Bill System Backup (.json)</span>
-                    <span className="text-muted" style={{ fontSize: '0.70rem' }}>Includes Invoices, Quotes, Estimates, Payments & System data</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="vpm-btn-pur-action vpm-btn-add-pur"
-                  style={{ padding: '5px 12px', fontSize: '0.76rem' }}
-                  onClick={handleBackupToDrive}
-                  disabled={isProcessing}
-                >
-                  Save JSON
-                </button>
-              </div>
-
-              {/* CSV Export Card */}
-              <div className="vpm-backup-option-row">
-                <div className="d-flex align-items-center gap-2">
-                  <FileText className="text-info" size={20} />
-                  <div>
-                    <span className="fw-bold d-block small">Export Bills Summary CSV (.csv)</span>
-                    <span className="text-muted" style={{ fontSize: '0.70rem' }}>Export invoice dates, customer GSTINs, totals & balances</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="vpm-btn-gst-sec"
-                  style={{ padding: '5px 12px', fontSize: '0.76rem' }}
-                  onClick={handleExportCSV}
-                >
-                  Export CSV
+                  Export Excel (.xlsx)
                 </button>
               </div>
             </div>
 
-            <div className="p-2 rounded-3 bg-primary bg-opacity-10 text-primary" style={{ fontSize: '0.72rem' }}>
-              <strong>💡 Tip for Google Drive / OneDrive:</strong> Choose your synced cloud drive folder to auto-sync!
+            <div className="p-2 rounded-3 bg-success bg-opacity-10 text-success" style={{ fontSize: '0.72rem' }}>
+              <strong>💡 Tip for PC & Cloud Drive:</strong> Save your Excel workbook (.xlsx) directly into your synced Google Drive / OneDrive folder!
             </div>
           </div>
         </Col>
@@ -388,18 +302,18 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
           <div className="vpm-backup-card p-3">
             <div className="d-flex align-items-center gap-2 mb-2">
               <Upload className="text-warning" size={18} />
-              <h6 className="fw-extrabold m-0">Restore Database Backup</h6>
+              <h6 className="fw-extrabold m-0">Restore Database from Excel Backup</h6>
             </div>
 
             <div className="vpm-restore-dropzone mb-2">
               <FolderOpen className="text-warning mb-1" size={28} />
-              <h6 className="fw-extrabold mb-1 small">Select Backup File (.json)</h6>
-              <p className="text-muted mb-2" style={{ fontSize: '0.72rem' }}>Choose a backup file from your local drive to restore</p>
+              <h6 className="fw-extrabold mb-1 small">Select Excel Backup File (.xlsx)</h6>
+              <p className="text-muted mb-2" style={{ fontSize: '0.72rem' }}>Choose an Excel backup workbook (.xlsx) exported from this software to restore</p>
               <Form.Group controlId="backupFileUpload">
                 <Form.Control
                   type="file"
-                  accept=".json"
-                  onChange={handleFileUpload}
+                  accept=".xlsx, .xls"
+                  onChange={handleExcelUpload}
                   style={{ display: 'none' }}
                 />
                 <Form.Label
@@ -407,17 +321,18 @@ const BackupModule: React.FC<BackupModuleProps> = ({ theme }) => {
                   className="vpm-btn-pur-action vpm-btn-pur-sec m-0 cursor-pointer"
                   style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#D97706', borderColor: 'rgba(234, 179, 8, 0.3)' }}
                 >
-                  <Upload size={14} className="me-1" /> Browse Backup File from Drive
+                  <Upload size={14} className="me-1" /> Browse Excel Backup File (.xlsx)
                 </Form.Label>
               </Form.Group>
             </div>
 
             <Alert variant="warning" className="m-0 py-1.5 px-2.5 rounded-3" style={{ fontSize: '0.72rem' }}>
               <AlertCircle size={13} className="me-1" />
-              <strong>Note:</strong> Restoring safely updates your local bill dataset. Back up current work first.
+              <strong>Note:</strong> Restoring from Excel safely updates your local bill, customer, and product dataset.
             </Alert>
           </div>
         </Col>
+
       </Row>
 
       {/* ── Bill Data Overview Table ───────────────────────────────── */}

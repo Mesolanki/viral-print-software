@@ -1,6 +1,22 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Row, Col, Modal, Form } from 'react-bootstrap'
-import { UserCheck, Plus, Search, Edit2, Trash2, BookOpen, Phone, Mail, MapPin } from 'lucide-react'
+import {
+  UserCheck,
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  BookOpen,
+  Phone,
+  Mail,
+  MapPin,
+  IndianRupee,
+  Building2,
+  UserX,
+  AlertCircle,
+  X
+} from 'lucide-react'
+
 import { DataService, Customer, Invoice } from '../services/dataService'
 import './CustomerManagement.css'
 
@@ -11,7 +27,12 @@ interface CustomerManagementProps {
 const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
+
+  // ── Filter States ────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('')
+  const [gstFilter, setGstFilter] = useState<'ALL' | 'GST' | 'NON_GST'>('ALL')
+  const [dueFilter, setDueFilter] = useState<'ALL' | 'DUE_ONLY' | 'HIGH_DUE' | 'ZERO_DUE'>('ALL')
+  const [sortBy, setSortBy] = useState<'name_asc' | 'due_desc' | 'due_asc' | 'newest'>('name_asc')
 
   // Modal States
   const [showModal, setShowModal] = useState(false)
@@ -90,16 +111,71 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
     }
   }
 
-  const filteredCustomers = customers.filter(
-    (c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.mobile.includes(searchQuery) ||
-      (c.gst_no && c.gst_no.toLowerCase().includes(searchQuery.toLowerCase()))
-  )
+  // ── Dynamic Filter & Sorting Computation ───────────────────────
+  const filteredCustomers = useMemo(() => {
+    return customers
+      .filter((c) => {
+        // 1. GST Filter
+        const hasGst = !!(c.gst_no && c.gst_no.trim().length > 0)
+        if (gstFilter === 'GST' && !hasGst) return false
+        if (gstFilter === 'NON_GST' && hasGst) return false
+
+        // 2. Outstanding Balance Filter
+        const balance = Number(c.outstanding_balance) || 0
+        if (dueFilter === 'DUE_ONLY' && balance <= 0) return false
+        if (dueFilter === 'HIGH_DUE' && balance < 5000) return false
+        if (dueFilter === 'ZERO_DUE' && balance > 0) return false
+
+        // 3. Search Query Filter
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim()
+          const matchName = c.name.toLowerCase().includes(q)
+          const matchMobile = c.mobile.includes(q)
+          const matchGst = c.gst_no ? c.gst_no.toLowerCase().includes(q) : false
+          const matchAddress = c.billing_address ? c.billing_address.toLowerCase().includes(q) : false
+          if (!matchName && !matchMobile && !matchGst && !matchAddress) return false
+        }
+
+        return true
+      })
+      .sort((a, b) => {
+        if (sortBy === 'name_asc') return a.name.localeCompare(b.name)
+        if (sortBy === 'due_desc') return (Number(b.outstanding_balance) || 0) - (Number(a.outstanding_balance) || 0)
+        if (sortBy === 'due_asc') return (Number(a.outstanding_balance) || 0) - (Number(b.outstanding_balance) || 0)
+        if (sortBy === 'newest') return (b.id || 0) - (a.id || 0)
+        return 0
+      })
+  }, [customers, searchQuery, gstFilter, dueFilter, sortBy])
+
+  // ── Dynamic Filter Metrics Memo ─────────────────────────────────
+  const metrics = useMemo(() => {
+    const totalCount = filteredCustomers.length
+    let gstCount = 0
+    let nonGstCount = 0
+    let totalDues = 0
+
+    filteredCustomers.forEach((c) => {
+      const hasGst = !!(c.gst_no && c.gst_no.trim().length > 0)
+      if (hasGst) gstCount++
+      else nonGstCount++
+      totalDues += Number(c.outstanding_balance) || 0
+    })
+
+    return { totalCount, gstCount, nonGstCount, totalDues }
+  }, [filteredCustomers])
 
   const customerInvoices = selectedLedgerCustomer
     ? invoices.filter((i) => i.customer_name.toLowerCase() === selectedLedgerCustomer.name.toLowerCase())
     : []
+
+  const resetFilters = () => {
+    setSearchQuery('')
+    setGstFilter('ALL')
+    setDueFilter('ALL')
+    setSortBy('name_asc')
+  }
+
+  const isFiltered = searchQuery || gstFilter !== 'ALL' || dueFilter !== 'ALL' || sortBy !== 'name_asc'
 
   return (
     <div className={`vpm-cust-module ${isDark ? 'theme-dark' : 'theme-light'}`}>
@@ -110,9 +186,9 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
             <UserCheck size={22} />
           </div>
           <div>
-            <h4 className="fw-extrabold m-0 text-gradient-title">Customer Management</h4>
+            <h4 className="fw-extrabold m-0 text-gradient-title">Customer Management & Directory</h4>
             <p className="text-muted small m-0 fw-medium">
-              Manage complete customer database, GSTIN records, addresses, ledgers, and outstanding balances.
+              Filter by GST, Non-GST, Outstanding dues, mobile numbers, and ledger statements.
             </p>
           </div>
         </div>
@@ -122,18 +198,143 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
         </button>
       </div>
 
-      {/* ── Search Bar ───────────────────────────────────────── */}
+      {/* ── Metric Summary Cards for Filtered Selection ────────── */}
+      <Row className="g-2 w-100 mx-0 my-1">
+        <Col lg={3} sm={6} className="px-1">
+          <div className="p-2.5 rounded-3 border bg-body-tertiary d-flex align-items-center justify-content-between shadow-sm">
+            <div>
+              <span className="text-muted fw-bold d-block" style={{ fontSize: '0.68rem', textTransform: 'uppercase' }}>Filtered Accounts</span>
+              <h5 className="fw-extrabold m-0">{metrics.totalCount}</h5>
+            </div>
+            <div className="p-2 rounded-circle bg-primary bg-opacity-10 text-primary">
+              <UserCheck size={18} />
+            </div>
+          </div>
+        </Col>
+
+        <Col lg={3} sm={6} className="px-1">
+          <div className="p-2.5 rounded-3 border bg-body-tertiary d-flex align-items-center justify-content-between shadow-sm">
+            <div>
+              <span className="text-muted fw-bold d-block" style={{ fontSize: '0.68rem', textTransform: 'uppercase' }}>GST Registered</span>
+              <h5 className="fw-extrabold text-info m-0">{metrics.gstCount}</h5>
+            </div>
+            <div className="p-2 rounded-circle bg-info bg-opacity-10 text-info">
+              <Building2 size={18} />
+            </div>
+          </div>
+        </Col>
+
+        <Col lg={3} sm={6} className="px-1">
+          <div className="p-2.5 rounded-3 border bg-body-tertiary d-flex align-items-center justify-content-between shadow-sm">
+            <div>
+              <span className="text-muted fw-bold d-block" style={{ fontSize: '0.68rem', textTransform: 'uppercase' }}>Non-GST / Retail</span>
+              <h5 className="fw-extrabold text-warning m-0">{metrics.nonGstCount}</h5>
+            </div>
+            <div className="p-2 rounded-circle bg-warning bg-opacity-10 text-warning">
+              <UserX size={18} />
+            </div>
+          </div>
+        </Col>
+
+        <Col lg={3} sm={6} className="px-1">
+          <div className="p-2.5 rounded-3 border bg-body-tertiary d-flex align-items-center justify-content-between shadow-sm">
+            <div>
+              <span className="text-muted fw-bold d-block" style={{ fontSize: '0.68rem', textTransform: 'uppercase' }}>Filtered Dues</span>
+              <h5 className="fw-extrabold text-danger m-0">₹{metrics.totalDues.toLocaleString('en-IN')}</h5>
+            </div>
+            <div className="p-2 rounded-circle bg-danger bg-opacity-10 text-danger">
+              <IndianRupee size={18} />
+            </div>
+          </div>
+        </Col>
+      </Row>
+
+      {/* ── Comprehensive Filter Toolbar ───────────────────────── */}
       <div className="vpm-cust-search-bar">
-        <div className="vpm-cust-search-wrap">
-          <Search size={18} className="vpm-cust-search-icon" />
-          <input
-            type="text"
-            className="vpm-cust-search-input"
-            placeholder="Search customers by Name, Mobile number, or GSTIN..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        <Row className="g-2 align-items-center w-100 mx-0">
+          {/* Search Input */}
+          <Col xl={4} lg={4} md={12} className="px-1">
+            <div className="vpm-cust-search-wrap">
+              <Search size={16} className="vpm-cust-search-icon" />
+              <input
+                type="text"
+                className="vpm-cust-search-input"
+                placeholder="Search name, mobile, GSTIN, address..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="btn btn-sm text-muted border-0 position-absolute end-0 me-2"
+                  title="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </Col>
+
+          {/* GST Status Filter */}
+          <Col xl={2.5} lg={2.5} sm={6} className="px-1">
+            <Form.Select
+              className="vpm-cust-search-input"
+              style={{ paddingLeft: '12px' }}
+              value={gstFilter}
+              onChange={(e) => setGstFilter(e.target.value as any)}
+            >
+              <option value="ALL">🏢 All GST Types</option>
+              <option value="GST">✅ GST Registered</option>
+              <option value="NON_GST">📑 Non-GST (Retail)</option>
+            </Form.Select>
+          </Col>
+
+          {/* Outstanding Due Filter */}
+          <Col xl={2.5} lg={2.5} sm={6} className="px-1">
+            <Form.Select
+              className="vpm-cust-search-input"
+              style={{ paddingLeft: '12px' }}
+              value={dueFilter}
+              onChange={(e) => setDueFilter(e.target.value as any)}
+            >
+              <option value="ALL">💰 All Balances</option>
+              <option value="DUE_ONLY">🔴 Has Outstanding Dues</option>
+              <option value="HIGH_DUE">⚠️ High Dues (&gt; ₹5,000)</option>
+              <option value="ZERO_DUE">🟢 Zero Dues (Fully Paid)</option>
+            </Form.Select>
+          </Col>
+
+          {/* Sort By Selector */}
+          <Col xl={2} lg={2} sm={8} className="px-1">
+            <Form.Select
+              className="vpm-cust-search-input"
+              style={{ paddingLeft: '12px' }}
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+            >
+              <option value="name_asc">🔤 Name (A-Z)</option>
+              <option value="due_desc">⬇️ Highest Dues</option>
+              <option value="due_asc">⬆️ Lowest Dues</option>
+              <option value="newest">🆕 Newest Customers</option>
+            </Form.Select>
+          </Col>
+
+          {/* Reset Filters */}
+          {isFiltered && (
+            <Col xl={1} lg={1} sm={4} className="px-1 text-end">
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary w-100 rounded-3 py-1.5 fw-bold"
+                onClick={resetFilters}
+                title="Reset Filters"
+                style={{ fontSize: '0.75rem' }}
+              >
+                Reset
+              </button>
+            </Col>
+          )}
+        </Row>
       </div>
 
       {/* ── Customers List Table ──────────────────────────────── */}
@@ -144,7 +345,7 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
               <tr>
                 <th className="text-start">Customer Name</th>
                 <th className="text-start">Contact Info</th>
-                <th className="text-center">GST Number</th>
+                <th className="text-center">GST Status</th>
                 <th className="text-start">Billing Address</th>
                 <th className="text-end">Outstanding Balance</th>
                 <th className="text-center">Actions</th>
@@ -154,7 +355,8 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
               {filteredCustomers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-5 text-muted fw-medium">
-                    No customers found matching your search.
+                    <AlertCircle size={32} className="mb-2 opacity-40 d-block mx-auto" />
+                    No customer accounts match your selected filter criteria.
                   </td>
                 </tr>
               ) : (
@@ -203,9 +405,9 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
                     </td>
                     <td className="text-end">
                       {cust.outstanding_balance > 0 ? (
-                        <span className="vpm-amount-balance">₹{cust.outstanding_balance.toLocaleString('en-IN')}</span>
+                        <span className="vpm-amount-balance fw-extrabold text-danger">₹{cust.outstanding_balance.toLocaleString('en-IN')}</span>
                       ) : (
-                        <span className="vpm-amount-paid">₹0</span>
+                        <span className="vpm-amount-paid fw-bold text-success">₹0</span>
                       )}
                     </td>
                     <td className="text-center">
@@ -243,6 +445,7 @@ const CustomerManagement: React.FC<CustomerManagementProps> = ({ theme }) => {
           </table>
         </div>
       </div>
+
 
       {/* ── Add / Edit Customer Modal ──────────────────────────── */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg" className="vpm-modal-dialog">

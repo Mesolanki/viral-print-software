@@ -155,6 +155,40 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
   const [pDesc, setPDesc] = useState('')
   const [pSubmitting, setPSubmitting] = useState(false)
 
+  // ── Height × Width (H × W) Dimension Calculator States for Product Modal ──
+  const [mHeight, setMHeight] = useState<string>('10')
+  const [mWidth, setMWidth] = useState<string>('3')
+  const [mUnit, setMUnit] = useState<'ft' | 'in' | 'm'>('ft')
+  const [mQty, setMQty] = useState<string>('1')
+
+  // ── Modal H × W Calculation Memo ────────────────────────────────
+  const modalCalcResult = useMemo(() => {
+    const h = parseFloat(mHeight) || 0
+    const w = parseFloat(mWidth) || 0
+    const q = parseFloat(mQty) || 1
+    let sqft = h * w
+    if (mUnit === 'in') sqft = (h * w) / 144
+    if (mUnit === 'm') sqft = h * w * 10.7639
+
+    const rate = parseFloat(pPrice) || 0
+    const gstPct = Number(pGst) || 18
+
+    const subtotal = sqft * rate * q
+    const gstAmt = (subtotal * gstPct) / 100
+    const total = subtotal + gstAmt
+
+    return {
+      sqft,
+      rate,
+      gstPct,
+      subtotal,
+      gstAmt,
+      total
+    }
+  }, [mHeight, mWidth, mUnit, mQty, pPrice, pGst])
+
+
+
   // ── Category Modal ──────────────────────────────────────────────
   const [showCatModal, setShowCatModal] = useState(false)
   const [editingCat, setEditingCat] = useState<Category | null>(null)
@@ -697,7 +731,9 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
             </Row>
           </div>
 
+
           {/* Products Table */}
+
           <Card className={`prd-table-card ${isDark ? 'prd-table-dark' : 'prd-table-light'} border-0 w-100`}>
             <Card.Body className="p-0">
               {loading ? (
@@ -799,6 +835,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                                 >
                                   <Edit2 size={13} />
                                 </button>
+
                                 <button
                                   className="prd-action-btn prd-delete-btn"
                                   onClick={() => handleDeleteProduct(p.id, p.name)}
@@ -808,6 +845,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                                 </button>
                               </div>
                             </td>
+
                           </tr>
                         )
                       })}
@@ -1064,10 +1102,107 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                 </Col>
               )}
 
+              {/* ── Height × Width (H × W) Live Print Price Calculator inside Modal ── */}
+              <Col md={12}>
+                <div className={`p-3 rounded-3 my-2 border border-primary border-opacity-25 ${isDark ? 'bg-dark bg-opacity-40' : 'bg-light'}`}>
+                  <div className="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-opacity-10">
+                    <div className="d-flex align-items-center gap-2">
+                      <Sparkles className="text-primary" size={16} />
+                      <h6 className="fw-extrabold m-0 text-primary" style={{ fontSize: '0.85rem' }}>
+                        Height × Width (H × W) Live Print Price Calculator
+                      </h6>
+                    </div>
+                    <span className="vpm-gst-badge bg-primary bg-opacity-10 text-primary px-2 py-0.5" style={{ fontSize: '0.65rem' }}>
+                      DYNAMIC AREA & PRICE ESTIMATOR
+                    </span>
+                  </div>
+
+                  <Row className="g-2 align-items-end">
+                    <Col sm={3}>
+                      <Form.Group>
+                        <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Height (H)</Form.Label>
+                        <Form.Control
+                          type="number"
+                          min={0}
+                          step="0.1"
+                          className="vpm-form-input"
+                          style={{ fontSize: '0.80rem' }}
+                          placeholder="Height"
+                          value={mHeight}
+                          onChange={(e) => setMHeight(e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+
+                    <Col sm={3}>
+                      <Form.Group>
+                        <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Width (W)</Form.Label>
+                        <Form.Control
+                          type="number"
+                          min={0}
+                          step="0.1"
+                          className="vpm-form-input"
+                          style={{ fontSize: '0.80rem' }}
+                          placeholder="Width"
+                          value={mWidth}
+                          onChange={(e) => setMWidth(e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+
+                    <Col sm={3}>
+                      <Form.Group>
+                        <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Unit</Form.Label>
+                        <Form.Select
+                          className="vpm-filter-select"
+                          style={{ fontSize: '0.80rem' }}
+                          value={mUnit}
+                          onChange={(e) => setMUnit(e.target.value as 'ft' | 'in' | 'm')}
+                        >
+                          <option value="ft">Feet (ft)</option>
+                          <option value="in">Inches (in)</option>
+                          <option value="m">Meters (m)</option>
+                        </Form.Select>
+                      </Form.Group>
+                    </Col>
+
+                    <Col sm={3}>
+                      <Form.Group>
+                        <Form.Label className="vpm-form-label mb-1" style={{ fontSize: '0.72rem' }}>Qty</Form.Label>
+                        <Form.Control
+                          type="number"
+                          min={1}
+                          className="vpm-form-input"
+                          style={{ fontSize: '0.80rem' }}
+                          placeholder="Qty"
+                          value={mQty}
+                          onChange={(e) => setMQty(e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+
+                    <Col sm={12} className="mt-3">
+                      <div className="p-3 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 text-center">
+                        <div className="text-muted fw-bold" style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {modalCalcResult.sqft.toFixed(2)} SQ.FT TOTAL PRICE
+                        </div>
+                        <div className="fw-extrabold text-success my-1" style={{ fontSize: '1.35rem' }}>
+                          ₹{modalCalcResult.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                        <div className="text-muted" style={{ fontSize: '0.68rem' }}>
+                          ₹{modalCalcResult.rate.toFixed(2)}/sqft + {modalCalcResult.gstPct}% GST (₹{modalCalcResult.gstAmt.toFixed(2)})
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+              </Col>
+
               {/* Description */}
               <Col md={12}>
                 <Form.Group>
                   <Form.Label className="vpm-form-label">Description / Specifications</Form.Label>
+
                   <Form.Control
                     as="textarea"
                     rows={2}
@@ -1078,6 +1213,7 @@ export default function ProductManagement({ theme = 'dark' }: ProductManagementP
                   />
                 </Form.Group>
               </Col>
+
             </Row>
           </Form>
         </Modal.Body>
