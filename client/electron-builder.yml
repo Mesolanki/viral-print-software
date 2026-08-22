@@ -2,13 +2,13 @@ appId: com.viralprint.software
 productName: Viral Print Software
 directories:
   buildResources: build
+  output: dist
+asar: false
 files:
-  - '!**/.vscode/*'
-  - '!src/*'
-  - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
-  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
-  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - 'out/**/*'
+  - 'package.json'
+
+
 extraResources:
   - from: '../server'
     to: 'server'
