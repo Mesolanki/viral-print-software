@@ -19,6 +19,14 @@ asarUnpack:
   - resources/**
 win:
   executableName: ViralPrintSoftware
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+
 nsis:
   artifactName: ViralPrintSoftware-Setup-${version}.${ext}
   shortcutName: Viral Print Software
