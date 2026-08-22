@@ -1110,12 +1110,13 @@ Main HSN: 9983 (Printing / Advertising)`
 
           <button
             className="eb-btn-secondary"
-            onClick={() => DataService.saveBackupToFileDrive()}
-            style={{ fontSize: '0.76rem', fontWeight: 800, padding: '6px 11px', background: 'rgba(99,102,241,0.1)', color: '#6366f1', borderColor: 'rgba(99,102,241,0.25)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
-            title="Backup all bill data as JSON file to drive"
+            onClick={() => DataService.exportAllDataToExcel()}
+            style={{ fontSize: '0.76rem', fontWeight: 800, padding: '6px 11px', background: 'rgba(16,185,129,0.12)', color: '#10B981', borderColor: 'rgba(16,185,129,0.25)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+            title="Backup all bill data as Excel workbook (.xlsx) to drive"
           >
-            <HardDrive size={13} /> JSON Backup
+            <FileSpreadsheet size={13} /> Excel Backup
           </button>
+
 
           <button
             className="eb-btn-secondary"

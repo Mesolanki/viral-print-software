@@ -108,16 +108,7 @@ const Header: React.FC<HeaderProps> = ({ theme, toggleTheme, activeTab, onToggle
           <span>Excel Backup</span>
         </button>
 
-        {/* Quick Backup to Drive Button */}
-        <button
-          className={`vpm-icon-btn ${themeClass}`}
-          onClick={() => DataService.saveBackupToFileDrive()}
-          title="Backup All Bill Data as JSON to Drive"
-          style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.25)', gap: 5, padding: '5px 10px', width: 'auto', borderRadius: 8, fontWeight: 700, fontSize: '0.78rem' }}
-        >
-          <HardDrive size={16} />
-          <span>JSON Backup</span>
-        </button>
+
 
         {/* Theme Toggle */}
         <button

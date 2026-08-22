@@ -819,49 +819,8 @@ export const DataService = {
   },
 
   saveBackupToFileDrive: async (customFilename?: string): Promise<{ success: boolean; filename: string; method: 'drive_picker' | 'download' }> => {
-    const backupObj = DataService.exportAllData()
-    const jsonStr = JSON.stringify(backupObj, null, 2)
-    const today = new Date().toISOString().split('T')[0]
-    const filename = customFilename || `VPM_ALL_BILLS_BACKUP_${today}.json`
-
-    // Option A: Use native File System Access API (showSaveFilePicker) if supported
-    if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
-      try {
-        const handle = await (window as any).showSaveFilePicker({
-          suggestedName: filename,
-          types: [
-            {
-              description: 'JSON Backup Files (*.json)',
-              accept: { 'application/json': ['.json'] }
-            }
-          ]
-        })
-        const writable = await handle.createWritable()
-        await writable.write(jsonStr)
-        await writable.close()
-        DataService.addActivityLog('admin', 'Backup Saved to Drive', 'Backup Module', `Backup saved to drive: ${handle.name}`)
-        return { success: true, filename: handle.name, method: 'drive_picker' }
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
-          throw new Error('Backup save cancelled.')
-        }
-        console.warn('[DataService] File picker fallback triggered:', err)
-      }
-    }
-
-    // Option B: Fallback browser Blob download
-    const blob = new Blob([jsonStr], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-
-    DataService.addActivityLog('admin', 'Backup Downloaded', 'Backup Module', `Backup downloaded to drive: ${filename}`)
-    return { success: true, filename, method: 'download' }
+    const res = await DataService.exportAllDataToExcel()
+    return { success: true, filename: res.filename, method: 'download' }
   },
 
   exportAllDataToExcel: async (customFilename?: string): Promise<{ success: boolean; filename: string; method: 'drive_picker' | 'download' }> => {
