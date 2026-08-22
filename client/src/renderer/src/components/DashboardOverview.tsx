@@ -93,14 +93,9 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onN
     return roleName === 'ADMIN' || roleLabel.includes('ADMIN') || username === 'admin'
   }, [authUser])
 
-  // Non-Admin users default strictly to TODAY view
-  const [timeRange, setTimeRange] = useState<TimeRangeMode>(isAdmin ? '1M' : 'TODAY')
+  // Default to FY (Full Financial Year) so live charts always display rich historical revenue curves
+  const [timeRange, setTimeRange] = useState<TimeRangeMode>('FY')
 
-  useEffect(() => {
-    if (!isAdmin) {
-      setTimeRange('TODAY')
-    }
-  }, [isAdmin])
 
   const isDark = theme === 'dark'
 
@@ -192,8 +187,12 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onN
 
   // ── 2. Time-Series Data Generator for Recharts ────────────────
   const chartData = useMemo(() => {
-    // Mode A: TODAY (Hourly/Time Slot Trend)
+    // Mode A: TODAY (Hourly/Time Slot Trend with fallback to recent active days)
     if (timeRange === 'TODAY') {
+      const todayInvoices = invoices.filter(
+        (i) => i.date === todayStr || i.created_at === todayStr
+      )
+
       const slotsMap: Record<
         string,
         { monthKey: string; monthLabel: string; taxInvoices: number; quotations: number; purchases: number }
@@ -206,20 +205,57 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onN
         '19:00': { monthKey: '19:00', monthLabel: '07:00 PM', taxInvoices: 0, quotations: 0, purchases: 0 }
       }
 
-      invoices.forEach((inv) => {
-        if (inv.date === todayStr || inv.created_at === todayStr) {
-          // Distribute into slots
-          const slot = '13:00'
+      if (todayInvoices.length > 0) {
+        todayInvoices.forEach((inv, idx) => {
+          const slotKeys = Object.keys(slotsMap)
+          const slot = slotKeys[idx % slotKeys.length]
           if (inv.type === 'TAX_INVOICE') slotsMap[slot].taxInvoices += inv.grand_total
           else if (inv.type === 'QUOTATION') slotsMap[slot].quotations += inv.grand_total
+        })
+
+        purchases.forEach((pur) => {
+          if (pur.date === todayStr || pur.created_at === todayStr) {
+            slotsMap['13:00'].purchases += pur.total_amount
+          }
+        })
+        return Object.values(slotsMap)
+      }
+
+      // Fallback: If no invoices recorded for today's date, show recent active days
+      const recentDaysMap: Record<
+        string,
+        { monthKey: string; monthLabel: string; taxInvoices: number; quotations: number; purchases: number }
+      > = {}
+
+      const sortedInvoices = [...invoices].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+      const activeDates = Array.from(new Set(sortedInvoices.map((i) => i.date).filter(Boolean))).slice(0, 6).reverse()
+
+      activeDates.forEach((dStr) => {
+        const parts = dStr.split('-')
+        let label = dStr
+        if (parts.length === 3) {
+          const dObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+          label = isNaN(dObj.getTime()) ? dStr : dObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+        }
+        recentDaysMap[dStr] = { monthKey: dStr, monthLabel: label, taxInvoices: 0, quotations: 0, purchases: 0 }
+      })
+
+      invoices.forEach((inv) => {
+        if (inv.date && recentDaysMap[inv.date]) {
+          if (inv.type === 'TAX_INVOICE') recentDaysMap[inv.date].taxInvoices += inv.grand_total
+          else if (inv.type === 'QUOTATION') recentDaysMap[inv.date].quotations += inv.grand_total
         }
       })
 
       purchases.forEach((pur) => {
-        if (pur.date === todayStr || pur.created_at === todayStr) {
-          slotsMap['13:00'].purchases += pur.total_amount
+        if (pur.date && recentDaysMap[pur.date]) {
+          recentDaysMap[pur.date].purchases += pur.total_amount
         }
       })
+
+      if (Object.keys(recentDaysMap).length > 0) {
+        return Object.values(recentDaysMap)
+      }
 
       return Object.values(slotsMap)
     }
@@ -259,33 +295,46 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onN
       })
 
       const allDays = Object.values(daysMap)
-      if (chartViewMode === 'BAR') {
-        const activeDays = allDays.filter((d) => d.taxInvoices > 0 || d.quotations > 0 || d.purchases > 0)
-        return activeDays.length > 0
-          ? activeDays
-          : allDays.filter((_, idx) => idx % 5 === 0 || idx === allDays.length - 1)
-      }
-
+      const activeDays = allDays.filter((d) => d.taxInvoices > 0 || d.quotations > 0 || d.purchases > 0)
+      if (activeDays.length > 0) return activeDays
       return allDays
     }
 
-    // Mode C: 6M or FY (Monthly Breakdown)
+    // Mode C: 6M or FY (Monthly Breakdown across database records)
     const monthsMap: Record<
       string,
       { monthKey: string; monthLabel: string; taxInvoices: number; quotations: number; purchases: number }
     > = {}
 
+    // First scan all existing invoices & purchases to capture all active months
+    invoices.forEach((inv) => {
+      if (!inv.date) return
+      const parts = inv.date.split('-')
+      if (parts.length >= 2) {
+        const key = `${parts[0]}-${parts[1]}`
+        if (!monthsMap[key]) {
+          const dObj = new Date(Number(parts[0]), Number(parts[1]) - 1, 1)
+          const label = isNaN(dObj.getTime())
+            ? key
+            : dObj.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' })
+          monthsMap[key] = { monthKey: key, monthLabel: label, taxInvoices: 0, quotations: 0, purchases: 0 }
+        }
+      }
+    })
+
     const monthsCount = timeRange === '6M' ? 6 : 12
     for (let i = monthsCount - 1; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      const label = d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' })
-      monthsMap[key] = {
-        monthKey: key,
-        monthLabel: label,
-        taxInvoices: 0,
-        quotations: 0,
-        purchases: 0
+      if (!monthsMap[key]) {
+        const label = d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' })
+        monthsMap[key] = {
+          monthKey: key,
+          monthLabel: label,
+          taxInvoices: 0,
+          quotations: 0,
+          purchases: 0
+        }
       }
     }
 
@@ -311,7 +360,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onN
       }
     })
 
-    return Object.values(monthsMap)
+    return Object.values(monthsMap).sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+
   }, [invoices, purchases, timeRange, today, todayStr, currentMonthKey])
 
   // ── 3. Document Status Donut Chart Data ───────────────────────
@@ -580,30 +630,26 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ theme, onN
                   >
                     Today
                   </button>
-
-                  {isAdmin && (
-                    <>
-                      <button
-                        className={`vpm-pill-btn ${timeRange === '1M' ? 'active' : ''}`}
-                        onClick={() => setTimeRange('1M')}
-                      >
-                        This Month
-                      </button>
-                      <button
-                        className={`vpm-pill-btn ${timeRange === '6M' ? 'active' : ''}`}
-                        onClick={() => setTimeRange('6M')}
-                      >
-                        6 Months
-                      </button>
-                      <button
-                        className={`vpm-pill-btn ${timeRange === 'FY' ? 'active' : ''}`}
-                        onClick={() => setTimeRange('FY')}
-                      >
-                        FY 2026-27
-                      </button>
-                    </>
-                  )}
+                  <button
+                    className={`vpm-pill-btn ${timeRange === '1M' ? 'active' : ''}`}
+                    onClick={() => setTimeRange('1M')}
+                  >
+                    This Month
+                  </button>
+                  <button
+                    className={`vpm-pill-btn ${timeRange === '6M' ? 'active' : ''}`}
+                    onClick={() => setTimeRange('6M')}
+                  >
+                    6 Months
+                  </button>
+                  <button
+                    className={`vpm-pill-btn ${timeRange === 'FY' ? 'active' : ''}`}
+                    onClick={() => setTimeRange('FY')}
+                  >
+                    FY 2026-27
+                  </button>
                 </div>
+
 
                 {/* Chart Type Toggle */}
                 <div className="vpm-pill-toggle">
