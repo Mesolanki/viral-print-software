@@ -819,9 +819,10 @@ export const DataService = {
   },
 
   saveBackupToFileDrive: async (customFilename?: string): Promise<{ success: boolean; filename: string; method: 'drive_picker' | 'download' }> => {
-    const res = await DataService.exportAllDataToExcel()
+    const res = await DataService.exportAllDataToExcel(customFilename)
     return { success: true, filename: res.filename, method: 'download' }
   },
+
 
   exportAllDataToExcel: async (customFilename?: string): Promise<{ success: boolean; filename: string; method: 'drive_picker' | 'download' }> => {
     const invoices = DataService.getInvoices()
